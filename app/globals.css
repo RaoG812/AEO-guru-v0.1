@@ -71,7 +71,7 @@ main {
   --lens-radius: 80px;
   --lens-feather: 42px;
   --reveal-opacity: 0;
-  --logo-size: min(780px, 74%);
+  --logo-size: min(780px, 72%);
   border-radius: 32px;
   padding: 2.5rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03));
@@ -412,6 +412,7 @@ main {
   display: grid;
   gap: 1rem;
   z-index: 15;
+  width: 72px;
 }
 
 .dock-nav button {
@@ -430,9 +431,11 @@ main {
   cursor: pointer;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
   transition: transform 0.2s ease, border-color 0.2s ease;
+  position: relative;
 }
 
-.dock-nav button:hover {
+.dock-nav button:hover,
+.dock-nav button:focus-visible {
   transform: translateY(-2px);
   border-color: rgba(139, 179, 255, 0.8);
 }
@@ -454,6 +457,25 @@ main {
   font-size: 0.6rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
+  position: absolute;
+  left: calc(100% + 0.75rem);
+  top: 50%;
+  transform: translate3d(0, -50%, 0);
+  padding: 0.35rem 0.55rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 8, 18, 0.9);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dock-nav button:hover .dock-label,
+.dock-nav button:focus-visible .dock-label {
+  opacity: 1;
+  transform: translate3d(0.2rem, -50%, 0);
 }
 
 @media (max-width: 900px) {
