@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Session, SupabaseClient } from "@supabase/supabase-js";
+
+import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 
 type ProjectRecord = {
   id: string;
@@ -130,11 +133,49 @@ export default function HomePage() {
   const [logs, setLogs] = useState<string[]>([]);
   const [vectorIndex, setVectorIndex] = useState(0);
   const [vectorDirection, setVectorDirection] = useState<"horizontal" | "vertical">("horizontal");
+  const [session, setSession] = useState<Session | null>(null);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [authForm, setAuthForm] = useState({ email: "", password: "" });
+  const [authMode, setAuthMode] = useState<"signIn" | "signUp">("signIn");
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
+
+  const supabase = useMemo<SupabaseClient | null>(() => {
+    try {
+      return getSupabaseBrowserClient();
+    } catch (error) {
+      console.error("Unable to initialize Supabase client", error);
+      return null;
+    }
+  }, []);
 
   const selectedProject = useMemo(
     () => projects.find((project) => project.id === selectedProjectId) ?? null,
     [projects, selectedProjectId]
   );
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    let isActive = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!isActive) return;
+      setSession(data.session ?? null);
+    });
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+    });
+
+    return () => {
+      isActive = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   function pushLog(message: string) {
     setLogs((prev) => [message, ...prev].slice(0, 12));
@@ -224,6 +265,64 @@ export default function HomePage() {
 
   const activeVectorPhrase = vectorPhrases[vectorIndex];
   const vectorPhraseKey = `${vectorIndex}-${vectorDirection}`;
+  const userEmail = session?.user?.email ?? (session?.user?.user_metadata as { email?: string })?.email;
+
+  function openLoginModal() {
+    setLoginModalOpen(true);
+    setAuthError(null);
+    setAuthMessage(null);
+  }
+
+  function closeLoginModal() {
+    setLoginModalOpen(false);
+    setAuthError(null);
+    setAuthMessage(null);
+  }
+
+  async function handleAuthSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!supabase) {
+      setAuthError("Supabase client is not configured.");
+      return;
+    }
+    const email = authForm.email.trim();
+    const password = authForm.password.trim();
+    if (!email || !password) {
+      setAuthError("Email and password are required.");
+      return;
+    }
+    setAuthLoading(true);
+    setAuthError(null);
+    setAuthMessage(null);
+
+    try {
+      if (authMode === "signUp") {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        if (data.user && data.session) {
+          setAuthMessage("Account created. Redirecting…");
+          closeLoginModal();
+        } else {
+          setAuthMessage("Check your email to confirm your account.");
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        setAuthMessage("Signed in successfully.");
+        closeLoginModal();
+      }
+      setAuthForm({ email: "", password: "" });
+    } catch (error) {
+      setAuthError((error as Error).message ?? "Authentication failed.");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function handleSignOut() {
+    if (!supabase) return;
+    await supabase.auth.signOut();
+  }
 
   async function handleCreateProject(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -381,6 +480,25 @@ export default function HomePage() {
               <div className="hero-heading">
                 <p className="hero-subline">Answer Engine Ops</p>
                 <h1>AEO Guru</h1>
+                <div className="hero-auth-controls">
+                  {session ? (
+                    <>
+                      <span className="user-pill">Signed in as {userEmail ?? "user"}</span>
+                      <button type="button" className="ghost-button small" onClick={handleSignOut}>
+                        Sign out
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="ghost-button"
+                      onClick={openLoginModal}
+                      disabled={!supabase}
+                    >
+                      Sign in
+                    </button>
+                  )}
+                </div>
                 <div className="hero-intro-copy">
                   <div className="vector-scroller" aria-live="polite">
                     <span className="vector-scroller-label">Vector enrichment</span>
@@ -701,6 +819,81 @@ export default function HomePage() {
           </section>
         )}
       </div>
+      {loginModalOpen && (
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auth-modal-title"
+          onClick={closeLoginModal}
+        >
+          <div className="modal-panel" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">{authMode === "signIn" ? "Welcome back" : "Join the beta"}</p>
+                <h2 id="auth-modal-title">{authMode === "signIn" ? "Sign in" : "Create account"}</h2>
+              </div>
+              <button type="button" className="ghost-button small" onClick={closeLoginModal}>
+                Close
+              </button>
+            </div>
+            {supabase ? (
+              <>
+                <form className="stacked-form" onSubmit={handleAuthSubmit}>
+                  <label className="field-label">
+                    Email
+                    <input
+                      type="email"
+                      className="text-input"
+                      value={authForm.email}
+                      onChange={(e) => setAuthForm((prev) => ({ ...prev, email: e.target.value }))}
+                      required
+                    />
+                  </label>
+                  <label className="field-label">
+                    Password
+                    <input
+                      type="password"
+                      className="text-input"
+                      value={authForm.password}
+                      onChange={(e) => setAuthForm((prev) => ({ ...prev, password: e.target.value }))}
+                      required
+                    />
+                  </label>
+                  {authError && <p className="error-text">{authError}</p>}
+                  {authMessage && <p className="success-text">{authMessage}</p>}
+                  <button type="submit" className="primary-button" disabled={authLoading}>
+                    {authLoading
+                      ? "Working…"
+                      : authMode === "signIn"
+                        ? "Sign in"
+                        : "Create account"}
+                  </button>
+                </form>
+                <p className="muted switcher">
+                  {authMode === "signIn" ? "Need an account?" : "Already registered?"}
+                  <button
+                    type="button"
+                    className="link-button"
+                    onClick={() => {
+                      setAuthMode((prev) => (prev === "signIn" ? "signUp" : "signIn"));
+                      setAuthError(null);
+                      setAuthMessage(null);
+                    }}
+                  >
+                    {authMode === "signIn" ? "Create one" : "Sign in"}
+                  </button>
+                </p>
+              </>
+            ) : (
+              <p className="error-text">
+                Supabase environment variables are missing. Set NEXT_PUBLIC_SUPABASE_URL and
+                NEXT_PUBLIC_SUPABASE_ANON_KEY to enable authentication.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
