@@ -209,8 +209,15 @@ export default function HomePage() {
 
   useEffect(() => {
     const id = setInterval(() => {
-      setVectorDirection(Math.random() > 0.65 ? "vertical" : "horizontal");
-      setVectorIndex((prev) => (prev + 1) % vectorPhrases.length);
+      setVectorIndex((prev) => {
+        const next = (prev + 1) % vectorPhrases.length;
+        if (next === 0) {
+          setVectorDirection("vertical");
+        } else {
+          setVectorDirection(Math.random() > 0.7 ? "vertical" : "horizontal");
+        }
+        return next;
+      });
     }, 2000);
     return () => clearInterval(id);
   }, []);
@@ -373,20 +380,22 @@ export default function HomePage() {
               <div className="hero-heading">
                 <p className="hero-subline">Answer Engine Ops</p>
                 <h1>AEO Guru</h1>
-                <div className="vector-scroller" aria-live="polite">
-                  <span className="vector-scroller-label">Vector enrichment</span>
-                  <div className={`vector-window ${vectorDirection}`}>
-                    <span key={vectorPhraseKey} className="vector-token">
-                      {activeVectorPhrase}
-                    </span>
+                <div className="hero-intro-copy">
+                  <div className="vector-scroller" aria-live="polite">
+                    <span className="vector-scroller-label">Vector enrichment</span>
+                    <div className={`vector-window ${vectorDirection}`}>
+                      <span key={vectorPhraseKey} className="vector-token">
+                        {activeVectorPhrase}
+                      </span>
+                    </div>
                   </div>
+                  <p className="hero-description">
+                    AEO Guru orchestrates crawls, embeddings, clustering, and schema so your site is optimized for
+                    AI-first search experiences—pushing beyond classic SEO playbooks. Build enriched payloads,
+                    intent-aware clusters, and JSON-LD artifacts that help Gemini, Bing Copilot, and Google Overviews
+                    cite your answers when people ask real questions.
+                  </p>
                 </div>
-                <p className="hero-description">
-                  AEO Guru orchestrates crawls, embeddings, clustering, and schema so your site is optimized for AI-first
-                  search experiences—going beyond the limits of SEO. Build enriched payloads, intent-aware clusters, and
-                  JSON-LD artifacts that help Gemini, Bing Copilot, and Google Overviews cite your site when people ask
-                  real questions.
-                </p>
               </div>
               <div className="hero-aside">
                 <div className="hero-tech-panel">

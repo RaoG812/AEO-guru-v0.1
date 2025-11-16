@@ -129,6 +129,20 @@ export async function crawlSite(rootUrl: string, options: CrawlOptions = {}): Pr
   return pages;
 }
 
+function walkSitemapNode(node: any, urls: string[]) {
+  if (!node) return;
+  if (Array.isArray(node)) {
+    node.forEach((child) => walkSitemapNode(child, urls));
+    return;
+  }
+  if (typeof node === "object") {
+    if (typeof node.loc === "string") {
+      urls.push(node.loc.trim());
+    }
+    Object.values(node).forEach((child) => walkSitemapNode(child, urls));
+  }
+}
+
 export async function collectSitemapUrls(sitemapUrl: string, limit = 50): Promise<string[]> {
   try {
     const res = await fetch(sitemapUrl);
@@ -138,21 +152,7 @@ export async function collectSitemapUrls(sitemapUrl: string, limit = 50): Promis
     const parsed = parser.parse(xml);
     const urls: string[] = [];
 
-    function walk(node: any) {
-      if (!node) return;
-      if (typeof node === "object" && node.loc && typeof node.loc === "string") {
-        urls.push(node.loc.trim());
-      }
-      if (Array.isArray(node)) {
-        node.forEach(walk);
-        return;
-      }
-      if (typeof node === "object") {
-        Object.values(node).forEach(walk);
-      }
-    }
-
-    walk(parsed.urlset ?? parsed.sitemapindex ?? parsed);
+    walkSitemapNode(parsed.urlset ?? parsed.sitemapindex ?? parsed, urls);
     return Array.from(new Set(urls)).slice(0, limit);
   } catch (error) {
     console.warn("Failed to parse sitemap", error);
