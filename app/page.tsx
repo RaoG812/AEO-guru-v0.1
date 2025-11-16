@@ -43,6 +43,13 @@ const statusSignals = [
   { label: "Content budget", value: "76% utilized", tone: "#f8f3ff" }
 ];
 
+const hackathonStack = [
+  { label: "lablab.ai", detail: "Hackathon arena" },
+  { label: "OpenAI", detail: "Prompt ops" },
+  { label: "GitHub", detail: "Ship + review" },
+  { label: "Gemini API", detail: "Optimization core" }
+];
+
 const timeline = [
   { time: "09:05", event: "New ingestion window reserved", detail: "Adaptive scheduler locked 35 URLs." },
   { time: "09:22", event: "Crawler sweep completed", detail: "Rendered 28 documents with pristine DOM." },
@@ -250,12 +257,20 @@ export default function HomePage() {
                 <p className="panel-title">Command Deck</p>
                 <h1 className="hero-name">AEO Guru</h1>
               </div>
-              <span className="hero-pill">Glassmorphic workspace OS</span>
             </header>
-            <h2 className="hero-title">Sleek command center for ingestion, curation, and telemetry.</h2>
+            <div className="hero-tech-grid">
+              {hackathonStack.map((tech) => (
+                <article key={tech.label} className="hero-tech-card">
+                  <strong>{tech.label}</strong>
+                  <span>{tech.detail}</span>
+                </article>
+              ))}
+            </div>
+            <h2 className="hero-title">Complete AEO optimization toolkit powered by Gemini.</h2>
             <p className="hero-subtitle">
-              Arrange the critical workspaces for domain discovery and ingestion oversight in a single glass dashboard.
-              Each touch point is infused with glassmorphism layers, subtle motion, and a silvered palette for instant clarity.
+              Guide every crawl, ingestion, and experiment around concrete website goals with Gemini AI API copilots.
+              The deck fuses lablab.ai prototyping energy with OpenAI workflows and GitHub automation so strategy, content,
+              and telemetry stay aligned across the entire AEO initiative.
             </p>
 
             <div className="hero-metrics">
