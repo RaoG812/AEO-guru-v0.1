@@ -14,16 +14,19 @@ import {
   type Cluster
 } from "@/lib/clustering";
 import { COLLECTION, getQdrantClient } from "@/lib/qdrant";
+import { buildAnswerGraphNodes } from "@/lib/answer-graph";
 
-const schema = z.object({ projectId: z.string() });
+const schema = z.object({ projectId: z.string(), lang: z.string().optional() });
 
 const clusterMetadataSchema = z.object({
   label: z.string().min(3),
-  summary: z.string().min(10),
-  intent: z.string().min(3),
-  keywords: z.array(z.string()).min(3),
+  summary: z.string().min(20),
+  intent: z.enum(["informational", "transactional", "navigational", "local", "mixed"]),
+  primaryKeyword: z.string().min(3),
+  secondaryKeywords: z.array(z.string()).min(2),
   contentGaps: z.array(z.string()).min(1),
-  representativeQueries: z.array(z.string()).min(1).max(5)
+  representativeQueries: z.array(z.string()).min(2).max(6),
+  recommendedSchemas: z.array(z.string()).min(1)
 });
 
 type ClusterMetadata = z.infer<typeof clusterMetadataSchema>;
@@ -64,6 +67,36 @@ function buildClusterContext(points: ProjectPoint[], cluster: Cluster) {
   return segments.join("\n---\n");
 }
 
+function determinePrimaryUrl(points: ProjectPoint[], cluster: Cluster) {
+  const lookup = new Map<string, ProjectPoint>();
+  for (const point of points) {
+    lookup.set(String(point.id), point);
+  }
+  for (const pointId of cluster.pointIds) {
+    const match = lookup.get(String(pointId));
+    const url = match?.payload?.url;
+    if (typeof url === "string") {
+      return url;
+    }
+  }
+  return null;
+}
+
+function deriveLang(points: ProjectPoint[], cluster: Cluster) {
+  const lookup = new Map<string, ProjectPoint>();
+  for (const point of points) {
+    lookup.set(String(point.id), point);
+  }
+  for (const pointId of cluster.pointIds) {
+    const match = lookup.get(String(pointId));
+    const lang = match?.payload?.lang;
+    if (typeof lang === "string") {
+      return lang;
+    }
+  }
+  return "en";
+}
+
 async function annotateCluster(
   model: LanguageModelV1,
   projectId: string,
@@ -74,15 +107,20 @@ async function annotateCluster(
   const { object } = await generateObject({
     model,
     schema: clusterMetadataSchema,
-    prompt: `You are an AI Overviews strategist. Based on the following content sections for project ${projectId}, identify what unifies them. Provide a concise label, primary audience intent, 3-6 specific keywords, 2-5 representative queries, and any clear content gaps or unmet needs. Respond with JSON that matches the schema exactly.\n\nSections:\n${context}`
+    prompt: `You are an AI Overviews strategist. Based on the following content sections for project ${projectId}, identify what unifies them. Provide a concise label, the dominant search intent, a primary keyword, 3+ secondary keywords, 2-6 representative queries, at least one content gap, and schema types that would help this topic win AI Overviews. Respond with JSON that matches the schema exactly.\n\nSections:\n${context}`
   });
 
   return object;
 }
 
+function computeOpportunityScore(size: number) {
+  return Math.min(100, Math.round(40 + size * 4));
+}
+
 async function persistClusterMetadata(
   cluster: Cluster,
-  metadata: ClusterMetadata
+  metadata: ClusterMetadata,
+  options: { primaryUrl: string | null; score: number }
 ) {
   const qdrant = getQdrantClient();
   let pointIds: string[] | number[];
@@ -100,18 +138,25 @@ async function persistClusterMetadata(
       clusterLabel: metadata.label,
       clusterSummary: metadata.summary,
       clusterIntent: metadata.intent,
-      clusterKeywords: metadata.keywords,
+      clusterPrimaryKeyword: metadata.primaryKeyword,
+      clusterSecondaryKeywords: metadata.secondaryKeywords,
       clusterRepresentativeQueries: metadata.representativeQueries,
       clusterContentGaps: metadata.contentGaps,
-      clusterSize: cluster.pointIds.length
+      clusterRecommendedSchemas: metadata.recommendedSchemas,
+      clusterSize: cluster.pointIds.length,
+      clusterPrimaryUrl: options.primaryUrl,
+      intent: metadata.intent,
+      primaryKeyword: metadata.primaryKeyword,
+      secondaryKeywords: metadata.secondaryKeywords,
+      score_opportunity: options.score
     }
   });
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { projectId } = schema.parse(await req.json());
-    const points = await getProjectPoints(projectId);
+    const { projectId, lang } = schema.parse(await req.json());
+    const points = await getProjectPoints(projectId, { lang, withVectors: true });
 
     if (!points.length) {
       return NextResponse.json({ clusters: [] });
@@ -120,11 +165,34 @@ export async function POST(req: NextRequest) {
     const clusters = kMeansCluster(points);
     const model = openai("gpt-4.1-mini") as LanguageModelV1;
 
-    const enrichedClusters: Array<Cluster & { metadata: ClusterMetadata }> = [];
+    const enrichedClusters: Array<
+      Cluster & { metadata: ClusterMetadata; questions: string[]; lang: string; primaryUrl: string | null; score: number }
+    > = [];
     for (const cluster of clusters) {
       const metadata = await annotateCluster(model, projectId, points, cluster);
-      await persistClusterMetadata(cluster, metadata);
-      enrichedClusters.push({ ...cluster, metadata });
+      const primaryUrl = determinePrimaryUrl(points, cluster);
+      const langForCluster = lang ?? deriveLang(points, cluster);
+      const score = computeOpportunityScore(cluster.pointIds.length);
+      await persistClusterMetadata(cluster, metadata, { primaryUrl, score });
+      const generatedQuestions = await buildAnswerGraphNodes({
+        projectId,
+        clusterId: cluster.id,
+        clusterLabel: metadata.label,
+        clusterSummary: metadata.summary,
+        intent: metadata.intent,
+        primaryKeyword: metadata.primaryKeyword,
+        lang: langForCluster,
+        primaryUrl,
+        secondaryKeywords: metadata.secondaryKeywords
+      });
+      enrichedClusters.push({
+        ...cluster,
+        metadata,
+        questions: generatedQuestions.map((q) => q.question),
+        lang: langForCluster,
+        primaryUrl,
+        score
+      });
     }
 
     return NextResponse.json({
@@ -132,7 +200,11 @@ export async function POST(req: NextRequest) {
         id: cluster.id,
         pointIds: cluster.pointIds,
         size: cluster.pointIds.length,
-        metadata: cluster.metadata
+        metadata: cluster.metadata,
+        lang: cluster.lang,
+        primaryUrl: cluster.primaryUrl,
+        opportunityScore: cluster.score,
+        questions: cluster.questions
       }))
     });
   } catch (error) {

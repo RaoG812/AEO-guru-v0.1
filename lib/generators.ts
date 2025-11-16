@@ -32,29 +32,30 @@ const faqJsonLdSchema = z.object({
   url: z.string().url()
 });
 
-const articleSchema = z.object({
-  "@context": z.literal("https://schema.org"),
-  "@type": z.enum(["Article", "TechArticle", "BlogPosting"]),
-  headline: z.string(),
-  description: z.string(),
-  mainEntityOfPage: z.string().url(),
-  keywords: z.array(z.string()).min(2),
-  inLanguage: z.string().default("en"),
-  author: z
-    .object({
-      "@type": z.literal("Organization"),
-      name: z.string()
-    })
-    .optional(),
-  publisher: z
-    .object({
-      "@type": z.literal("Organization"),
-      name: z.string()
-    })
-    .optional(),
-  datePublished: z.string(),
-  image: z.union([z.string().url(), z.array(z.string().url())]).optional()
-});
+const allowedSchemaTypes = [
+  "Article",
+  "BlogPosting",
+  "TechArticle",
+  "FAQPage",
+  "HowTo",
+  "Product",
+  "LocalBusiness"
+] as const;
+
+const baseJsonLdSchema = z
+  .object({
+    "@context": z.literal("https://schema.org"),
+    "@type": z.enum(allowedSchemaTypes),
+    url: z.string().url(),
+    name: z.string(),
+    description: z.string(),
+    inLanguage: z.string().min(2),
+    keywords: z.array(z.string()).min(2),
+    headline: z.string().optional(),
+    mainEntityOfPage: z.string().url().optional(),
+    datePublished: z.string().optional()
+  })
+  .passthrough();
 
 const semanticCoreSchema = z.object({
   projectId: z.string(),
@@ -83,9 +84,9 @@ const semanticCoreSchema = z.object({
 });
 
 export type FaqJsonLd = z.infer<typeof faqJsonLdSchema>;
-export type ArticleJsonLd = z.infer<typeof articleSchema>;
+export type PageJsonLd = z.infer<typeof baseJsonLdSchema>;
 export type SemanticCoreSummary = z.infer<typeof semanticCoreSchema>;
-export const articleJsonLdValidator = articleSchema;
+export const pageJsonLdValidator = baseJsonLdSchema;
 export const faqJsonLdValidator = faqJsonLdSchema;
 
 export async function generateFaqJsonLd(
@@ -119,10 +120,12 @@ export async function generateFaqJsonLd(
 export async function generateRobotsTxtFromSummary(summary: {
   rootUrl: string;
   disallowCandidates: string[];
+  duplicatePatterns?: string[];
+  rationale: string[];
 }): Promise<string> {
   const { text } = await generateText({
     model: openai("gpt-4.1-mini") as LanguageModelV1,
-    prompt: `You generate minimal, safe robots.txt for SEO. Output ONLY robots.txt content.\n\nInput:\n${JSON.stringify(
+    prompt: `You generate minimal, safe robots.txt for SEO. Output ONLY robots.txt content with helpful # comments explaining each disallow.\n\nInput:\n${JSON.stringify(
       summary,
       null,
       2
@@ -132,18 +135,22 @@ export async function generateRobotsTxtFromSummary(summary: {
   return text.trim();
 }
 
-export async function generateArticleJsonLd(input: {
+export async function generateIntentDrivenJsonLd(input: {
   url: string;
   title?: string | null;
   summary: string;
   projectId: string;
-}): Promise<ArticleJsonLd> {
-  const { url, title, summary, projectId } = input;
+  preferredType?: string | null;
+  intent?: string | null;
+  lang?: string | null;
+  keywords?: string[];
+}): Promise<PageJsonLd> {
+  const { url, title, summary, projectId, preferredType, intent, lang, keywords } = input;
   const model = openai("gpt-4.1-mini") as LanguageModelV1;
   const { object } = await generateObject({
     model,
-    schema: articleSchema,
-    prompt: `You are an expert in structured data for AI Overviews. Craft an Article JSON-LD object for the page below. Return JSON only.\nProject: ${projectId}\nURL: ${url}\nTitle: ${title ?? "(missing)"}\nSummary:\n${summary}`
+    schema: baseJsonLdSchema,
+    prompt: `You are an expert in structured data for AI Overviews. Build JSON-LD for one page. Prefer the schema type ${preferredType ?? "that best matches"} based on the intent "${intent ?? "unknown"}". Allowed types: ${allowedSchemaTypes.join(", ")}. Use the same language as the content (${lang ?? "en"}). Return JSON only.\nProject: ${projectId}\nURL: ${url}\nTitle: ${title ?? "(missing)"}\nSummary:\n${summary}\nCandidate keywords: ${(keywords ?? []).join(", ")}`
   });
 
   return object;
