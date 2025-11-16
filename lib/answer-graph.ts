@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { generateObject } from "ai";
-import type { LanguageModelV1 } from "ai";
 import { openai } from "@ai-sdk/openai";
 
 import { embedTexts } from "./embeddings";
@@ -33,7 +32,7 @@ export async function buildAnswerGraphNodes(input: {
   primaryUrl?: string | null;
   secondaryKeywords?: string[];
 }) {
-  const model = openai("gpt-4.1-mini") as LanguageModelV1;
+  const model = openai("gpt-4.1-mini");
   const { object } = await generateObject({
     model,
     schema: questionSchema,

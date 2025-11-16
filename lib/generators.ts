@@ -1,7 +1,6 @@
 // lib/generators.ts
 import { openai } from "@ai-sdk/openai";
 import { generateObject, generateText } from "ai";
-import type { LanguageModelV1 } from "ai";
 import { z } from "zod";
 import type { PageContext } from "./project-content";
 
@@ -93,7 +92,7 @@ export async function generateFaqJsonLd(
   url: string,
   clusterSummary: string
 ): Promise<FaqJsonLd> {
-  const model = openai("gpt-4.1") as LanguageModelV1;
+  const model = openai("gpt-4.1");
   const { object } = await generateObject({
     model,
     schema: faqPairsSchema,
@@ -124,7 +123,7 @@ export async function generateRobotsTxtFromSummary(summary: {
   rationale: string[];
 }): Promise<string> {
   const { text } = await generateText({
-    model: openai("gpt-4.1-mini") as LanguageModelV1,
+    model: openai("gpt-4.1-mini"),
     prompt: `You generate minimal, safe robots.txt for SEO. Output ONLY robots.txt content with helpful # comments explaining each disallow.\n\nInput:\n${JSON.stringify(
       summary,
       null,
@@ -146,7 +145,7 @@ export async function generateIntentDrivenJsonLd(input: {
   keywords?: string[];
 }): Promise<PageJsonLd> {
   const { url, title, summary, projectId, preferredType, intent, lang, keywords } = input;
-  const model = openai("gpt-4.1-mini") as LanguageModelV1;
+  const model = openai("gpt-4.1-mini");
   const { object } = await generateObject({
     model,
     schema: baseJsonLdSchema,
@@ -164,7 +163,7 @@ export async function generateSemanticCoreSummary(
     throw new Error("No content available for semantic core generation");
   }
 
-  const model = openai("gpt-4.1") as LanguageModelV1;
+  const model = openai("gpt-4.1");
   const { object } = await generateObject({
     model,
     schema: semanticCoreSchema,

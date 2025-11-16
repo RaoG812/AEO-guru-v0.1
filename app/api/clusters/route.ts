@@ -4,8 +4,8 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateObject } from "ai";
-import type { LanguageModelV1 } from "ai";
-import { openai } from "@ai-sdk/openai";
+import type { LanguageModel } from "ai";
+import { google } from "@ai-sdk/google";
 
 import {
   getProjectPoints,
@@ -97,8 +97,27 @@ function deriveLang(points: ProjectPoint[], cluster: Cluster) {
   return "en";
 }
 
+function clusterPoints(points: ProjectPoint[]) {
+  const vectorCount = points.filter(
+    (point): point is ProjectPoint & { vector: number[] } =>
+      Array.isArray(point.vector) && point.vector.length > 0
+  ).length;
+  if (vectorCount >= 2) {
+    const desiredClusterSize = Math.min(
+      40,
+      Math.max(8, Math.round(points.length / Math.max(1, Math.log(points.length + 1))))
+    );
+    const maxClusters = Math.max(
+      1,
+      Math.min(32, Math.round(points.length / Math.max(1, desiredClusterSize)))
+    );
+    return kMeansCluster(points, { desiredClusterSize, maxClusters });
+  }
+  return kMeansCluster(points);
+}
+
 async function annotateCluster(
-  model: LanguageModelV1,
+  model: LanguageModel,
   projectId: string,
   points: ProjectPoint[],
   cluster: Cluster
@@ -120,7 +139,7 @@ function computeOpportunityScore(size: number) {
 async function persistClusterMetadata(
   cluster: Cluster,
   metadata: ClusterMetadata,
-  options: { primaryUrl: string | null; score: number }
+  options: { primaryUrl: string | null; score: number; lang: string }
 ) {
   const qdrant = getQdrantClient();
   let pointIds: string[] | number[];
@@ -140,11 +159,14 @@ async function persistClusterMetadata(
       clusterIntent: metadata.intent,
       clusterPrimaryKeyword: metadata.primaryKeyword,
       clusterSecondaryKeywords: metadata.secondaryKeywords,
+      clusterKeywords: [metadata.primaryKeyword, ...metadata.secondaryKeywords],
       clusterRepresentativeQueries: metadata.representativeQueries,
       clusterContentGaps: metadata.contentGaps,
       clusterRecommendedSchemas: metadata.recommendedSchemas,
       clusterSize: cluster.pointIds.length,
       clusterPrimaryUrl: options.primaryUrl,
+      clusterLang: options.lang,
+      clusterOpportunityScore: options.score,
       intent: metadata.intent,
       primaryKeyword: metadata.primaryKeyword,
       secondaryKeywords: metadata.secondaryKeywords,
@@ -162,8 +184,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ clusters: [] });
     }
 
-    const clusters = kMeansCluster(points);
-    const model = openai("gpt-4.1-mini") as LanguageModelV1;
+    const clusters = clusterPoints(points);
+    const model = google("gemini-2.0-flash-lite");
 
     const enrichedClusters: Array<
       Cluster & { metadata: ClusterMetadata; questions: string[]; lang: string; primaryUrl: string | null; score: number }
@@ -173,7 +195,7 @@ export async function POST(req: NextRequest) {
       const primaryUrl = determinePrimaryUrl(points, cluster);
       const langForCluster = lang ?? deriveLang(points, cluster);
       const score = computeOpportunityScore(cluster.pointIds.length);
-      await persistClusterMetadata(cluster, metadata, { primaryUrl, score });
+      await persistClusterMetadata(cluster, metadata, { primaryUrl, score, lang: langForCluster });
       const generatedQuestions = await buildAnswerGraphNodes({
         projectId,
         clusterId: cluster.id,
