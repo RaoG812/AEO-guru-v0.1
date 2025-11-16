@@ -47,7 +47,7 @@ function handlePostgrestError(error: PostgrestError): never {
 export async function listProjects(ownerUserId: string): Promise<ProjectRecord[]> {
   const supabase = getSupabaseServiceRoleClient();
   const { data, error } = await supabase
-    .from<ProjectRow>(TABLE)
+    .from(TABLE)
     .select("project_id, name, root_url, sitemap_url, created_at")
     .eq("owner_user_id", ownerUserId)
     .order("created_at", { ascending: true });
