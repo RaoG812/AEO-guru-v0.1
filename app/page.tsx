@@ -254,7 +254,7 @@ export default function HomePage() {
           <div className="hero-content">
             <header className="hero-header">
               <div className="hero-heading">
-                <h1 className="hero-name">Answer Engine Optimization toolkit</h1>
+                <h1 className="hero-name">AEO Guru</h1>
                 <p className="hero-subline">Powered by Gemini API</p>
               </div>
               <div className="hero-tech-panel">
@@ -274,7 +274,7 @@ export default function HomePage() {
                 </div>
               </div>
             </header>
-            <h2 className="hero-title">Sleek command center for ingestion, curation, and telemetry.</h2>
+            <h2 className="hero-title">Answer Engine Optimization Toolkit</h2>
             <p className="hero-subtitle">
               Arrange the critical workspaces for domain discovery and ingestion oversight in a single glass dashboard.
               Each touch point is infused with glassmorphism layers, subtle motion, and a silvered palette for instant clarity.
