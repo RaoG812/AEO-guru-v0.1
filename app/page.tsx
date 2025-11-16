@@ -85,6 +85,24 @@ const heroStack = [
   }
 ];
 
+const vectorPhrases = [
+  "Taxonomy",
+  "Taxonomical Knowledgebase",
+  "Taxonomy BI",
+  "Entity Graph",
+  "Context Map",
+  "Answer Graph",
+  "Schema Blocks",
+  "FAQ Targets",
+  "Intent Drafts",
+  "SERP Gaps",
+  "Topical Authority",
+  "Vector Payloads",
+  "Structured Snippets",
+  "AI Overview Hooks",
+  "Conversation Seeds"
+];
+
 function formatDate(value: string) {
   try {
     return new Date(value).toLocaleString();
@@ -110,6 +128,8 @@ export default function HomePage() {
   const [ingestMessage, setIngestMessage] = useState<string>("");
   const [clusterMessage, setClusterMessage] = useState<string>("");
   const [logs, setLogs] = useState<string[]>([]);
+  const [vectorIndex, setVectorIndex] = useState(0);
+  const [vectorDirection, setVectorDirection] = useState<"horizontal" | "vertical">("horizontal");
 
   const selectedProject = useMemo(
     () => projects.find((project) => project.id === selectedProjectId) ?? null,
@@ -186,6 +206,17 @@ export default function HomePage() {
       window.removeEventListener("resize", setDefaultPosition);
     };
   }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setVectorDirection(Math.random() > 0.65 ? "vertical" : "horizontal");
+      setVectorIndex((prev) => (prev + 1) % vectorPhrases.length);
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
+
+  const activeVectorPhrase = vectorPhrases[vectorIndex];
+  const vectorPhraseKey = `${vectorIndex}-${vectorDirection}`;
 
   async function handleCreateProject(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -342,10 +373,19 @@ export default function HomePage() {
               <div className="hero-heading">
                 <p className="hero-subline">Answer Engine Ops</p>
                 <h1>AEO Guru</h1>
+                <div className="vector-scroller" aria-live="polite">
+                  <span className="vector-scroller-label">Vector enrichment</span>
+                  <div className={`vector-window ${vectorDirection}`}>
+                    <span key={vectorPhraseKey} className="vector-token">
+                      {activeVectorPhrase}
+                    </span>
+                  </div>
+                </div>
                 <p className="hero-description">
                   AEO Guru orchestrates crawls, embeddings, clustering, and schema so your site is optimized for AI-first
-                  search experiences—pushing well past classic SEO playbooks. Light up the signals that Gemini, Bing
-                  Copilot, and Google Overviews need to feature your brand when users ask real questions.
+                  search experiences—going beyond the limits of SEO. Build enriched payloads, intent-aware clusters, and
+                  JSON-LD artifacts that help Gemini, Bing Copilot, and Google Overviews cite your site when people ask
+                  real questions.
                 </p>
               </div>
               <div className="hero-aside">

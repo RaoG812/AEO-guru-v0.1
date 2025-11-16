@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   const targetSet = new Set<string>([...sitemapUrls, ...manualUrls]);
   crawlResults.forEach((page) => targetSet.delete(page.url));
 
-  for (const url of targetSet) {
+  for (const url of Array.from(targetSet.values())) {
     try {
       const page = await extractTextFromUrl(url);
       crawlMap.set(url, page);
