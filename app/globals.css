@@ -71,7 +71,7 @@ main {
   --lens-radius: 80px;
   --lens-feather: 42px;
   --reveal-opacity: 0;
-  --logo-size: min(920px, 88%);
+  --logo-size: 70%;
   border-radius: 32px;
   padding: 2.5rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03));
@@ -89,7 +89,7 @@ main {
   background-image: url("/aeo-guru.svg");
   background-position: center;
   background-repeat: no-repeat;
-  background-size: var(--logo-size) auto;
+  background-size: auto var(--logo-size);
   opacity: 0.45;
   filter: blur(6px);
   animation: guruFloat 14s ease-in-out infinite;
@@ -122,7 +122,7 @@ main {
   background-image: url("/aeo-guru.svg");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: var(--logo-size) auto;
+  background-size: auto var(--logo-size);
   z-index: 5;
   pointer-events: none;
   opacity: var(--reveal-opacity, 0);
