@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateObject } from "ai";
-import type { LanguageModelV1 } from "ai";
+import type { LanguageModel } from "ai";
 import { google } from "@ai-sdk/google";
 
 import {
@@ -117,7 +117,7 @@ function clusterPoints(points: ProjectPoint[]) {
 }
 
 async function annotateCluster(
-  model: LanguageModelV1,
+  model: LanguageModel,
   projectId: string,
   points: ProjectPoint[],
   cluster: Cluster
@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
     }
 
     const clusters = clusterPoints(points);
-    const model = google("gemini-2.0-flash-lite") as LanguageModelV1;
+    const model = google("gemini-2.0-flash-lite");
 
     const enrichedClusters: Array<
       Cluster & { metadata: ClusterMetadata; questions: string[]; lang: string; primaryUrl: string | null; score: number }

@@ -10,10 +10,10 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.32",
-    "@ai-sdk/openai": "^1.0.0",
+    "@ai-sdk/openai": "^2.0.67",
     "@qdrant/js-client-rest": "^1.15.1",
     "@supabase/supabase-js": "^2.81.1",
-    "ai": "^3.0.0",
+    "ai": "^5.0.93",
     "fast-xml-parser": "^5.3.2",
     "franc-min": "^6.2.0",
     "js-yaml": "^4.1.0",
