@@ -1,5 +1,5 @@
 // lib/crawler.ts
-import * as cheerio from "cheerio";
+import { parse } from "node-html-parser";
 
 export async function fetchHtml(url: string): Promise<string> {
   const res = await fetch(url, { redirect: "follow" });
@@ -9,10 +9,10 @@ export async function fetchHtml(url: string): Promise<string> {
 
 export async function extractTextFromUrl(url: string) {
   const html = await fetchHtml(url);
-  const $ = cheerio.load(html);
-  $("script, style, noscript").remove();
-  const title = $("title").first().text().trim();
-  const h1 = $("h1").first().text().trim();
-  const bodyText = $("body").text().replace(/\s+/g, " ").trim();
+  const dom = parse(html);
+  dom.querySelectorAll("script, style, noscript").forEach((node) => node.remove());
+  const title = dom.querySelector("title")?.text.trim() ?? "";
+  const h1 = dom.querySelector("h1")?.text.trim() ?? "";
+  const bodyText = dom.text.replace(/\s+/g, " ").trim();
   return { title, h1, content: bodyText };
 }

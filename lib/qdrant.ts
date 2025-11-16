@@ -1,18 +1,25 @@
 // lib/qdrant.ts
 import { QdrantClient } from "@qdrant/js-client-rest";
 
-if (!process.env.QDRANT_URL || !process.env.QDRANT_API_KEY) {
-  throw new Error("Missing QDRANT_URL or QDRANT_API_KEY env variables");
-}
+let qdrantClient: QdrantClient | null = null;
 
-export const qdrant = new QdrantClient({
-  url: process.env.QDRANT_URL,
-  apiKey: process.env.QDRANT_API_KEY
-});
+export function getQdrantClient() {
+  if (!qdrantClient) {
+    const url = process.env.QDRANT_URL;
+    const apiKey = process.env.QDRANT_API_KEY;
+    if (!url || !apiKey) {
+      throw new Error("Missing QDRANT_URL or QDRANT_API_KEY env variables");
+    }
+    qdrantClient = new QdrantClient({ url, apiKey });
+  }
+
+  return qdrantClient;
+}
 
 export const COLLECTION = "aeo_guru_corpus";
 
 export async function ensureCollection(dim: number) {
+  const qdrant = getQdrantClient();
   const collections = await qdrant.getCollections();
   const exists = collections.collections?.some(
     (c) => c.name === COLLECTION

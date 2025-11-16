@@ -1,4 +1,5 @@
-// app/page.tsx
+"use client";
+
 import { useState } from "react";
 
 export default function HomePage() {
@@ -34,11 +35,11 @@ export default function HomePage() {
     <main className="min-h-screen bg-black text-white flex flex-col items-center">
       <div className="w-full max-w-3xl px-6 py-12">
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-          AnswerGraph
+          AEO-guru ingestion console
         </h1>
         <p className="text-neutral-400 mb-8">
-          Build a semantic core and AEO-ready schema from your content corpus,
-          backed by Qdrant.
+          Seed the semantic core for AEO-guru by submitting your primary domain
+          and the URLs you would like embedded and stored in Qdrant.
         </p>
 
         <form

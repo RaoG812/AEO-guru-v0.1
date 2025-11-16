@@ -1,7 +1,8 @@
 // lib/clustering.ts
-import { qdrant, COLLECTION } from "./qdrant";
+import { getQdrantClient, COLLECTION } from "./qdrant";
 
 export async function getProjectPoints(projectId: string) {
+  const qdrant = getQdrantClient();
   const res = await qdrant.scroll(COLLECTION, {
     filter: {
       must: [
@@ -10,7 +11,7 @@ export async function getProjectPoints(projectId: string) {
       ]
     },
     with_payload: true,
-    with_vectors: true,
+    with_vector: true,
     limit: 10000
   });
 

@@ -1,6 +1,7 @@
 // lib/generators.ts
 import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
+import { generateObject, generateText } from "ai";
+import type { LanguageModelV1 } from "ai";
 import { z } from "zod";
 
 const faqSchema = z.object({
@@ -16,8 +17,9 @@ export async function generateFaqJsonLd(
   url: string,
   clusterSummary: string
 ): Promise<any> {
+  const model = openai("gpt-4.1") as LanguageModelV1;
   const { object } = await generateObject({
-    model: openai("gpt-4.1"),
+    model,
     schema: faqSchema,
     prompt: `
 You are an AEO-focused technical SEO. Based on this cluster summary, create 3-6 concise FAQ Q&A pairs that would help this page be cited by AI answer engines.
@@ -46,21 +48,14 @@ export async function generateRobotsTxtFromSummary(summary: {
   rootUrl: string;
   disallowCandidates: string[];
 }): Promise<string> {
-  const { text } = await openai.chat.completions.create({
-    model: "gpt-4.1-mini",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You generate minimal, safe robots.txt for SEO. Output ONLY robots.txt content."
-      },
-      {
-        role: "user",
-        content: JSON.stringify(summary)
-      }
-    ]
-  } as any);
+  const { text } = await generateText({
+    model: openai("gpt-4.1-mini") as LanguageModelV1,
+    prompt: `You generate minimal, safe robots.txt for SEO. Output ONLY robots.txt content.\n\nInput:\n${JSON.stringify(
+      summary,
+      null,
+      2
+    )}`
+  });
 
-  // adjust to AI SDK if you prefer; this is illustrative
-  return (text as any) || "";
+  return text.trim();
 }
