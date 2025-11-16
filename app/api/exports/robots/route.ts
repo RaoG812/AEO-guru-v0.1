@@ -58,12 +58,12 @@ function collectPatterns(urls: string[]) {
     });
   }
 
-  for (const [key, count] of pathBuckets.entries()) {
+  pathBuckets.forEach((count, key) => {
     if (count >= 4) {
       duplicatePatterns.push(`/${key}/`);
       rationale.push(`High volume of URLs under /${key}/ looks duplicative (${count})`);
     }
-  }
+  });
 
   return { disallow: Array.from(disallow), duplicatePatterns, rationale };
 }

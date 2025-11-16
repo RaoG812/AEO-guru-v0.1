@@ -43,6 +43,58 @@ const initialStatus: StatusState = {
   projects: false
 };
 
+const heroStack = [
+  {
+    label: "Next.js 14",
+    icon: (
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" fill="none" />
+        <path
+          d="M9 9h2l4 6V9h2v8h-2l-4-6v6H9z"
+          fill="currentColor"
+          stroke="currentColor"
+          strokeWidth="0.3"
+        />
+      </svg>
+    )
+  },
+  {
+    label: "TypeScript",
+    icon: (
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+        <rect x="4" y="5" width="16" height="14" rx="3" fill="currentColor" opacity="0.25" />
+        <path d="M7 11h5m-2.5 0v6m4-3.5c0-.9.7-1.5 1.7-1.5 1.1 0 1.8.6 1.8 1.4 0 1-1 1.3-1.8 1.5-.8.2-1.7.6-1.7 1.5 0 .8.7 1.6 1.9 1.6 1 0 1.7-.5 2-1.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+    )
+  },
+  {
+    label: "Tailwind",
+    icon: (
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+        <path
+          d="M6 13c1.2-3 3-4.5 5.5-4.5 2.5 0 3.2 1.6 4.5 1.6 1 0 1.9-.7 2.5-2.1-1.2 3-3 4.5-5.5 4.5-2.4 0-3.1-1.6-4.4-1.6-1 0-1.9.7-2.6 2.1Zm0 5c1.2-3 3-4.5 5.5-4.5 2.5 0 3.2 1.6 4.5 1.6 1 0 1.9-.7 2.5-2.1-1.2 3-3 4.5-5.5 4.5-2.4 0-3.1-1.6-4.4-1.6-1 0-1.9.7-2.6 2.1Z"
+          fill="currentColor"
+        />
+      </svg>
+    )
+  },
+  {
+    label: "Qdrant",
+    icon: (
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+        <path
+          d="M12 4.5 5 8.5v7l7 4 7-4v-7l-7-4Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <circle cx="12" cy="12" r="2.6" stroke="currentColor" strokeWidth="1.3" fill="none" />
+      </svg>
+    )
+  }
+];
+
 function formatDate(value: string) {
   try {
     return new Date(value).toLocaleString();
@@ -298,23 +350,25 @@ export default function HomePage() {
           <div className="hero-content">
             <div className="hero-header">
               <div className="hero-heading">
-                <p className="hero-subline">AEO Guru Control Deck</p>
-                <h1>Answer Engine Optimization Ops Room</h1>
+                <p className="hero-subline">Answer Engine Ops</p>
+                <h1>AEO Guru</h1>
                 <p className="hero-description">
-                  Bring back the floating silver head hero while keeping the modern ingestion + clustering workflow.
-                  Register projects, orchestrate crawls into Qdrant, and export semantic-core deliverables in minutes.
+                  Run crawls, embeddings, clustering, and deliverables from a single frosted cockpit. Spin up projects,
+                  orchestrate Qdrant ingestion, and publish AI Overview-ready exports without leaving the dashboard.
                 </p>
               </div>
               <div className="hero-aside">
                 <div className="hero-tech-panel">
                   <p className="hero-tech-panel-label">Stack</p>
                   <div className="hero-tech-grid">
-                    <span>Next.js 14</span>
-                    <span>TypeScript</span>
-                    <span>Tailwind</span>
-                    <span>Qdrant</span>
-                    <span>OpenAI</span>
-                    <span>Vercel</span>
+                    {heroStack.map((item) => (
+                      <div className="hero-tech-item" key={item.label}>
+                        <div className="hero-tech-icon" aria-hidden="true">
+                          {item.icon}
+                        </div>
+                        <span>{item.label}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <div className="hero-status-stack">
