@@ -71,7 +71,7 @@ main {
   --lens-radius: 80px;
   --lens-feather: 42px;
   --reveal-opacity: 0;
-  --logo-size: min(780px, 72%);
+  --logo-size: min(920px, 88%);
   border-radius: 32px;
   padding: 2.5rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03));
