@@ -13,6 +13,8 @@
     "@qdrant/js-client-rest": "^1.15.1",
     "@supabase/supabase-js": "^2.81.1",
     "ai": "^3.0.0",
+    "fast-xml-parser": "^5.3.2",
+    "franc-min": "^6.2.0",
     "js-yaml": "^4.1.0",
     "next": "14.2.0",
     "node-html-parser": "^6.1.13",

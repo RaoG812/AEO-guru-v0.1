@@ -50,18 +50,42 @@ function normalizeVector(vector: RawQdrantVector): number[] | null {
   return null;
 }
 
-export async function getProjectPoints(projectId: string): Promise<ProjectPoint[]> {
+export type ProjectPointFilters = {
+  lang?: string;
+  sources?: string[];
+  types?: string[];
+  limit?: number;
+  withVectors?: boolean;
+};
+
+function buildMatchClause(key: string, values?: string[]) {
+  if (!values || values.length === 0) return null;
+  if (values.length === 1) {
+    return { key, match: { value: values[0] } };
+  }
+  return { key, match: { any: values } };
+}
+
+export async function getProjectPoints(
+  projectId: string,
+  filters: ProjectPointFilters = {}
+): Promise<ProjectPoint[]> {
   const qdrant = getQdrantClient();
+  const must: any[] = [{ key: "projectId", match: { value: projectId } }];
+  const typeClause = buildMatchClause("type", filters.types ?? ["page_section"]);
+  const sourceClause = buildMatchClause("source", filters.sources);
+  const langClause = filters.lang
+    ? { key: "lang", match: { value: filters.lang } }
+    : null;
+  if (typeClause) must.push(typeClause);
+  if (sourceClause) must.push(sourceClause);
+  if (langClause) must.push(langClause);
+
   const res = await qdrant.scroll(COLLECTION, {
-    filter: {
-      must: [
-        { key: "projectId", match: { value: projectId } },
-        { key: "type", match: { value: "page_section" } }
-      ]
-    },
+    filter: { must },
     with_payload: true,
-    with_vector: true,
-    limit: 10000
+    with_vector: filters.withVectors ?? true,
+    limit: filters.limit ?? 10000
   });
 
   return (res.points ?? []).map((point) => ({

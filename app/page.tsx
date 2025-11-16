@@ -1,711 +1,704 @@
 "use client";
 
-import Image from "next/image";
-import { useCallback, useMemo, useState, useEffect } from "react";
-import type { Session } from "@supabase/supabase-js";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
-
-type ProjectSchemaRecord = {
+type ProjectRecord = {
   id: string;
-  project_id: string;
-  schema_definition: Record<string, unknown>;
-  created_at: string | null;
-  updated_at: string | null;
+  name?: string;
+  rootUrl: string;
+  sitemapUrl?: string | null;
+  createdAt: string;
 };
 
-const supabase = getSupabaseBrowserClient()
-        ;
-type WorkspaceKey = "alfa" | "beta" | "gamma";
+type ClusterResponse = {
+  id: string;
+  size: number;
+  metadata: {
+    label: string;
+    summary: string;
+    intent: string;
+    primaryKeyword: string;
+    secondaryKeywords: string[];
+    contentGaps: string[];
+    representativeQueries: string[];
+    recommendedSchemas: string[];
+  };
+  lang: string;
+  primaryUrl: string | null;
+  opportunityScore: number;
+  questions: string[];
+};
 
-const workspaceBoards: Array<{
-  id: WorkspaceKey;
-  label: string;
-  title: string;
-  description: string;
-  highlights: string[];
-}> = [
+type StatusState = {
+  ingest: boolean;
+  clusters: boolean;
+  download: boolean;
+  projects: boolean;
+};
+
+const initialStatus: StatusState = {
+  ingest: false,
+  clusters: false,
+  download: false,
+  projects: false
+};
+
+const heroStack = [
   {
-    id: "alfa",
-    label: "Workspace Alfa",
-    title: "Domain Intelligence",
-    description:
-      "Establish the semantic perimeter with contextual taxonomies, topic focus, and multi-market nuance.",
-    highlights: ["Keyword gravity mapping", "SERP entity audit", "Authority handoff plan"]
+    label: "Vercel",
+    icon: (
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+        <path d="m12 5 7 12H5z" fill="currentColor" />
+      </svg>
+    )
   },
   {
-    id: "beta",
-    label: "Workspace Beta",
-    title: "Content Supply Chain",
-    description:
-      "Curate URL batches, blueprint briefs, and align editorial pods with intent coverage heatmaps.",
-    highlights: ["Priority cluster briefs", "Schema + metadata kit", "Publishing QA cadence"]
+    label: "Supabase",
+    icon: (
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+        <path
+          d="M8.5 4h7.2c1 0 1.6 1.1.9 2l-3.1 3.9h3.8c.8 0 1.2.9.7 1.5l-6 8.4c-.8 1-2.5.1-2-1.1l2.1-5H7.4c-.9 0-1.5-1-.9-1.8l4.2-5.4H8.5c-.9 0-1.5-1-.9-1.8Z"
+          fill="currentColor"
+        />
+      </svg>
+    )
   },
   {
-    id: "gamma",
-    label: "Workspace Gamma",
-    title: "Insights & SLOs",
-    description:
-      "Track ingestion health, Qdrant freshness, and downstream agent confidence for executive reporting.",
-    highlights: ["Embed health signal", "Collector uptime", "Executive telemetry"]
+    label: "Qdrant",
+    icon: (
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+        <circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.3" />
+        <path d="M12 5.5v13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        <path d="M6.5 12h11" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      </svg>
+    )
+  },
+  {
+    label: "Gemini AI",
+    icon: (
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+        <circle cx="9" cy="9" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.3" />
+        <circle cx="15" cy="15" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.3" />
+        <path d="M9 12.3c1.6 1 3.4 1 5 0" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+      </svg>
+    )
   }
 ];
 
-const statusSignals = [
-  { label: "Collector", value: "Active", tone: "#a8ffef" },
-  { label: "Vector sync", value: "2.1s drift", tone: "#a3b9ff" },
-  { label: "Content budget", value: "76% utilized", tone: "#f8f3ff" }
+const vectorPhrases = [
+  "Taxonomy",
+  "Taxonomical Knowledgebase",
+  "Taxonomy BI",
+  "Entity Graph",
+  "Context Map",
+  "Answer Graph",
+  "Schema Blocks",
+  "FAQ Targets",
+  "Intent Drafts",
+  "SERP Gaps",
+  "Topical Authority",
+  "Vector Payloads",
+  "Structured Snippets",
+  "AI Overview Hooks",
+  "Conversation Seeds"
 ];
 
-const hackathonStack = [
-  {
-    label: "lablab.ai",
-    detail: "Hackathon arena",
-    logo: "https://www.google.com/s2/favicons?domain=lablab.ai&sz=64",
-    url: "https://lablab.ai"
-  },
-  {
-    label: "OpenAI",
-    detail: "Prompt ops",
-    logo: "https://www.google.com/s2/favicons?domain=openai.com&sz=64",
-    url: "https://openai.com"
-  },
-  {
-    label: "GitHub",
-    detail: "Ship + review",
-    logo: "https://www.google.com/s2/favicons?domain=github.com&sz=64",
-    url: "https://github.com"
-  },
-  {
-    label: "Gemini API",
-    detail: "Optimization core",
-    logo: "https://www.google.com/s2/favicons?domain=ai.google&sz=64",
-    url: "https://ai.google"
+function formatDate(value: string) {
+  try {
+    return new Date(value).toLocaleString();
+  } catch {
+    return value;
   }
-];
+}
 
-const timeline = [
-  { time: "09:05", event: "New ingestion window reserved", detail: "Adaptive scheduler locked 35 URLs." },
-  { time: "09:22", event: "Crawler sweep completed", detail: "Rendered 28 documents with pristine DOM." },
-  { time: "09:35", event: "Embeddings committed", detail: "Qdrant shard sfo-01 updated (45 vectors)." }
-];
-
-const betaWorkflowSteps = [
-  { id: "briefs", label: "Blueprint briefs" },
-  { id: "schema", label: "Schema pass" },
-  { id: "qa", label: "Publishing QA" }
-];
+function getFilenameFromDisposition(disposition: string | null) {
+  if (!disposition) return null;
+  const match = /filename="?([^";]+)"?/i.exec(disposition);
+  return match ? match[1] : null;
+}
 
 export default function HomePage() {
-  const [rootUrl, setRootUrl] = useState("");
-  const [urlsRaw, setUrlsRaw] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceKey | null>(null);
-  const [alfaKeyword, setAlfaKeyword] = useState("");
-  const [alfaKeywords, setAlfaKeywords] = useState([
-    "Semantic perimeter",
-    "Market nuance",
-    "Topical trust"
-  ]);
-  const [betaSteps, setBetaSteps] = useState(() =>
-    betaWorkflowSteps.map((step) => ({ ...step, done: step.id !== "qa" }))
-  );
-  const [gammaTargets, setGammaTargets] = useState({ uptime: 99.3, freshness: 88, confidence: 92 });
+  const heroRef = useRef<HTMLElement | null>(null);
+  const [projects, setProjects] = useState<ProjectRecord[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [projectForm, setProjectForm] = useState({ id: "", rootUrl: "", sitemapUrl: "" });
+  const [ingestForm, setIngestForm] = useState({ rootUrl: "", sitemapUrl: "", urls: "" });
+  const [clusters, setClusters] = useState<ClusterResponse[]>([]);
+  const [status, setStatus] = useState<StatusState>(initialStatus);
+  const [ingestMessage, setIngestMessage] = useState<string>("");
+  const [clusterMessage, setClusterMessage] = useState<string>("");
+  const [logs, setLogs] = useState<string[]>([]);
+  const [vectorIndex, setVectorIndex] = useState(0);
+  const [vectorDirection, setVectorDirection] = useState<"horizontal" | "vertical">("horizontal");
 
-  const activeBoard = useMemo(
-    () => workspaceBoards.find((board) => board.id === activeWorkspace) ?? null,
-    [activeWorkspace]
+  const selectedProject = useMemo(
+    () => projects.find((project) => project.id === selectedProjectId) ?? null,
+    [projects, selectedProjectId]
   );
-  const [session, setSession] = useState<Session | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [projectSchemas, setProjectSchemas] = useState<ProjectSchemaRecord[]>([]);
-  const [schemasLoading, setSchemasLoading] = useState(false);
-  const [schemasError, setSchemasError] = useState<string | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  function pushLog(message: string) {
+    setLogs((prev) => [message, ...prev].slice(0, 12));
+  }
+
+  const refreshProjects = useCallback(async () => {
+    setStatus((prev) => ({ ...prev, projects: true }));
+    try {
+      const res = await fetch("/api/projects");
+      const json = await res.json();
+      if (json.ok) {
+        setProjects(json.projects);
+        const fallback = json.projects[0];
+        let selectionChanged = false;
+        setSelectedProjectId((prev) => {
+          if (prev) return prev;
+          selectionChanged = Boolean(fallback?.id);
+          return fallback?.id ?? "";
+        });
+        if (selectionChanged && fallback) {
+          setIngestForm((prev) => ({
+            ...prev,
+            rootUrl: fallback.rootUrl,
+            sitemapUrl: fallback.sitemapUrl ?? ""
+          }));
+        }
+      }
+    } finally {
+      setStatus((prev) => ({ ...prev, projects: false }));
+    }
+  }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session ?? null);
-    });
+    refreshProjects();
+  }, [refreshProjects]);
 
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, updatedSession) => {
-      setSession(updatedSession ?? null);
-      if (!updatedSession) {
-        setProjectSchemas([]);
-      }
-    });
+  useEffect(() => {
+    const heroNode = heroRef.current;
+    if (!heroNode) return;
+
+    const setDefaultPosition = () => {
+      const rect = heroNode.getBoundingClientRect();
+      heroNode.style.setProperty("--cursor-x", `${rect.width / 2}px`);
+      heroNode.style.setProperty("--cursor-y", `${rect.height / 2}px`);
+    };
+
+    setDefaultPosition();
+    heroNode.style.setProperty("--lens-opacity", "0.3");
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const rect = heroNode.getBoundingClientRect();
+      heroNode.style.setProperty("--cursor-x", `${event.clientX - rect.left}px`);
+      heroNode.style.setProperty("--cursor-y", `${event.clientY - rect.top}px`);
+      heroNode.style.setProperty("--lens-opacity", "0.85");
+    };
+
+    const handlePointerLeave = () => {
+      heroNode.style.setProperty("--lens-opacity", "0.25");
+      setDefaultPosition();
+    };
+
+    heroNode.addEventListener("pointermove", handlePointerMove);
+    heroNode.addEventListener("pointerleave", handlePointerLeave);
+    window.addEventListener("resize", setDefaultPosition);
 
     return () => {
-      subscription.unsubscribe();
+      heroNode.removeEventListener("pointermove", handlePointerMove);
+      heroNode.removeEventListener("pointerleave", handlePointerLeave);
+      window.removeEventListener("resize", setDefaultPosition);
     };
   }, []);
 
   useEffect(() => {
-    if (session) {
-      setIsAuthModalOpen(false);
-    }
-  }, [session]);
+    const id = setInterval(() => {
+      setVectorIndex((prev) => {
+        const next = (prev + 1) % vectorPhrases.length;
+        if (next === 0) {
+          setVectorDirection("vertical");
+        } else {
+          setVectorDirection(Math.random() > 0.7 ? "vertical" : "horizontal");
+        }
+        return next;
+      });
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
 
-  const refreshSchemas = useCallback(async () => {
-    if (!session) {
-      setSchemasError(null);
-      setProjectSchemas([]);
-      setSchemasLoading(false);
-      return;
-    }
+  const activeVectorPhrase = vectorPhrases[vectorIndex];
+  const vectorPhraseKey = `${vectorIndex}-${vectorDirection}`;
 
-    setSchemasLoading(true);
-    setSchemasError(null);
-    const { data, error } = await supabase
-      .from("project_schemas")
-      .select("id, project_id, schema_definition, created_at, updated_at")
-      .order("updated_at", { ascending: false, nullsFirst: false });
-
-    if (error) {
-      setSchemasError(error.message);
-      setProjectSchemas([]);
-    } else {
-      setProjectSchemas(data ?? []);
-    }
-
-    setSchemasLoading(false);
-  }, [session]);
-
-  useEffect(() => {
-    refreshSchemas();
-  }, [refreshSchemas]);
-
-  async function handleSignIn(e: React.FormEvent) {
+  async function handleCreateProject(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setAuthLoading(true);
-    setAuthError(null);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    if (error) {
-      setAuthError(error.message);
-    }
-    setAuthLoading(false);
-  }
-
-  async function handleSignUp(e: React.FormEvent) {
-    e.preventDefault();
-    setAuthLoading(true);
-    setAuthError(null);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password
-    });
-    if (error) {
-      setAuthError(error.message);
-    }
-    setAuthLoading(false);
-  }
-
-  async function handleSignOut() {
-    setAuthLoading(true);
-    setAuthError(null);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      setAuthError(error.message);
-    }
-    setAuthLoading(false);
-    setIsAuthModalOpen(false);
-  }
-
-  async function handleIngest(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setMessage(null);
-
-    const urls = urlsRaw
-      .split("\n")
-      .map((u) => u.trim())
-      .filter(Boolean);
-
-    const res = await fetch("/api/ingest", {
+    if (!projectForm.id || !projectForm.rootUrl) return;
+    const payload = {
+      id: projectForm.id.trim(),
+      rootUrl: projectForm.rootUrl.trim(),
+      sitemapUrl: projectForm.sitemapUrl.trim() || undefined
+    };
+    const res = await fetch("/api/projects", {
       method: "POST",
-      body: JSON.stringify({
-        projectId: rootUrl,
-        urls
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
-
-    const json = await res.json();
-    setLoading(false);
-    setMessage(JSON.stringify(json, null, 2));
+    if (res.ok) {
+      pushLog(`Created project ${payload.id}`);
+      setProjectForm({ id: "", rootUrl: "", sitemapUrl: "" });
+      await refreshProjects();
+      setSelectedProjectId(payload.id);
+      setIngestForm({
+        rootUrl: payload.rootUrl,
+        sitemapUrl: payload.sitemapUrl ?? "",
+        urls: ""
+      });
+    } else {
+      const json = await res.json();
+      pushLog(json.error ?? "Unable to create project");
+    }
   }
 
-  const totalUrls = useMemo(() => urlsRaw.split("\n").filter(Boolean).length, [urlsRaw]);
-  const rootHostname = useMemo(() => {
-    if (!rootUrl) {
-      return "pending";
+  function handleSelectProject(id: string) {
+    setSelectedProjectId(id);
+    const project = projects.find((item) => item.id === id);
+    if (project) {
+      setIngestForm((prev) => ({
+        ...prev,
+        rootUrl: project.rootUrl,
+        sitemapUrl: project.sitemapUrl ?? ""
+      }));
     }
-    try {
-      return new URL(rootUrl).hostname;
-    } catch (error) {
-      return "draft";
-    }
-  }, [rootUrl]);
+  }
 
-  function handleAddAlfaKeyword(e: React.FormEvent) {
+  async function handleIngest(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!alfaKeyword.trim()) return;
-    setAlfaKeywords((prev) => Array.from(new Set([...prev, alfaKeyword.trim()])));
-    setAlfaKeyword("");
-  }
-
-  function removeAlfaKeyword(keyword: string) {
-    setAlfaKeywords((prev) => prev.filter((item) => item !== keyword));
-  }
-
-  function toggleBetaStep(stepId: string) {
-    setBetaSteps((prev) =>
-      prev.map((step) => (step.id === stepId ? { ...step, done: !step.done } : step))
-    );
-  }
-
-  function handleGammaChange(key: keyof typeof gammaTargets, value: number) {
-    setGammaTargets((prev) => ({ ...prev, [key]: value }));
-  }
-
-  function openAuthModal() {
-    setAuthError(null);
-    setIsAuthModalOpen(true);
-  }
-
-  function closeAuthModal() {
-    setAuthError(null);
-    setIsAuthModalOpen(false);
-  }
-
-  const ingestionDisabled = !session || loading;
-  const ingestionButtonLabel = session
-    ? loading
-      ? "Synchronizing"
-      : "Ingest & Embed"
-    : "Sign in to ingest";
-
-  function renderWorkspaceContent(id: WorkspaceKey | null) {
-    if (!id) return null;
-
-    if (id === "alfa") {
-      return (
-        <div className="workspace-body">
-          <div className="workspace-section">
-            <p className="workspace-label">Focus taxonomy queue</p>
-            <div className="chip-grid">
-              {alfaKeywords.map((keyword) => (
-                <span key={keyword} className="glass-chip">
-                  {keyword}
-                  <button
-                    type="button"
-                    aria-label={`Remove ${keyword}`}
-                    onClick={() => removeAlfaKeyword(keyword)}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              {alfaKeywords.length === 0 && (
-                <span style={{ color: "var(--silver-500)" }}>Add at least one focus to generate signals.</span>
-              )}
-            </div>
-          </div>
-
-          <form className="inline-form" onSubmit={handleAddAlfaKeyword}>
-            <input
-              value={alfaKeyword}
-              onChange={(event) => setAlfaKeyword(event.target.value)}
-              placeholder="Add topical focus"
-            />
-            <button type="submit" className="primary-btn" disabled={!alfaKeyword.trim()}>
-              Queue focus
-            </button>
-          </form>
-        </div>
-      );
+    if (!selectedProjectId) return;
+    setStatus((prev) => ({ ...prev, ingest: true }));
+    setIngestMessage("Working…");
+    const urls = ingestForm.urls
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    try {
+      const res = await fetch("/api/ingest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: selectedProjectId,
+          rootUrl: ingestForm.rootUrl || selectedProject?.rootUrl,
+          sitemapUrl: ingestForm.sitemapUrl || selectedProject?.sitemapUrl,
+          urls
+        })
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setIngestMessage(json.error ?? "Ingestion failed");
+        pushLog(`Ingestion failed: ${json.error ?? res.statusText}`);
+      } else {
+        setIngestMessage(
+          `Embedded ${json.sectionsEmbedded} sections across ${json.pagesIngested} pages`
+        );
+        pushLog(`Ingested ${json.pagesIngested} pages for ${selectedProjectId}`);
+      }
+    } catch (error) {
+      setIngestMessage((error as Error).message);
+    } finally {
+      setStatus((prev) => ({ ...prev, ingest: false }));
     }
-
-    if (id === "beta") {
-      return (
-        <div className="workspace-body">
-          <div className="workspace-section">
-            <p className="workspace-label">Workflow readiness</p>
-            <ul className="workflow-list">
-              {betaSteps.map((step) => (
-                <li key={step.id}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={step.done}
-                      onChange={() => toggleBetaStep(step.id)}
-                    />
-                    <span>{step.label}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="workspace-body gamma">
-        <div className="workspace-section">
-          <p className="workspace-label">Operational targets</p>
-          <div className="gauge-grid">
-            <label>
-              <span>Collector uptime {gammaTargets.uptime.toFixed(1)}%</span>
-              <input
-                type="range"
-                min="95"
-                max="100"
-                step="0.1"
-                value={gammaTargets.uptime}
-                onChange={(e) => handleGammaChange("uptime", Number(e.target.value))}
-              />
-            </label>
-            <label>
-              <span>Vector freshness {gammaTargets.freshness}%</span>
-              <input
-                type="range"
-                min="70"
-                max="100"
-                value={gammaTargets.freshness}
-                onChange={(e) => handleGammaChange("freshness", Number(e.target.value))}
-              />
-            </label>
-            <label>
-              <span>Agent confidence {gammaTargets.confidence}%</span>
-              <input
-                type="range"
-                min="60"
-                max="100"
-                value={gammaTargets.confidence}
-                onChange={(e) => handleGammaChange("confidence", Number(e.target.value))}
-              />
-            </label>
-          </div>
-        </div>
-      </div>
-    );
   }
+
+  async function handleCluster(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!selectedProjectId) return;
+    setStatus((prev) => ({ ...prev, clusters: true }));
+    setClusterMessage("Building clusters…");
+    try {
+      const res = await fetch("/api/clusters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId: selectedProjectId })
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setClusterMessage(json.error ?? "Unable to build clusters");
+        pushLog(`Cluster build failed: ${json.error ?? res.statusText}`);
+      } else {
+        setClusters(json.clusters ?? []);
+        setClusterMessage(`Generated ${json.clusters?.length ?? 0} clusters`);
+        pushLog(`Refreshed clusters for ${selectedProjectId}`);
+      }
+    } catch (error) {
+      setClusterMessage((error as Error).message);
+    } finally {
+      setStatus((prev) => ({ ...prev, clusters: false }));
+    }
+  }
+
+  async function handleDownload(
+    endpoint: string,
+    filenameFallback: string,
+    bodyOverrides?: Record<string, unknown>
+  ) {
+    if (!selectedProjectId) return;
+    setStatus((prev) => ({ ...prev, download: true }));
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: selectedProjectId,
+          ...bodyOverrides
+        })
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        pushLog(json.error ?? `Download failed: ${res.statusText}`);
+        return;
+      }
+      const blob = await res.blob();
+      const suggested = getFilenameFromDisposition(res.headers.get("Content-Disposition"));
+      const fileUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = fileUrl;
+      anchor.download = suggested ?? `${selectedProjectId}-${filenameFallback}`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(fileUrl);
+      pushLog(`Downloaded ${filenameFallback}`);
+    } finally {
+      setStatus((prev) => ({ ...prev, download: false }));
+    }
+  }
+
+  const clusterLang = clusters[0]?.lang;
 
   return (
     <main className="app-shell">
       <div className="content-wrapper">
-        <section className="silver-hero">
+        <section className="silver-hero" ref={heroRef}>
+          <div className="hero-logo-clear" aria-hidden="true" />
+          <div className="hero-lens" aria-hidden="true" />
+          <div className="hero-outline" aria-hidden="true" />
           <div className="hero-content">
-            <header className="hero-header">
+            <div className="hero-header">
               <div className="hero-heading">
-                <h1 className="hero-name">AEO Guru</h1>
-                <p className="hero-subline">Powered by Gemini API</p>
+                <p className="hero-subline">Answer Engine Ops</p>
+                <h1>AEO Guru</h1>
+                <div className="hero-intro-copy">
+                  <div className="vector-scroller" aria-live="polite">
+                    <span className="vector-scroller-label">Vector enrichment</span>
+                    <div className={`vector-window ${vectorDirection}`}>
+                      <span key={vectorPhraseKey} className="vector-token">
+                        {activeVectorPhrase}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="hero-description">
+                    AEO Guru orchestrates crawls, embeddings, clustering, and schema so your site is optimized for
+                    AI-first search experiences—pushing beyond classic SEO playbooks. Build enriched payloads,
+                    intent-aware clusters, and JSON-LD artifacts that help Gemini, Bing Copilot, and Google Overviews
+                    cite your answers when people ask real questions.
+                  </p>
+                </div>
               </div>
               <div className="hero-aside">
                 <div className="hero-tech-panel">
-                  <p className="hero-tech-panel-label">Hackathon tech stack</p>
+                  <p className="hero-tech-panel-label">Technology by</p>
                   <div className="hero-tech-grid">
-                    {hackathonStack.map((tech) => (
-                      <a
-                        key={tech.label}
-                        className="hero-tech-card"
-                        href={tech.url}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                      >
-                        <div className="hero-tech-card-copy">
-                          <strong>{tech.label}</strong>
-                          <p>{tech.detail}</p>
+                    {heroStack.map((item) => (
+                      <div className="hero-tech-item" key={item.label}>
+                        <div className="hero-tech-icon" aria-hidden="true">
+                          {item.icon}
                         </div>
-                        <span className="hero-tech-logo">
-                          <Image
-                            src={tech.logo}
-                            alt={`${tech.label} favicon`}
-                            width={32}
-                            height={32}
-                            loading="lazy"
-                          />
-                        </span>
-                      </a>
+                        <span>{item.label}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
-                <div className="hero-auth-card">
-                  <p className="hero-auth-label">Supabase link</p>
-                  {session ? (
-                    <>
-                      <p className="hero-auth-status">Signed in and ready</p>
-                      <div className="session-pill">
-                        <span>{session.user.email}</span>
-                        <button
-                          type="button"
-                          className="ghost-btn"
-                          onClick={handleSignOut}
-                          disabled={authLoading}
-                        >
-                          {authLoading ? "Signing out" : "Sign out"}
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className="hero-auth-status">Connect Supabase to orchestrate ingestion.</p>
-                      <button type="button" className="ghost-btn" onClick={openAuthModal}>
-                        Login with Supabase
-                      </button>
-                    </>
-                  )}
+                <div className="hero-status-stack">
+                  <div className="hero-status-card">
+                    <p>Projects</p>
+                    <strong>{projects.length}</strong>
+                  </div>
+                  <div className="hero-status-card">
+                    <p>Clusters</p>
+                    <strong>{clusters.length}</strong>
+                  </div>
+                  <div className="hero-status-card">
+                    <p>Last activity</p>
+                    <strong>{logs[0] ?? "Awaiting activity"}</strong>
+                  </div>
+                </div>
+                <div className="hero-status-pills">
+                  <span className={`status-pill ${status.projects ? "active" : ""}`}>
+                    Projects {status.projects ? "refreshing" : "synced"}
+                  </span>
+                  <span className={`status-pill ${status.ingest ? "active" : ""}`}>
+                    Ingestion {status.ingest ? "running" : "idle"}
+                  </span>
+                  <span className={`status-pill ${status.clusters ? "active" : ""}`}>
+                    Clusters {status.clusters ? "building" : "ready"}
+                  </span>
                 </div>
               </div>
-            </header>
-            <h2 className="hero-title">Answer Engine Optimization Toolkit</h2>
-            <p className="hero-subtitle">
-              Arrange the critical workspaces for domain discovery and ingestion oversight in a single glass dashboard.
-              Each touch point is infused with glassmorphism layers, subtle motion, and a silvered palette for instant clarity.
-            </p>
-
-            <div className="hero-metrics">
-              <article className="metric-card">
-                <span>Root authority</span>
-                <strong>{rootHostname}</strong>
-              </article>
-              <article className="metric-card">
-                <span>Queued URLs</span>
-                <strong>{totalUrls}</strong>
-              </article>
-              <article className="metric-card">
-                <span>Last response</span>
-                <strong>{message ? "Received" : "Awaiting"}</strong>
-              </article>
             </div>
           </div>
         </section>
 
-        <section className="ingestion-layout">
-          <div className="glass-panel" style={{ minWidth: 0 }}>
-            <p className="panel-title">Ingestion cockpit</p>
-            <h2 className="panel-heading">Submit domains & orchestrate URLs</h2>
-            <form onSubmit={handleIngest} className="form-grid">
+        <section className="panel-grid">
+          <article className="panel-card wide-panel">
+            <div className="panel-header">
               <div>
-                <label>Project root URL</label>
-                <input
-                  type="url"
-                  required
-                  value={rootUrl}
-                  onChange={(e) => setRootUrl(e.target.value)}
-                  placeholder="https://example.com"
-                />
+                <p className="eyebrow">Project registry</p>
+                <h2>Choose or create a workspace</h2>
               </div>
-              <div>
-                <label>URLs to ingest (one per line)</label>
-                <textarea
-                  rows={6}
-                  value={urlsRaw}
-                  onChange={(e) => setUrlsRaw(e.target.value)}
-                  placeholder={"https://example.com/page-1\nhttps://example.com/page-2"}
-                />
-              </div>
-              <div className="ingestion-actions">
-                <button type="submit" disabled={ingestionDisabled} className="primary-btn">
-                  {ingestionButtonLabel}
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={refreshProjects}
+                disabled={status.projects}
+              >
+                {status.projects ? "Refreshing…" : "Refresh"}
+              </button>
+            </div>
+            <div className="form-grid">
+              <form className="stacked-form" onSubmit={handleCreateProject}>
+                <label className="field-label">
+                  Project ID
+                  <input
+                    className="text-input"
+                    value={projectForm.id}
+                    onChange={(e) => setProjectForm((prev) => ({ ...prev, id: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label className="field-label">
+                  Root URL
+                  <input
+                    className="text-input"
+                    value={projectForm.rootUrl}
+                    onChange={(e) => setProjectForm((prev) => ({ ...prev, rootUrl: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label className="field-label">
+                  Sitemap URL (optional)
+                  <input
+                    className="text-input"
+                    value={projectForm.sitemapUrl}
+                    onChange={(e) => setProjectForm((prev) => ({ ...prev, sitemapUrl: e.target.value }))}
+                    placeholder="https://example.com/sitemap.xml"
+                  />
+                </label>
+                <button type="submit" className="primary-button">
+                  Save project
                 </button>
-                {!session && (
-                  <p className="form-hint">Log in with Supabase to activate ingestion.</p>
+              </form>
+              <div className="project-list-card">
+                <p className="muted">Active projects</p>
+                {status.projects ? (
+                  <p className="muted">Loading projects…</p>
+                ) : (
+                  <ul className="project-list">
+                    {projects.map((project) => (
+                      <li
+                        key={project.id}
+                        className={`project-item ${selectedProjectId === project.id ? "selected" : ""}`}
+                        onClick={() => handleSelectProject(project.id)}
+                      >
+                        <div>
+                          <strong>{project.id}</strong>
+                          <span>{project.rootUrl}</span>
+                        </div>
+                        <time>{formatDate(project.createdAt)}</time>
+                      </li>
+                    ))}
+                    {projects.length === 0 && <li className="project-item muted">No projects yet.</li>}
+                  </ul>
                 )}
               </div>
-            </form>
-          </div>
+            </div>
+          </article>
 
-          <div className="glass-panel">
-            <p className="panel-title">System signals</p>
-            <div className="status-grid">
-              {statusSignals.map((signal) => (
-                <div key={signal.label} className="status-pill" style={{ borderLeft: `4px solid ${signal.tone}` }}>
-                  <strong>{signal.label}</strong>
-                  <span style={{ color: signal.tone }}>{signal.value}</span>
-                </div>
-              ))}
-            </div>
-            <div className="timeline">
-              {timeline.map((entry) => (
-                <div key={entry.time} className="timeline-entry">
-                  <span>
-                    {entry.time} · {entry.event}
-                  </span>
-                  <strong>{entry.detail}</strong>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="workspace-grid">
-          {workspaceBoards.map((board) => (
-            <button
-              key={board.id}
-              type="button"
-              className="glass-panel workspace-card"
-              onClick={() => setActiveWorkspace(board.id)}
-              aria-label={`Open ${board.label}`}
-            >
-              <p className="panel-title">{board.label}</p>
-              <h3 className="panel-heading">{board.title}</h3>
-              <p style={{ color: "var(--silver-500)", lineHeight: 1.6 }}>{board.description}</p>
-              <ul style={{ marginTop: "1rem", paddingLeft: "1.2rem", color: "var(--silver-200)", lineHeight: 1.8 }}>
-                {board.highlights.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </button>
-          ))}
-        </section>
-
-        <section className="glass-panel supabase-console">
-          <div className="supabase-header">
-            <div>
-              <p className="panel-title">Schema telemetry</p>
-              <h3 className="panel-heading">Supabase sync</h3>
-            </div>
-            <div className="supabase-actions">
-              {session ? (
-                <button
-                  type="button"
-                  className="ghost-btn"
-                  onClick={refreshSchemas}
-                  disabled={schemasLoading}
-                >
-                  {schemasLoading ? "Refreshing…" : "Refresh"}
-                </button>
-              ) : (
-                <button type="button" className="ghost-btn" onClick={openAuthModal}>
-                  Login to sync
-                </button>
-              )}
-            </div>
-          </div>
-          <p className="supabase-description">
-            Inspect the schema definitions persisted per project whenever Supabase authentication is active.
-          </p>
-          {session ? (
-            <div className="schema-stream">
-              {schemasLoading && <p className="supabase-hint">Loading schema definitions…</p>}
-              {schemasError && <p className="supabase-error">{schemasError}</p>}
-              {!schemasLoading && !schemasError && projectSchemas.length === 0 && (
-                <p className="supabase-hint">No schema definitions stored for this account yet.</p>
-              )}
-              <div className="schema-list">
-                {projectSchemas.map((schema) => (
-                  <article key={schema.id} className="schema-card">
-                    <div className="schema-meta">
-                      <span>{schema.project_id}</span>
-                      <span>
-                        {schema.updated_at ? new Date(schema.updated_at).toLocaleString() : "never"}
-                      </span>
-                    </div>
-                    <pre className="schema-json">{JSON.stringify(schema.schema_definition, null, 2)}</pre>
-                  </article>
-                ))}
+          <article className="panel-card">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Ingestion</p>
+                <h2>Embed crawl output</h2>
               </div>
+              {selectedProject && <span className="pill">{selectedProject.id}</span>}
             </div>
-          ) : (
-            <p className="supabase-hint">Sign in to view Supabase schema telemetry.</p>
-          )}
-        </section>
+            {selectedProject ? (
+              <form className="stacked-form" onSubmit={handleIngest}>
+                <label className="field-label">
+                  Root URL
+                  <input
+                    className="text-input"
+                    value={ingestForm.rootUrl}
+                    onChange={(e) => setIngestForm((prev) => ({ ...prev, rootUrl: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label className="field-label">
+                  Sitemap URL
+                  <input
+                    className="text-input"
+                    value={ingestForm.sitemapUrl}
+                    onChange={(e) => setIngestForm((prev) => ({ ...prev, sitemapUrl: e.target.value }))}
+                  />
+                </label>
+                <label className="field-label">
+                  Additional URLs (one per line)
+                  <textarea
+                    className="text-area"
+                    value={ingestForm.urls}
+                    onChange={(e) => setIngestForm((prev) => ({ ...prev, urls: e.target.value }))}
+                    placeholder="https://example.com/about\nhttps://example.com/blog/post"
+                  />
+                </label>
+                <button type="submit" className="primary-button" disabled={status.ingest}>
+                  {status.ingest ? "Embedding…" : "Ingest & Embed"}
+                </button>
+                {ingestMessage && <p className="muted">{ingestMessage}</p>}
+              </form>
+            ) : (
+              <p className="muted">Select a project to unlock ingestion.</p>
+            )}
+          </article>
 
-        {message && (
-          <div className="result-log">
-            <p className="panel-title" style={{ marginBottom: "0.8rem" }}>
-              API Response
-            </p>
-            {message}
-          </div>
-        )}
-        {activeBoard && (
-          <div className="workspace-modal" role="dialog" aria-modal="true" aria-labelledby="workspace-title">
-            <div className="modal-overlay" onClick={() => setActiveWorkspace(null)} />
-            <div className="modal-shell glass-panel">
-              <div className="modal-header">
-                <div>
-                  <p className="panel-title" id="workspace-title">
-                    {activeBoard.label}
+          <article className="panel-card">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Clustering</p>
+                <h2>Semantic core + exports</h2>
+              </div>
+              <span className="pill">{clusters.length} clusters</span>
+            </div>
+            {selectedProject ? (
+              <>
+                <form className="stacked-form" onSubmit={handleCluster}>
+                  <p className="muted">
+                    Group embeddings into topic clusters, label intents, and spin up an answer graph of canonical
+                    questions.
                   </p>
-                  <h3 className="panel-heading">{activeBoard.title}</h3>
-                </div>
-                <button className="modal-close" type="button" onClick={() => setActiveWorkspace(null)}>
-                  Close
-                </button>
-              </div>
-              <p className="modal-description">{activeBoard.description}</p>
-              {renderWorkspaceContent(activeBoard.id)}
-            </div>
-          </div>
-        )}
-        {isAuthModalOpen && (
-          <div className="workspace-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
-            <div className="modal-overlay" onClick={closeAuthModal} />
-            <div className="modal-shell glass-panel">
-              <div className="modal-header">
-                <div>
-                  <p className="panel-title" id="auth-modal-title">
-                    Supabase authentication
-                  </p>
-                  <h3 className="panel-heading">Secure access</h3>
-                </div>
-                <button className="modal-close" type="button" onClick={closeAuthModal}>
-                  Close
-                </button>
-              </div>
-              {session ? (
-                <div className="auth-success">
-                  <p>You are signed in as {session.user.email}.</p>
-                  <button type="button" className="ghost-btn" onClick={handleSignOut} disabled={authLoading}>
-                    {authLoading ? "Signing out" : "Sign out"}
+                  <button type="submit" className="primary-button" disabled={status.clusters}>
+                    {status.clusters ? "Analyzing…" : "Build clusters"}
+                  </button>
+                  {clusterMessage && <p className="muted">{clusterMessage}</p>}
+                </form>
+                <div className="download-grid">
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    disabled={status.download || clusters.length === 0}
+                    onClick={() =>
+                      handleDownload("/api/exports/semantic-core", "semantic-core.yaml", { lang: clusterLang })
+                    }
+                  >
+                    Semantic core YAML
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    disabled={status.download || clusters.length === 0}
+                    onClick={() => handleDownload("/api/exports/jsonld", "jsonld.json", { lang: clusterLang })}
+                  >
+                    JSON-LD bundle
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    disabled={status.download || clusters.length === 0}
+                    onClick={() =>
+                      handleDownload("/api/exports/robots", "robots.txt", {
+                        rootUrl: selectedProject?.rootUrl,
+                        lang: clusterLang
+                      })
+                    }
+                  >
+                    robots.txt
                   </button>
                 </div>
-              ) : (
-                <form className="auth-form" onSubmit={handleSignIn}>
-                  <label>
-                    Email
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                    />
-                  </label>
-                  <label>
-                    Password
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                    />
-                  </label>
-                  {authError && <p className="supabase-error">{authError}</p>}
-                  <div className="auth-actions">
-                    <button type="submit" disabled={authLoading} className="primary-btn">
-                      {authLoading ? "Processing" : "Sign in"}
-                    </button>
-                    <button type="button" className="ghost-btn" disabled={authLoading} onClick={handleSignUp}>
-                      Create account
-                    </button>
-                  </div>
-                </form>
-              )}
+              </>
+            ) : (
+              <p className="muted">Select a project to build clusters and exports.</p>
+            )}
+          </article>
+
+          <article className="panel-card">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Activity</p>
+                <h2>Latest log entries</h2>
+              </div>
+              <span className="pill">{logs.length} events</span>
             </div>
-          </div>
+            <ul className="log-list">
+              {logs.map((entry, idx) => (
+                <li key={`${entry}-${idx}`}>{entry}</li>
+              ))}
+              {logs.length === 0 && <li className="muted">No activity yet.</li>}
+            </ul>
+          </article>
+        </section>
+
+        {clusters.length > 0 && (
+          <section className="cluster-section">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Topic clusters</p>
+                <h2>Answer graph overview</h2>
+              </div>
+              <span className="pill">{clusters.length} total</span>
+            </div>
+            <div className="cluster-grid">
+              {clusters.map((cluster) => (
+                <article key={cluster.id} className="cluster-card">
+                  <header>
+                    <div>
+                      <p className="eyebrow">{cluster.metadata.intent}</p>
+                      <h3>{cluster.metadata.label}</h3>
+                    </div>
+                    <span className="pill">Score {cluster.opportunityScore ?? "–"}</span>
+                  </header>
+                  <p className="muted">{cluster.metadata.summary}</p>
+                  <dl>
+                    <div>
+                      <dt>Primary URL</dt>
+                      <dd>{cluster.primaryUrl ?? "Unknown"}</dd>
+                    </div>
+                    <div>
+                      <dt>Primary keyword</dt>
+                      <dd>{cluster.metadata.primaryKeyword}</dd>
+                    </div>
+                    <div>
+                      <dt>Recommended schema</dt>
+                      <dd>
+                        {cluster.metadata.recommendedSchemas.map((schema) => (
+                          <span key={schema} className="schema-chip">
+                            {schema}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  </dl>
+                  <div className="question-list">
+                    <p>Canonical questions</p>
+                    <div>
+                      {cluster.questions.slice(0, 4).map((question) => (
+                        <span key={question}>{question}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="gap-list">
+                    <p>Content gaps</p>
+                    <ul>
+                      {cluster.metadata.contentGaps.map((gap) => (
+                        <li key={gap}>{gap}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
         )}
       </div>
     </main>
