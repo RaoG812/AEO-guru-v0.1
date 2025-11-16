@@ -2,23 +2,37 @@
 
 import { useMemo, useState } from "react";
 
-const workspaceBoards = [
+type WorkspaceKey = "alfa" | "beta" | "gamma";
+
+const workspaceBoards: Array<{
+  id: WorkspaceKey;
+  label: string;
+  title: string;
+  description: string;
+  highlights: string[];
+}> = [
   {
-    label: "Workspace Alpha",
+    id: "alfa",
+    label: "Workspace Alfa",
     title: "Domain Intelligence",
-    description: "Establish the semantic perimeter with contextual taxonomies, topic focus, and multi-market nuance.",
+    description:
+      "Establish the semantic perimeter with contextual taxonomies, topic focus, and multi-market nuance.",
     highlights: ["Keyword gravity mapping", "SERP entity audit", "Authority handoff plan"]
   },
   {
+    id: "beta",
     label: "Workspace Beta",
     title: "Content Supply Chain",
-    description: "Curate URL batches, blueprint briefs, and align editorial pods with intent coverage heatmaps.",
+    description:
+      "Curate URL batches, blueprint briefs, and align editorial pods with intent coverage heatmaps.",
     highlights: ["Priority cluster briefs", "Schema + metadata kit", "Publishing QA cadence"]
   },
   {
+    id: "gamma",
     label: "Workspace Gamma",
     title: "Insights & SLOs",
-    description: "Track ingestion health, Qdrant freshness, and downstream agent confidence for executive reporting.",
+    description:
+      "Track ingestion health, Qdrant freshness, and downstream agent confidence for executive reporting.",
     highlights: ["Embed health signal", "Collector uptime", "Executive telemetry"]
   }
 ];
@@ -35,11 +49,33 @@ const timeline = [
   { time: "09:35", event: "Embeddings committed", detail: "Qdrant shard sfo-01 updated (45 vectors)." }
 ];
 
+const betaWorkflowSteps = [
+  { id: "briefs", label: "Blueprint briefs" },
+  { id: "schema", label: "Schema pass" },
+  { id: "qa", label: "Publishing QA" }
+];
+
 export default function HomePage() {
   const [rootUrl, setRootUrl] = useState("");
   const [urlsRaw, setUrlsRaw] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceKey | null>(null);
+  const [alfaKeyword, setAlfaKeyword] = useState("");
+  const [alfaKeywords, setAlfaKeywords] = useState([
+    "Semantic perimeter",
+    "Market nuance",
+    "Topical trust"
+  ]);
+  const [betaSteps, setBetaSteps] = useState(() =>
+    betaWorkflowSteps.map((step) => ({ ...step, done: step.id !== "qa" }))
+  );
+  const [gammaTargets, setGammaTargets] = useState({ uptime: 99.3, freshness: 88, confidence: 92 });
+
+  const activeBoard = useMemo(
+    () => workspaceBoards.find((board) => board.id === activeWorkspace) ?? null,
+    [activeWorkspace]
+  );
 
   async function handleIngest(e: React.FormEvent) {
     e.preventDefault();
@@ -75,6 +111,134 @@ export default function HomePage() {
       return "draft";
     }
   }, [rootUrl]);
+
+  function handleAddAlfaKeyword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!alfaKeyword.trim()) return;
+    setAlfaKeywords((prev) => Array.from(new Set([...prev, alfaKeyword.trim()])));
+    setAlfaKeyword("");
+  }
+
+  function removeAlfaKeyword(keyword: string) {
+    setAlfaKeywords((prev) => prev.filter((item) => item !== keyword));
+  }
+
+  function toggleBetaStep(stepId: string) {
+    setBetaSteps((prev) =>
+      prev.map((step) => (step.id === stepId ? { ...step, done: !step.done } : step))
+    );
+  }
+
+  function handleGammaChange(key: keyof typeof gammaTargets, value: number) {
+    setGammaTargets((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function renderWorkspaceContent(id: WorkspaceKey | null) {
+    if (!id) return null;
+
+    if (id === "alfa") {
+      return (
+        <div className="workspace-body">
+          <div className="workspace-section">
+            <p className="workspace-label">Focus taxonomy queue</p>
+            <div className="chip-grid">
+              {alfaKeywords.map((keyword) => (
+                <span key={keyword} className="glass-chip">
+                  {keyword}
+                  <button
+                    type="button"
+                    aria-label={`Remove ${keyword}`}
+                    onClick={() => removeAlfaKeyword(keyword)}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              {alfaKeywords.length === 0 && (
+                <span style={{ color: "var(--silver-500)" }}>Add at least one focus to generate signals.</span>
+              )}
+            </div>
+          </div>
+
+          <form className="inline-form" onSubmit={handleAddAlfaKeyword}>
+            <input
+              value={alfaKeyword}
+              onChange={(event) => setAlfaKeyword(event.target.value)}
+              placeholder="Add topical focus"
+            />
+            <button type="submit" className="primary-btn" disabled={!alfaKeyword.trim()}>
+              Queue focus
+            </button>
+          </form>
+        </div>
+      );
+    }
+
+    if (id === "beta") {
+      return (
+        <div className="workspace-body">
+          <div className="workspace-section">
+            <p className="workspace-label">Workflow readiness</p>
+            <ul className="workflow-list">
+              {betaSteps.map((step) => (
+                <li key={step.id}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={step.done}
+                      onChange={() => toggleBetaStep(step.id)}
+                    />
+                    <span>{step.label}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="workspace-body gamma">
+        <div className="workspace-section">
+          <p className="workspace-label">Operational targets</p>
+          <div className="gauge-grid">
+            <label>
+              <span>Collector uptime {gammaTargets.uptime.toFixed(1)}%</span>
+              <input
+                type="range"
+                min="95"
+                max="100"
+                step="0.1"
+                value={gammaTargets.uptime}
+                onChange={(e) => handleGammaChange("uptime", Number(e.target.value))}
+              />
+            </label>
+            <label>
+              <span>Vector freshness {gammaTargets.freshness}%</span>
+              <input
+                type="range"
+                min="70"
+                max="100"
+                value={gammaTargets.freshness}
+                onChange={(e) => handleGammaChange("freshness", Number(e.target.value))}
+              />
+            </label>
+            <label>
+              <span>Agent confidence {gammaTargets.confidence}%</span>
+              <input
+                type="range"
+                min="60"
+                max="100"
+                value={gammaTargets.confidence}
+                onChange={(e) => handleGammaChange("confidence", Number(e.target.value))}
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="app-shell">
@@ -156,7 +320,13 @@ export default function HomePage() {
 
         <section className="workspace-grid">
           {workspaceBoards.map((board) => (
-            <article key={board.label} className="glass-panel">
+            <button
+              key={board.id}
+              type="button"
+              className="glass-panel workspace-card"
+              onClick={() => setActiveWorkspace(board.id)}
+              aria-label={`Open ${board.label}`}
+            >
               <p className="panel-title">{board.label}</p>
               <h3 className="panel-heading">{board.title}</h3>
               <p style={{ color: "var(--silver-500)", lineHeight: 1.6 }}>{board.description}</p>
@@ -165,7 +335,7 @@ export default function HomePage() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-            </article>
+            </button>
           ))}
         </section>
 
@@ -175,6 +345,26 @@ export default function HomePage() {
               API Response
             </p>
             {message}
+          </div>
+        )}
+        {activeBoard && (
+          <div className="workspace-modal" role="dialog" aria-modal="true" aria-labelledby="workspace-title">
+            <div className="modal-overlay" onClick={() => setActiveWorkspace(null)} />
+            <div className="modal-shell glass-panel">
+              <div className="modal-header">
+                <div>
+                  <p className="panel-title" id="workspace-title">
+                    {activeBoard.label}
+                  </p>
+                  <h3 className="panel-heading">{activeBoard.title}</h3>
+                </div>
+                <button className="modal-close" type="button" onClick={() => setActiveWorkspace(null)}>
+                  Close
+                </button>
+              </div>
+              <p className="modal-description">{activeBoard.description}</p>
+              {renderWorkspaceContent(activeBoard.id)}
+            </div>
           </div>
         )}
       </div>
