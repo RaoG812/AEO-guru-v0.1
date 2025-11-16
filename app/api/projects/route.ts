@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-
 import { addProject, listProjects } from "@/lib/projectsStore";
-
-const createProjectSchema = z.object({
-  id: z
-    .string()
-    .min(1, "Project id is required")
-    .regex(/^[a-zA-Z0-9-_]+$/, "Project id can only include letters, numbers, dashes and underscores"),
-  name: z.string().min(1).optional(),
-  rootUrl: z.string().url(),
-  sitemapUrl: z.string().url().optional()
-});
+import { createProjectSchema } from "@/lib/projectsSchema";
 
 export async function GET() {
   const projects = await listProjects();

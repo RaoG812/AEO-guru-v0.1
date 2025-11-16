@@ -1,6 +1,8 @@
 import { promises as fs } from "fs";
 import path from "path";
 
+import type { CreateProjectInput } from "./projectsSchema";
+
 export type ProjectRecord = {
   id: string;
   name?: string;
@@ -42,13 +44,6 @@ async function writeStore(projects: ProjectRecord[]) {
 export async function listProjects(): Promise<ProjectRecord[]> {
   return readStore();
 }
-
-export type CreateProjectInput = {
-  id: string;
-  name?: string;
-  rootUrl: string;
-  sitemapUrl?: string | null;
-};
 
 function normalizeUrl(url: string) {
   const parsed = new URL(url);
