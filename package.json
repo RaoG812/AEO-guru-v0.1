@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.15.1",
-    "ai": "^3.0.0",                      // OpenAI/Vercel AI SDK
+    "ai": "^3.0.0",                      
     "@ai-sdk/openai": "^1.0.0",
     "cheerio": "^1.0.0",
     "js-yaml": "^4.1.0",
