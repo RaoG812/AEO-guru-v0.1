@@ -67,7 +67,9 @@ main {
 .silver-hero {
   --cursor-x: 50%;
   --cursor-y: 45%;
-  --lens-opacity: 0.35;
+  --lens-opacity: 0.3;
+  --lens-radius: 110px;
+  --lens-feather: 70px;
   border-radius: 32px;
   padding: 2.5rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03));
@@ -104,9 +106,30 @@ main {
   mask-image: radial-gradient(
     circle at var(--cursor-x, 50%) var(--cursor-y, 45%),
     transparent 0,
-    transparent calc(80px + 60px * var(--lens-opacity, 0.35)),
-    rgba(0, 0, 0, 0.55) calc(150px + 80px * var(--lens-opacity, 0.35)),
+    transparent calc(var(--lens-radius) * 0.65),
+    rgba(0, 0, 0, 0.6) calc(var(--lens-radius) + var(--lens-feather)),
     rgba(0, 0, 0, 0.95) 100%
+  );
+  mask-mode: luminance;
+  transition: mask-position 0.1s ease, mask-size 0.3s ease;
+}
+
+.hero-logo-clear {
+  position: absolute;
+  inset: 0;
+  border-radius: 32px;
+  background-image: url("/aeo-guru.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: auto 72%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.95;
+  mask-image: radial-gradient(
+    circle at var(--cursor-x, 50%) var(--cursor-y, 45%),
+    rgba(0, 0, 0, 1) calc(var(--lens-radius) * 0.7),
+    rgba(0, 0, 0, 0.5) calc(var(--lens-radius) * 0.95),
+    rgba(0, 0, 0, 0) calc(var(--lens-radius) * 1.2)
   );
   mask-mode: luminance;
   transition: mask-position 0.1s ease, mask-size 0.3s ease;
@@ -117,13 +140,13 @@ main {
   inset: 0;
   border-radius: 32px;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
   background: radial-gradient(
       circle at var(--cursor-x, 50%) var(--cursor-y, 45%),
-      rgba(255, 255, 255, 0.22),
-      rgba(255, 255, 255, 0.1) 18%,
-      rgba(133, 168, 255, 0.28) 33%,
-      rgba(255, 255, 255, 0) 55%
+      rgba(255, 255, 255, 0.35),
+      rgba(164, 195, 255, 0.2) 35%,
+      rgba(67, 103, 180, 0.12) 55%,
+      rgba(255, 255, 255, 0) 72%
     ),
     radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.08), transparent 35%);
   mix-blend-mode: screen;
@@ -138,7 +161,7 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: inset 0 0 35px rgba(255, 255, 255, 0.05), 0 0 30px rgba(139, 179, 255, 0.25);
   pointer-events: none;
-  z-index: 3;
+  z-index: 4;
 }
 
 @keyframes guruFloat {
@@ -155,7 +178,7 @@ main {
 
 .hero-content {
   position: relative;
-  z-index: 4;
+  z-index: 5;
 }
 
 .hero-header {

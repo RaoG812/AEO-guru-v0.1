@@ -182,17 +182,17 @@ export default function HomePage() {
     };
 
     setDefaultPosition();
-    heroNode.style.setProperty("--lens-opacity", "0.4");
+    heroNode.style.setProperty("--lens-opacity", "0.3");
 
     const handlePointerMove = (event: PointerEvent) => {
       const rect = heroNode.getBoundingClientRect();
       heroNode.style.setProperty("--cursor-x", `${event.clientX - rect.left}px`);
       heroNode.style.setProperty("--cursor-y", `${event.clientY - rect.top}px`);
-      heroNode.style.setProperty("--lens-opacity", "1");
+      heroNode.style.setProperty("--lens-opacity", "0.85");
     };
 
     const handlePointerLeave = () => {
-      heroNode.style.setProperty("--lens-opacity", "0.35");
+      heroNode.style.setProperty("--lens-opacity", "0.25");
       setDefaultPosition();
     };
 
@@ -373,6 +373,7 @@ export default function HomePage() {
     <main className="app-shell">
       <div className="content-wrapper">
         <section className="silver-hero" ref={heroRef}>
+          <div className="hero-logo-clear" aria-hidden="true" />
           <div className="hero-lens" aria-hidden="true" />
           <div className="hero-outline" aria-hidden="true" />
           <div className="hero-content">
