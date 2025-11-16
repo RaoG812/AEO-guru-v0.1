@@ -1,7 +1,7 @@
-import { promises as fs } from "fs";
-import path from "path";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 import type { CreateProjectInput } from "./projectsSchema";
+import { getSupabaseServiceRoleClient } from "./supabaseServerClient";
 
 export type ProjectRecord = {
   id: string;
@@ -11,38 +11,24 @@ export type ProjectRecord = {
   createdAt: string;
 };
 
-const STORE_PATH = path.join(process.cwd(), "data", "projects.json");
+const TABLE = "projects";
 
-async function ensureStoreFile() {
-  await fs.mkdir(path.dirname(STORE_PATH), { recursive: true });
+type ProjectRow = {
+  project_id: string;
+  name: string | null;
+  root_url: string;
+  sitemap_url: string | null;
+  created_at: string;
+};
 
-  try {
-    await fs.access(STORE_PATH);
-  } catch {
-    await fs.writeFile(STORE_PATH, "[]", "utf-8");
-  }
-}
-
-async function readStore(): Promise<ProjectRecord[]> {
-  await ensureStoreFile();
-  const file = await fs.readFile(STORE_PATH, "utf-8");
-  try {
-    const data = JSON.parse(file);
-    if (Array.isArray(data)) {
-      return data as ProjectRecord[];
-    }
-    return [];
-  } catch {
-    return [];
-  }
-}
-
-async function writeStore(projects: ProjectRecord[]) {
-  await fs.writeFile(STORE_PATH, JSON.stringify(projects, null, 2), "utf-8");
-}
-
-export async function listProjects(): Promise<ProjectRecord[]> {
-  return readStore();
+function mapRowToRecord(row: ProjectRow): ProjectRecord {
+  return {
+    id: row.project_id,
+    name: row.name ?? undefined,
+    rootUrl: row.root_url,
+    sitemapUrl: row.sitemap_url,
+    createdAt: row.created_at
+  };
 }
 
 function normalizeUrl(url: string) {
@@ -51,26 +37,51 @@ function normalizeUrl(url: string) {
   return parsed.toString();
 }
 
-export async function addProject(input: CreateProjectInput): Promise<ProjectRecord> {
-  const projects = await readStore();
-
-  if (projects.some((project) => project.id === input.id)) {
+function handlePostgrestError(error: PostgrestError): never {
+  if (error.code === "23505") {
     throw new Error("PROJECT_ALREADY_EXISTS");
   }
+  throw new Error(error.message || "Supabase query failed");
+}
 
+export async function listProjects(ownerUserId: string): Promise<ProjectRecord[]> {
+  const supabase = getSupabaseServiceRoleClient();
+  const { data, error } = await supabase
+    .from<ProjectRow>(TABLE)
+    .select("project_id, name, root_url, sitemap_url, created_at")
+    .eq("owner_user_id", ownerUserId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    handlePostgrestError(error);
+  }
+
+  return (data ?? []).map(mapRowToRecord);
+}
+
+export async function addProject(
+  ownerUserId: string,
+  input: CreateProjectInput
+): Promise<ProjectRecord> {
+  const supabase = getSupabaseServiceRoleClient();
   const normalizedRootUrl = normalizeUrl(input.rootUrl);
   const normalizedSitemap = input.sitemapUrl ? normalizeUrl(input.sitemapUrl) : null;
 
-  const record: ProjectRecord = {
-    id: input.id,
-    name: input.name,
-    rootUrl: normalizedRootUrl,
-    sitemapUrl: normalizedSitemap,
-    createdAt: new Date().toISOString()
-  };
+  const { data, error } = await supabase
+    .from(TABLE)
+    .insert({
+      owner_user_id: ownerUserId,
+      project_id: input.id,
+      name: input.name ?? null,
+      root_url: normalizedRootUrl,
+      sitemap_url: normalizedSitemap
+    })
+    .select("project_id, name, root_url, sitemap_url, created_at")
+    .single();
 
-  projects.push(record);
-  await writeStore(projects);
+  if (error) {
+    handlePostgrestError(error);
+  }
 
-  return record;
+  return mapRowToRecord(data as ProjectRow);
 }

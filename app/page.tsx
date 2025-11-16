@@ -155,6 +155,8 @@ export default function HomePage() {
     [projects, selectedProjectId]
   );
 
+  const accessToken = session?.access_token ?? null;
+
   useEffect(() => {
     if (!supabase) return;
 
@@ -182,11 +184,21 @@ export default function HomePage() {
   }
 
   const refreshProjects = useCallback(async () => {
+    if (!accessToken) {
+      setProjects([]);
+      setSelectedProjectId("");
+      return;
+    }
+
     setStatus((prev) => ({ ...prev, projects: true }));
     try {
-      const res = await fetch("/api/projects");
+      const res = await fetch("/api/projects", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
       const json = await res.json();
-      if (json.ok) {
+      if (res.ok && json.ok) {
         setProjects(json.projects);
         const fallback = json.projects[0];
         let selectionChanged = false;
@@ -202,11 +214,14 @@ export default function HomePage() {
             sitemapUrl: fallback.sitemapUrl ?? ""
           }));
         }
+      } else if (res.status === 401) {
+        setProjects([]);
+        setSelectedProjectId("");
       }
     } finally {
       setStatus((prev) => ({ ...prev, projects: false }));
     }
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
     refreshProjects();
@@ -327,6 +342,12 @@ export default function HomePage() {
   async function handleCreateProject(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!projectForm.id || !projectForm.rootUrl) return;
+    if (!accessToken) {
+      pushLog("Sign in to create a project first.");
+      openLoginModal();
+      return;
+    }
+
     const payload = {
       id: projectForm.id.trim(),
       rootUrl: projectForm.rootUrl.trim(),
@@ -334,7 +355,10 @@ export default function HomePage() {
     };
     const res = await fetch("/api/projects", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`
+      },
       body: JSON.stringify(payload)
     });
     if (res.ok) {
