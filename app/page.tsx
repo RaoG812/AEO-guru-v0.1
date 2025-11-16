@@ -183,16 +183,19 @@ export default function HomePage() {
 
     setDefaultPosition();
     heroNode.style.setProperty("--lens-opacity", "0.3");
+    heroNode.style.setProperty("--reveal-opacity", "0");
 
     const handlePointerMove = (event: PointerEvent) => {
       const rect = heroNode.getBoundingClientRect();
       heroNode.style.setProperty("--cursor-x", `${event.clientX - rect.left}px`);
       heroNode.style.setProperty("--cursor-y", `${event.clientY - rect.top}px`);
       heroNode.style.setProperty("--lens-opacity", "0.85");
+      heroNode.style.setProperty("--reveal-opacity", "1");
     };
 
     const handlePointerLeave = () => {
       heroNode.style.setProperty("--lens-opacity", "0.25");
+      heroNode.style.setProperty("--reveal-opacity", "0");
       setDefaultPosition();
     };
 
