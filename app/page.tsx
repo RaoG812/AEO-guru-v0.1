@@ -495,6 +495,29 @@ export default function HomePage() {
                 <p className="muted">Active projects</p>
                 {status.projects ? (
                   <p className="muted">Loading projects…</p>
+                ) : projects.length === 0 ? (
+                  <div className="empty-project-state">
+                    <div className="empty-project-logo" aria-hidden="true">
+                      <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+                        <defs>
+                          <linearGradient id="registryGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+                            <stop offset="0%" stopColor="#a7c4ff" />
+                            <stop offset="100%" stopColor="#6a8bff" />
+                          </linearGradient>
+                        </defs>
+                        <rect x="8" y="10" width="48" height="44" rx="10" fill="url(#registryGradient)" opacity="0.25" />
+                        <rect x="14" y="16" width="36" height="10" rx="5" stroke="url(#registryGradient)" strokeWidth="2" fill="none" />
+                        <rect x="14" y="30" width="18" height="8" rx="4" fill="url(#registryGradient)" opacity="0.8" />
+                        <rect x="34" y="30" width="16" height="8" rx="4" fill="url(#registryGradient)" opacity="0.5" />
+                        <rect x="14" y="42" width="22" height="6" rx="3" fill="url(#registryGradient)" opacity="0.6" />
+                      </svg>
+                    </div>
+                    <h3>Awaiting your first project</h3>
+                    <p>
+                      Use the form on the left to register a workspace. Once saved, it will appear here so you can
+                      ingest URLs and build clusters.
+                    </p>
+                  </div>
                 ) : (
                   <ul className="project-list">
                     {projects.map((project) => (
@@ -510,7 +533,6 @@ export default function HomePage() {
                         <time>{formatDate(project.createdAt)}</time>
                       </li>
                     ))}
-                    {projects.length === 0 && <li className="project-item muted">No projects yet.</li>}
                   </ul>
                 )}
               </div>
