@@ -44,10 +44,10 @@ const statusSignals = [
 ];
 
 const hackathonStack = [
-  { label: "lablab.ai", detail: "Hackathon arena" },
-  { label: "OpenAI", detail: "Prompt ops" },
-  { label: "GitHub", detail: "Ship + review" },
-  { label: "Gemini API", detail: "Optimization core" }
+  { label: "lablab.ai", detail: "Hackathon arena", logo: "LA" },
+  { label: "OpenAI", detail: "Prompt ops", logo: "OA" },
+  { label: "GitHub", detail: "Ship + review", logo: "GH" },
+  { label: "Gemini API", detail: "Optimization core", logo: "GX" }
 ];
 
 const timeline = [
@@ -261,8 +261,13 @@ export default function HomePage() {
             <div className="hero-tech-grid">
               {hackathonStack.map((tech) => (
                 <article key={tech.label} className="hero-tech-card">
-                  <strong>{tech.label}</strong>
-                  <span>{tech.detail}</span>
+                  <div>
+                    <strong>{tech.label}</strong>
+                    <span>{tech.detail}</span>
+                  </div>
+                  <span className="hero-tech-logo" aria-hidden="true">
+                    {tech.logo}
+                  </span>
                 </article>
               ))}
             </div>
