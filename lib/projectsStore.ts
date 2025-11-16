@@ -1,7 +1,6 @@
-import type { PostgrestError } from "@supabase/supabase-js";
+import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 
 import type { CreateProjectInput } from "./projectsSchema";
-import { getSupabaseServiceRoleClient } from "./supabaseServerClient";
 
 export type ProjectRecord = {
   id: string;
@@ -44,8 +43,10 @@ function handlePostgrestError(error: PostgrestError): never {
   throw new Error(error.message || "Supabase query failed");
 }
 
-export async function listProjects(ownerUserId: string): Promise<ProjectRecord[]> {
-  const supabase = getSupabaseServiceRoleClient();
+export async function listProjects(
+  supabase: SupabaseClient,
+  ownerUserId: string
+): Promise<ProjectRecord[]> {
   const { data, error } = await supabase
     .from(TABLE)
     .select("project_id, name, root_url, sitemap_url, created_at")
@@ -60,10 +61,10 @@ export async function listProjects(ownerUserId: string): Promise<ProjectRecord[]
 }
 
 export async function addProject(
+  supabase: SupabaseClient,
   ownerUserId: string,
   input: CreateProjectInput
 ): Promise<ProjectRecord> {
-  const supabase = getSupabaseServiceRoleClient();
   const normalizedRootUrl = normalizeUrl(input.rootUrl);
   const normalizedSitemap = input.sitemapUrl ? normalizeUrl(input.sitemapUrl) : null;
 
