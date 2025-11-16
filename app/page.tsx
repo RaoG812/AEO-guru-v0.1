@@ -253,24 +253,27 @@ export default function HomePage() {
         <section className="silver-hero">
           <div className="hero-content">
             <header className="hero-header">
-              <div>
-                <p className="panel-title">Command Deck</p>
-                <h1 className="hero-name">AEO Guru</h1>
+              <div className="hero-heading">
+                <h1 className="hero-name">Answer Engine Optimization toolkit</h1>
+                <p className="hero-subline">Powered by Gemini API</p>
+              </div>
+              <div className="hero-tech-panel">
+                <p className="hero-tech-panel-label">Hackathon tech stack</p>
+                <div className="hero-tech-grid">
+                  {hackathonStack.map((tech) => (
+                    <article key={tech.label} className="hero-tech-card">
+                      <div>
+                        <strong>{tech.label}</strong>
+                        <span>{tech.detail}</span>
+                      </div>
+                      <span className="hero-tech-logo" aria-hidden="true">
+                        {tech.logo}
+                      </span>
+                    </article>
+                  ))}
+                </div>
               </div>
             </header>
-            <div className="hero-tech-grid">
-              {hackathonStack.map((tech) => (
-                <article key={tech.label} className="hero-tech-card">
-                  <div>
-                    <strong>{tech.label}</strong>
-                    <span>{tech.detail}</span>
-                  </div>
-                  <span className="hero-tech-logo" aria-hidden="true">
-                    {tech.logo}
-                  </span>
-                </article>
-              ))}
-            </div>
             <h2 className="hero-title">Complete AEO optimization toolkit powered by Gemini.</h2>
             <p className="hero-subtitle">
               Guide every crawl, ingestion, and experiment around concrete website goals with Gemini AI API copilots.
