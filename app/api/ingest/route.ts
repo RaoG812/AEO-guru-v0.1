@@ -9,10 +9,12 @@ import { chunkText } from "@/lib/chunker";
 import { embedTexts } from "@/lib/embeddings";
 import { collectSitemapUrls, crawlSite, extractTextFromUrl, type ExtractedPage } from "@/lib/crawler";
 
+const optionalUrlSchema = z.preprocess((value) => (value === null ? undefined : value), z.string().url().optional());
+
 const bodySchema = z.object({
   projectId: z.string().min(1),
-  rootUrl: z.string().url().optional(),
-  sitemapUrl: z.string().url().optional(),
+  rootUrl: optionalUrlSchema,
+  sitemapUrl: optionalUrlSchema,
   urls: z.array(z.string().url()).optional(),
   limit: z.number().int().min(1).max(60).optional()
 });
