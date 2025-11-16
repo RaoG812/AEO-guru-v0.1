@@ -10,7 +10,7 @@ export const qdrant = new QdrantClient({
   apiKey: process.env.QDRANT_API_KEY
 });
 
-export const COLLECTION = "answergraph_corpus";
+export const COLLECTION = "aeo_guru_corpus";
 
 export async function ensureCollection(dim: number) {
   const collections = await qdrant.getCollections();
