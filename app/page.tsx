@@ -239,16 +239,19 @@ export default function HomePage() {
 
     setDefaultPosition();
     heroNode.style.setProperty("--lens-opacity", "0.3");
+    heroNode.style.setProperty("--reveal-opacity", "0");
 
     const handlePointerMove = (event: PointerEvent) => {
       const rect = heroNode.getBoundingClientRect();
       heroNode.style.setProperty("--cursor-x", `${event.clientX - rect.left}px`);
       heroNode.style.setProperty("--cursor-y", `${event.clientY - rect.top}px`);
       heroNode.style.setProperty("--lens-opacity", "0.85");
+      heroNode.style.setProperty("--reveal-opacity", "1");
     };
 
     const handlePointerLeave = () => {
       heroNode.style.setProperty("--lens-opacity", "0.25");
+      heroNode.style.setProperty("--reveal-opacity", "0");
       setDefaultPosition();
     };
 
@@ -338,6 +341,68 @@ export default function HomePage() {
     if (!supabase) return;
     await supabase.auth.signOut();
   }
+
+  function handleLogin() {
+    pushLog("Initiated login from dock");
+  }
+
+  const dockButtons = [
+    {
+      label: "Home",
+      icon: (
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path
+            d="m4 11 8-7 8 7v8.5c0 .3-.2.5-.5.5H4.5c-.3 0-.5-.2-.5-.5z"
+            fill="currentColor"
+          />
+        </svg>
+      ),
+      action: () => heroRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    },
+    {
+      label: "Projects",
+      icon: (
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path
+            d="M5 6h14c.6 0 1 .4 1 1v10c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1zm0 4h14M9 6v12"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </svg>
+      ),
+      action: () =>
+        document.querySelector(".panel-grid")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    },
+    {
+      label: "Clusters",
+      icon: (
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.5" fill="none" />
+          <circle cx="12" cy="12" r="2.4" fill="currentColor" />
+        </svg>
+      ),
+      action: () =>
+        document.querySelector(".cluster-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    },
+    {
+      label: "Login",
+      icon: (
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path
+            d="M12 4h6c.6 0 1 .4 1 1v14c0 .6-.4 1-1 1h-6M8 8l-4 4 4 4m-4-4h11"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      action: handleLogin
+    }
+  ];
 
   async function handleCreateProject(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -494,6 +559,16 @@ export default function HomePage() {
 
   return (
     <main className="app-shell">
+      <nav className="dock-nav" aria-label="Primary">
+        {dockButtons.map((button) => (
+          <button key={button.label} type="button" onClick={button.action}>
+            <span className="dock-icon" aria-hidden="true">
+              {button.icon}
+            </span>
+            <span className="dock-label">{button.label}</span>
+          </button>
+        ))}
+      </nav>
       <div className="content-wrapper">
         <section className="silver-hero" ref={heroRef}>
           <div className="hero-logo-clear" aria-hidden="true" />
@@ -534,53 +609,54 @@ export default function HomePage() {
                   </div>
                   <p className="hero-description">
                     AEO Guru orchestrates crawls, embeddings, clustering, and schema so your site is optimized for
-                    AI-first search experiences—pushing beyond classic SEO playbooks. Build enriched payloads,
-                    intent-aware clusters, and JSON-LD artifacts that help Gemini, Bing Copilot, and Google Overviews
-                    cite your answers when people ask real questions.
+                    AI-first search experiences—pushing beyond classic SEO playbooks.
                   </p>
                 </div>
               </div>
               <div className="hero-aside">
                 <div className="hero-tech-panel">
                   <p className="hero-tech-panel-label">Technology by</p>
-                  <div className="hero-tech-grid">
+                  <ul className="hero-tech-grid">
                     {heroStack.map((item) => (
-                      <div className="hero-tech-item" key={item.label}>
-                        <div className="hero-tech-icon" aria-hidden="true">
+                      <li key={item.label}>
+                        <span className="hero-tech-icon" aria-hidden="true">
                           {item.icon}
-                        </div>
-                        <span>{item.label}</span>
-                      </div>
+                        </span>
+                        <span className="hero-tech-label">{item.label}</span>
+                      </li>
                     ))}
-                  </div>
-                </div>
-                <div className="hero-status-stack">
-                  <div className="hero-status-card">
-                    <p>Projects</p>
-                    <strong>{projects.length}</strong>
-                  </div>
-                  <div className="hero-status-card">
-                    <p>Clusters</p>
-                    <strong>{clusters.length}</strong>
-                  </div>
-                  <div className="hero-status-card">
-                    <p>Last activity</p>
-                    <strong>{logs[0] ?? "Awaiting activity"}</strong>
-                  </div>
-                </div>
-                <div className="hero-status-pills">
-                  <span className={`status-pill ${status.projects ? "active" : ""}`}>
-                    Projects {status.projects ? "refreshing" : "synced"}
-                  </span>
-                  <span className={`status-pill ${status.ingest ? "active" : ""}`}>
-                    Ingestion {status.ingest ? "running" : "idle"}
-                  </span>
-                  <span className={`status-pill ${status.clusters ? "active" : ""}`}>
-                    Clusters {status.clusters ? "building" : "ready"}
-                  </span>
+                  </ul>
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="ops-metrics" aria-label="Operational dashboard">
+          <div className="hero-status-stack">
+            <div className="hero-status-card">
+              <p>Projects</p>
+              <strong>{projects.length}</strong>
+            </div>
+            <div className="hero-status-card">
+              <p>Clusters</p>
+              <strong>{clusters.length}</strong>
+            </div>
+            <div className="hero-status-card">
+              <p>Last activity</p>
+              <strong>{logs[0] ?? "Awaiting activity"}</strong>
+            </div>
+          </div>
+          <div className="hero-status-pills">
+            <span className={`status-pill ${status.projects ? "active" : ""}`}>
+              Projects {status.projects ? "refreshing" : "synced"}
+            </span>
+            <span className={`status-pill ${status.ingest ? "active" : ""}`}>
+              Ingestion {status.ingest ? "running" : "idle"}
+            </span>
+            <span className={`status-pill ${status.clusters ? "active" : ""}`}>
+              Clusters {status.clusters ? "building" : "ready"}
+            </span>
           </div>
         </section>
 
@@ -637,6 +713,29 @@ export default function HomePage() {
                 <p className="muted">Active projects</p>
                 {status.projects ? (
                   <p className="muted">Loading projects…</p>
+                ) : projects.length === 0 ? (
+                  <div className="empty-project-state">
+                    <div className="empty-project-logo" aria-hidden="true">
+                      <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+                        <defs>
+                          <linearGradient id="registryGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+                            <stop offset="0%" stopColor="#a7c4ff" />
+                            <stop offset="100%" stopColor="#6a8bff" />
+                          </linearGradient>
+                        </defs>
+                        <rect x="8" y="10" width="48" height="44" rx="10" fill="url(#registryGradient)" opacity="0.25" />
+                        <rect x="14" y="16" width="36" height="10" rx="5" stroke="url(#registryGradient)" strokeWidth="2" fill="none" />
+                        <rect x="14" y="30" width="18" height="8" rx="4" fill="url(#registryGradient)" opacity="0.8" />
+                        <rect x="34" y="30" width="16" height="8" rx="4" fill="url(#registryGradient)" opacity="0.5" />
+                        <rect x="14" y="42" width="22" height="6" rx="3" fill="url(#registryGradient)" opacity="0.6" />
+                      </svg>
+                    </div>
+                    <h3>Awaiting your first project</h3>
+                    <p>
+                      Use the form on the left to register a workspace. Once saved, it will appear here so you can
+                      ingest URLs and build clusters.
+                    </p>
+                  </div>
                 ) : (
                   <ul className="project-list">
                     {projects.map((project) => (
@@ -652,7 +751,6 @@ export default function HomePage() {
                         <time>{formatDate(project.createdAt)}</time>
                       </li>
                     ))}
-                    {projects.length === 0 && <li className="project-item muted">No projects yet.</li>}
                   </ul>
                 )}
               </div>
