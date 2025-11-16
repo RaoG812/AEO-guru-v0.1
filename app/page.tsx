@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 
 type WorkspaceKey = "alfa" | "beta" | "gamma";
@@ -44,10 +45,26 @@ const statusSignals = [
 ];
 
 const hackathonStack = [
-  { label: "lablab.ai", detail: "Hackathon arena", logo: "LA" },
-  { label: "OpenAI", detail: "Prompt ops", logo: "OA" },
-  { label: "GitHub", detail: "Ship + review", logo: "GH" },
-  { label: "Gemini API", detail: "Optimization core", logo: "GX" }
+  {
+    label: "lablab.ai",
+    detail: "Hackathon arena",
+    logo: "https://www.google.com/s2/favicons?domain=lablab.ai&sz=64"
+  },
+  {
+    label: "OpenAI",
+    detail: "Prompt ops",
+    logo: "https://www.google.com/s2/favicons?domain=openai.com&sz=64"
+  },
+  {
+    label: "GitHub",
+    detail: "Ship + review",
+    logo: "https://www.google.com/s2/favicons?domain=github.com&sz=64"
+  },
+  {
+    label: "Gemini API",
+    detail: "Optimization core",
+    logo: "https://www.google.com/s2/favicons?domain=ai.google&sz=64"
+  }
 ];
 
 const timeline = [
@@ -266,8 +283,14 @@ export default function HomePage() {
                         <strong>{tech.label}</strong>
                         <p>{tech.detail}</p>
                       </div>
-                      <span className="hero-tech-logo" aria-hidden="true">
-                        {tech.logo}
+                      <span className="hero-tech-logo">
+                        <Image
+                          src={tech.logo}
+                          alt={`${tech.label} favicon`}
+                          width={28}
+                          height={28}
+                          loading="lazy"
+                        />
                       </span>
                     </article>
                   ))}
