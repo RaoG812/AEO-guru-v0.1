@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import type { Session } from "@supabase/supabase-js";
 
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
@@ -121,6 +121,7 @@ export default function HomePage() {
   const [projectSchemas, setProjectSchemas] = useState<ProjectSchemaRecord[]>([]);
   const [schemasLoading, setSchemasLoading] = useState(false);
   const [schemasError, setSchemasError] = useState<string | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -142,32 +143,39 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    async function fetchSchemas() {
-      if (!session) {
-        setSchemasError(null);
-        setProjectSchemas([]);
-        return;
-      }
+    if (session) {
+      setIsAuthModalOpen(false);
+    }
+  }, [session]);
 
-      setSchemasLoading(true);
+  const refreshSchemas = useCallback(async () => {
+    if (!session) {
       setSchemasError(null);
-      const { data, error } = await supabase
-        .from("project_schemas")
-        .select("id, project_id, schema_definition, created_at, updated_at")
-        .order("updated_at", { ascending: false, nullsFirst: false });
-
-      if (error) {
-        setSchemasError(error.message);
-        setProjectSchemas([]);
-      } else {
-        setProjectSchemas(data ?? []);
-      }
-
+      setProjectSchemas([]);
       setSchemasLoading(false);
+      return;
     }
 
-    fetchSchemas();
+    setSchemasLoading(true);
+    setSchemasError(null);
+    const { data, error } = await supabase
+      .from("project_schemas")
+      .select("id, project_id, schema_definition, created_at, updated_at")
+      .order("updated_at", { ascending: false, nullsFirst: false });
+
+    if (error) {
+      setSchemasError(error.message);
+      setProjectSchemas([]);
+    } else {
+      setProjectSchemas(data ?? []);
+    }
+
+    setSchemasLoading(false);
   }, [session]);
+
+  useEffect(() => {
+    refreshSchemas();
+  }, [refreshSchemas]);
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -205,6 +213,7 @@ export default function HomePage() {
       setAuthError(error.message);
     }
     setAuthLoading(false);
+    setIsAuthModalOpen(false);
   }
 
   async function handleIngest(e: React.FormEvent) {
@@ -262,6 +271,23 @@ export default function HomePage() {
   function handleGammaChange(key: keyof typeof gammaTargets, value: number) {
     setGammaTargets((prev) => ({ ...prev, [key]: value }));
   }
+
+  function openAuthModal() {
+    setAuthError(null);
+    setIsAuthModalOpen(true);
+  }
+
+  function closeAuthModal() {
+    setAuthError(null);
+    setIsAuthModalOpen(false);
+  }
+
+  const ingestionDisabled = !session || loading;
+  const ingestionButtonLabel = session
+    ? loading
+      ? "Synchronizing"
+      : "Ingest & Embed"
+    : "Sign in to ingest";
 
   function renderWorkspaceContent(id: WorkspaceKey | null) {
     if (!id) return null;
@@ -380,26 +406,54 @@ export default function HomePage() {
                 <h1 className="hero-name">AEO Guru</h1>
                 <p className="hero-subline">Powered by Gemini API</p>
               </div>
-              <div className="hero-tech-panel">
-                <p className="hero-tech-panel-label">Hackathon tech stack</p>
-                <div className="hero-tech-grid">
-                  {hackathonStack.map((tech) => (
-                    <article key={tech.label} className="hero-tech-card">
-                      <div className="hero-tech-card-copy">
-                        <strong>{tech.label}</strong>
-                        <p>{tech.detail}</p>
+              <div className="hero-aside">
+                <div className="hero-tech-panel">
+                  <p className="hero-tech-panel-label">Hackathon tech stack</p>
+                  <div className="hero-tech-grid">
+                    {hackathonStack.map((tech) => (
+                      <article key={tech.label} className="hero-tech-card">
+                        <div className="hero-tech-card-copy">
+                          <strong>{tech.label}</strong>
+                          <p>{tech.detail}</p>
+                        </div>
+                        <span className="hero-tech-logo">
+                          <Image
+                            src={tech.logo}
+                            alt={`${tech.label} favicon`}
+                            width={28}
+                            height={28}
+                            loading="lazy"
+                          />
+                        </span>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+                <div className="hero-auth-card">
+                  <p className="hero-auth-label">Supabase link</p>
+                  {session ? (
+                    <>
+                      <p className="hero-auth-status">Signed in and ready</p>
+                      <div className="session-pill">
+                        <span>{session.user.email}</span>
+                        <button
+                          type="button"
+                          className="ghost-btn"
+                          onClick={handleSignOut}
+                          disabled={authLoading}
+                        >
+                          {authLoading ? "Signing out" : "Sign out"}
+                        </button>
                       </div>
-                      <span className="hero-tech-logo">
-                        <Image
-                          src={tech.logo}
-                          alt={`${tech.label} favicon`}
-                          width={28}
-                          height={28}
-                          loading="lazy"
-                        />
-                      </span>
-                    </article>
-                  ))}
+                    </>
+                  ) : (
+                    <>
+                      <p className="hero-auth-status">Connect Supabase to orchestrate ingestion.</p>
+                      <button type="button" className="ghost-btn" onClick={openAuthModal}>
+                        Login with Supabase
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </header>
@@ -450,9 +504,14 @@ export default function HomePage() {
                   placeholder={"https://example.com/page-1\nhttps://example.com/page-2"}
                 />
               </div>
-              <button type="submit" disabled={loading} className="primary-btn">
-                {loading ? "Synchronizing" : "Ingest & Embed"}
-              </button>
+              <div className="ingestion-actions">
+                <button type="submit" disabled={ingestionDisabled} className="primary-btn">
+                  {ingestionButtonLabel}
+                </button>
+                {!session && (
+                  <p className="form-hint">Log in with Supabase to activate ingestion.</p>
+                )}
+              </div>
             </form>
           </div>
 
@@ -469,7 +528,9 @@ export default function HomePage() {
             <div className="timeline">
               {timeline.map((entry) => (
                 <div key={entry.time} className="timeline-entry">
-                  <span>{entry.time} · {entry.event}</span>
+                  <span>
+                    {entry.time} · {entry.event}
+                  </span>
                   <strong>{entry.detail}</strong>
                 </div>
               ))}
@@ -496,6 +557,58 @@ export default function HomePage() {
               </ul>
             </button>
           ))}
+        </section>
+
+        <section className="glass-panel supabase-console">
+          <div className="supabase-header">
+            <div>
+              <p className="panel-title">Schema telemetry</p>
+              <h3 className="panel-heading">Supabase sync</h3>
+            </div>
+            <div className="supabase-actions">
+              {session ? (
+                <button
+                  type="button"
+                  className="ghost-btn"
+                  onClick={refreshSchemas}
+                  disabled={schemasLoading}
+                >
+                  {schemasLoading ? "Refreshing…" : "Refresh"}
+                </button>
+              ) : (
+                <button type="button" className="ghost-btn" onClick={openAuthModal}>
+                  Login to sync
+                </button>
+              )}
+            </div>
+          </div>
+          <p className="supabase-description">
+            Inspect the schema definitions persisted per project whenever Supabase authentication is active.
+          </p>
+          {session ? (
+            <div className="schema-stream">
+              {schemasLoading && <p className="supabase-hint">Loading schema definitions…</p>}
+              {schemasError && <p className="supabase-error">{schemasError}</p>}
+              {!schemasLoading && !schemasError && projectSchemas.length === 0 && (
+                <p className="supabase-hint">No schema definitions stored for this account yet.</p>
+              )}
+              <div className="schema-list">
+                {projectSchemas.map((schema) => (
+                  <article key={schema.id} className="schema-card">
+                    <div className="schema-meta">
+                      <span>{schema.project_id}</span>
+                      <span>
+                        {schema.updated_at ? new Date(schema.updated_at).toLocaleString() : "never"}
+                      </span>
+                    </div>
+                    <pre className="schema-json">{JSON.stringify(schema.schema_definition, null, 2)}</pre>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="supabase-hint">Sign in to view Supabase schema telemetry.</p>
+          )}
         </section>
 
         {message && (
@@ -525,204 +638,64 @@ export default function HomePage() {
               {renderWorkspaceContent(activeBoard.id)}
             </div>
           </div>
-  return (
-    <main className="min-h-screen bg-black text-white flex flex-col items-center">
-      <div className="w-full max-w-4xl px-6 py-12 space-y-10">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-            AEO-guru ingestion console
-          </h1>
-          <p className="text-neutral-400">
-            Seed the semantic core for AEO-guru by submitting your primary domain
-            and the URLs you would like embedded and stored in Qdrant. Sign in to
-            sync your projects and schema with Supabase.
-          </p>
-        </div>
-
-        <section className="space-y-4 border border-neutral-800 rounded-2xl p-6 bg-neutral-950/60">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold">Supabase authentication</h2>
-            {session && (
-              <button
-                onClick={handleSignOut}
-                disabled={authLoading}
-                className="inline-flex items-center rounded-full border border-white/40 px-3 py-1 text-xs font-medium hover:bg-white hover:text-black transition disabled:opacity-50"
-              >
-                Sign out
-              </button>
-            )}
-          </div>
-          {session ? (
-            <p className="text-sm text-neutral-400">
-              Signed in as <span className="text-white">{session.user.email}</span>
-            </p>
-          ) : (
-            <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSignIn}>
-              <label className="text-sm col-span-2 md:col-span-1">
-                <span className="mb-1 block">Email</span>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-700 bg-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40"
-                  placeholder="you@example.com"
-                />
-              </label>
-              <label className="text-sm col-span-2 md:col-span-1">
-                <span className="mb-1 block">Password</span>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-700 bg-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40"
-                  placeholder="••••••••"
-                />
-              </label>
-              <div className="col-span-2 flex flex-wrap gap-3">
-                <button
-                  type="submit"
-                  disabled={authLoading}
-                  className="inline-flex items-center rounded-full border border-white/40 px-4 py-2 text-sm font-medium hover:bg-white hover:text-black transition disabled:opacity-50"
-                >
-                  {authLoading ? "Processing…" : "Sign in"}
-                </button>
-                <button
-                  type="button"
-                  disabled={authLoading}
-                  onClick={handleSignUp}
-                  className="inline-flex items-center rounded-full border border-neutral-700 px-4 py-2 text-sm font-medium hover:border-white/60 transition disabled:opacity-50"
-                >
-                  Create account
-                </button>
-              </div>
-              {authError && (
-                <p className="col-span-2 text-sm text-red-400">{authError}</p>
-              )}
-            </form>
-          )}
-        </section>
-
-        {session ? (
-          <>
-            <form
-              onSubmit={handleIngest}
-              className="space-y-6 border border-neutral-800 rounded-2xl p-6 bg-neutral-950/60"
-            >
-              <div>
-                <label className="block text-sm mb-1">Project root URL</label>
-                <input
-                  type="url"
-                  required
-                  value={rootUrl}
-                  onChange={(e) => setRootUrl(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-700 bg-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40"
-                  placeholder="https://example.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm mb-1">
-                  URLs to ingest (one per line)
-                </label>
-                <textarea
-                  rows={6}
-                  value={urlsRaw}
-                  onChange={(e) => setUrlsRaw(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-700 bg-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40"
-                  placeholder={"https://example.com/page-1\nhttps://example.com/page-2"}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center rounded-full border border-white/40 px-4 py-2 text-sm font-medium hover:bg-white hover:text-black transition disabled:opacity-50"
-              >
-                {loading ? "Ingesting…" : "Ingest & Embed"}
-              </button>
-            </form>
-
-            {message && (
-              <pre className="text-xs bg-neutral-950 border border-neutral-800 rounded-xl p-4 overflow-x-auto">
-                {message}
-              </pre>
-            )}
-
-            <section className="space-y-4 border border-neutral-800 rounded-2xl p-6 bg-neutral-950/60">
-              <div className="flex items-center justify-between">
+        )}
+        {isAuthModalOpen && (
+          <div className="workspace-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+            <div className="modal-overlay" onClick={closeAuthModal} />
+            <div className="modal-shell glass-panel">
+              <div className="modal-header">
                 <div>
-                  <h2 className="text-lg font-semibold">Project schemas</h2>
-                  <p className="text-sm text-neutral-400">
-                    The latest schema definitions stored in Supabase for this account.
+                  <p className="panel-title" id="auth-modal-title">
+                    Supabase authentication
                   </p>
+                  <h3 className="panel-heading">Secure access</h3>
                 </div>
-                <button
-                  onClick={() => {
-                    if (session) {
-                      setSchemasLoading(true);
-                      supabase
-                        .from("project_schemas")
-                        .select("id, project_id, schema_definition, created_at, updated_at")
-                        .order("updated_at", { ascending: false, nullsFirst: false })
-                        .then(({ data, error }) => {
-                          if (error) {
-                            setSchemasError(error.message);
-                            setProjectSchemas([]);
-                          } else {
-                            setProjectSchemas(data ?? []);
-                            setSchemasError(null);
-                          }
-                          setSchemasLoading(false);
-                        });
-                    }
-                  }}
-                  disabled={schemasLoading}
-                  className="inline-flex items-center rounded-full border border-white/40 px-3 py-1 text-xs font-medium hover:bg-white hover:text-black transition disabled:opacity-50"
-                >
-                  Refresh
+                <button className="modal-close" type="button" onClick={closeAuthModal}>
+                  Close
                 </button>
               </div>
-
-              {schemasLoading && (
-                <p className="text-sm text-neutral-400">Loading schema definitions…</p>
-              )}
-
-              {schemasError && (
-                <p className="text-sm text-red-400">{schemasError}</p>
-              )}
-
-              {!schemasLoading && !schemasError && projectSchemas.length === 0 && (
-                <p className="text-sm text-neutral-400">
-                  No schema definitions have been stored for this account yet.
-                </p>
-              )}
-
-              <div className="space-y-4">
-                {projectSchemas.map((schema) => (
-                  <div
-                    key={schema.id}
-                    className="border border-neutral-800 rounded-xl p-4 bg-black/40"
-                  >
-                    <div className="flex items-center justify-between text-sm mb-3">
-                      <span className="font-semibold">{schema.project_id}</span>
-                      <span className="text-neutral-500">
-                        Updated {schema.updated_at ? new Date(schema.updated_at).toLocaleString() : "never"}
-                      </span>
-                    </div>
-                    <pre className="text-xs text-neutral-200 overflow-x-auto">
-                      {JSON.stringify(schema.schema_definition, null, 2)}
-                    </pre>
+              {session ? (
+                <div className="auth-success">
+                  <p>You are signed in as {session.user.email}.</p>
+                  <button type="button" className="ghost-btn" onClick={handleSignOut} disabled={authLoading}>
+                    {authLoading ? "Signing out" : "Sign out"}
+                  </button>
+                </div>
+              ) : (
+                <form className="auth-form" onSubmit={handleSignIn}>
+                  <label>
+                    Email
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                    />
+                  </label>
+                  <label>
+                    Password
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                    />
+                  </label>
+                  {authError && <p className="supabase-error">{authError}</p>}
+                  <div className="auth-actions">
+                    <button type="submit" disabled={authLoading} className="primary-btn">
+                      {authLoading ? "Processing" : "Sign in"}
+                    </button>
+                    <button type="button" className="ghost-btn" disabled={authLoading} onClick={handleSignUp}>
+                      Create account
+                    </button>
                   </div>
-                ))}
-              </div>
-            </section>
-          </>
-        ) : (
-          <p className="text-sm text-neutral-400">
-            Sign in above to unlock ingestion controls and view your stored project schema.
-          </p>
+                </form>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </main>
