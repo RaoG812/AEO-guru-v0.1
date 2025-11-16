@@ -274,11 +274,10 @@ export default function HomePage() {
                 </div>
               </div>
             </header>
-            <h2 className="hero-title">Complete AEO optimization toolkit powered by Gemini.</h2>
+            <h2 className="hero-title">Sleek command center for ingestion, curation, and telemetry.</h2>
             <p className="hero-subtitle">
-              Guide every crawl, ingestion, and experiment around concrete website goals with Gemini AI API copilots.
-              The deck fuses lablab.ai prototyping energy with OpenAI workflows and GitHub automation so strategy, content,
-              and telemetry stay aligned across the entire AEO initiative.
+              Arrange the critical workspaces for domain discovery and ingestion oversight in a single glass dashboard.
+              Each touch point is infused with glassmorphism layers, subtle motion, and a silvered palette for instant clarity.
             </p>
 
             <div className="hero-metrics">

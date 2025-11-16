@@ -135,9 +135,9 @@ main {
 }
 
 .hero-tech-panel {
-  width: min(360px, 100%);
-  border-radius: 26px;
-  padding: 1.3rem;
+  width: min(288px, 100%);
+  border-radius: 22px;
+  padding: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(16, 21, 32, 0.35);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 25px 60px rgba(0, 0, 0, 0.45);
@@ -147,20 +147,20 @@ main {
 .hero-tech-panel-label {
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--silver-400);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .hero-tech-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.9rem;
+  gap: 0.6rem;
 }
 
 .hero-tech-card {
-  padding: 0.95rem 1.1rem;
-  border-radius: 20px;
+  padding: 0.7rem 0.85rem;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.05);
   display: grid;
@@ -173,18 +173,18 @@ main {
 .hero-tech-card strong {
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
 }
 
 .hero-tech-card span {
   color: var(--silver-500);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 
 .hero-tech-logo {
-  width: 46px;
-  height: 46px;
-  border-radius: 18px;
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.25);
   display: inline-flex;
