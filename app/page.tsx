@@ -45,34 +45,19 @@ const initialStatus: StatusState = {
 
 const heroStack = [
   {
-    label: "Next.js 14",
+    label: "Vercel",
     icon: (
       <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" fill="none" />
-        <path
-          d="M9 9h2l4 6V9h2v8h-2l-4-6v6H9z"
-          fill="currentColor"
-          stroke="currentColor"
-          strokeWidth="0.3"
-        />
+        <path d="m12 5 7 12H5z" fill="currentColor" />
       </svg>
     )
   },
   {
-    label: "TypeScript",
-    icon: (
-      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-        <rect x="4" y="5" width="16" height="14" rx="3" fill="currentColor" opacity="0.25" />
-        <path d="M7 11h5m-2.5 0v6m4-3.5c0-.9.7-1.5 1.7-1.5 1.1 0 1.8.6 1.8 1.4 0 1-1 1.3-1.8 1.5-.8.2-1.7.6-1.7 1.5 0 .8.7 1.6 1.9 1.6 1 0 1.7-.5 2-1.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      </svg>
-    )
-  },
-  {
-    label: "Tailwind",
+    label: "Supabase",
     icon: (
       <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
         <path
-          d="M6 13c1.2-3 3-4.5 5.5-4.5 2.5 0 3.2 1.6 4.5 1.6 1 0 1.9-.7 2.5-2.1-1.2 3-3 4.5-5.5 4.5-2.4 0-3.1-1.6-4.4-1.6-1 0-1.9.7-2.6 2.1Zm0 5c1.2-3 3-4.5 5.5-4.5 2.5 0 3.2 1.6 4.5 1.6 1 0 1.9-.7 2.5-2.1-1.2 3-3 4.5-5.5 4.5-2.4 0-3.1-1.6-4.4-1.6-1 0-1.9.7-2.6 2.1Z"
+          d="M8.5 4h7.2c1 0 1.6 1.1.9 2l-3.1 3.9h3.8c.8 0 1.2.9.7 1.5l-6 8.4c-.8 1-2.5.1-2-1.1l2.1-5H7.4c-.9 0-1.5-1-.9-1.8l4.2-5.4H8.5c-.9 0-1.5-1-.9-1.8Z"
           fill="currentColor"
         />
       </svg>
@@ -82,14 +67,19 @@ const heroStack = [
     label: "Qdrant",
     icon: (
       <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-        <path
-          d="M12 4.5 5 8.5v7l7 4 7-4v-7l-7-4Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-        <circle cx="12" cy="12" r="2.6" stroke="currentColor" strokeWidth="1.3" fill="none" />
+        <circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.3" />
+        <path d="M12 5.5v13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        <path d="M6.5 12h11" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      </svg>
+    )
+  },
+  {
+    label: "Gemini AI",
+    icon: (
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+        <circle cx="9" cy="9" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.3" />
+        <circle cx="15" cy="15" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.3" />
+        <path d="M9 12.3c1.6 1 3.4 1 5 0" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
       </svg>
     )
   }
@@ -353,13 +343,14 @@ export default function HomePage() {
                 <p className="hero-subline">Answer Engine Ops</p>
                 <h1>AEO Guru</h1>
                 <p className="hero-description">
-                  Run crawls, embeddings, clustering, and deliverables from a single frosted cockpit. Spin up projects,
-                  orchestrate Qdrant ingestion, and publish AI Overview-ready exports without leaving the dashboard.
+                  AEO Guru orchestrates crawls, embeddings, clustering, and schema so your site is optimized for AI-first
+                  search experiences—pushing well past classic SEO playbooks. Light up the signals that Gemini, Bing
+                  Copilot, and Google Overviews need to feature your brand when users ask real questions.
                 </p>
               </div>
               <div className="hero-aside">
                 <div className="hero-tech-panel">
-                  <p className="hero-tech-panel-label">Stack</p>
+                  <p className="hero-tech-panel-label">Technology by</p>
                   <div className="hero-tech-grid">
                     {heroStack.map((item) => (
                       <div className="hero-tech-item" key={item.label}>
