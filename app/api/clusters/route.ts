@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateObject } from "ai";
 import type { LanguageModelV1 } from "ai";
-import { openai } from "@ai-sdk/openai";
 
 import {
   getProjectPoints,
@@ -15,6 +14,7 @@ import {
 } from "@/lib/clustering";
 import { COLLECTION, getQdrantClient } from "@/lib/qdrant";
 import { buildAnswerGraphNodes } from "@/lib/answer-graph";
+import { fastModel } from "@/lib/ai-gateway";
 
 const schema = z.object({ projectId: z.string(), lang: z.string().optional() });
 
@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
     }
 
     const clusters = kMeansCluster(points);
-    const model = openai("gpt-4.1-mini") as LanguageModelV1;
+    const model = fastModel();
 
     const enrichedClusters: Array<
       Cluster & { metadata: ClusterMetadata; questions: string[]; lang: string; primaryUrl: string | null; score: number }

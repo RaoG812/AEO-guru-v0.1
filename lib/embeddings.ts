@@ -1,8 +1,9 @@
 // lib/embeddings.ts
-import { openai } from "@ai-sdk/openai";
 import { embedMany } from "ai";
 
-const model = openai.textEmbeddingModel("text-embedding-3-small");
+import { embeddingModel } from "./ai-gateway";
+
+const model = embeddingModel();
 
 export async function embedTexts(texts: string[]): Promise<number[][]> {
   // You can add chunking if texts.length is large
