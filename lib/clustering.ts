@@ -14,18 +14,39 @@ export type Cluster = {
   centroid?: number[];
 };
 
-function normalizeVector(
-  vector: ProjectPoint["vector"] | Record<string, unknown> | null | undefined
-): number[] | null {
+type RawQdrantVector =
+  | number[]
+  | number[][]
+  | Record<string, number[] | number[][] | { indices: number[]; values: number[] }>
+  | null
+  | undefined;
+
+function normalizeVector(vector: RawQdrantVector): number[] | null {
   if (Array.isArray(vector)) {
-    return vector as number[];
-  }
-  if (vector && typeof vector === "object") {
-    const first = Object.values(vector)[0];
+    const first = vector[0];
+    if (typeof first === "number") {
+      return vector as number[];
+    }
     if (Array.isArray(first)) {
       return first as number[];
     }
+    return null;
   }
+
+  if (vector && typeof vector === "object") {
+    for (const value of Object.values(vector)) {
+      if (Array.isArray(value)) {
+        const first = value[0];
+        if (typeof first === "number") {
+          return value as number[];
+        }
+        if (Array.isArray(first)) {
+          return first as number[];
+        }
+      }
+    }
+  }
+
   return null;
 }
 
@@ -45,7 +66,7 @@ export async function getProjectPoints(projectId: string): Promise<ProjectPoint[
 
   return (res.points ?? []).map((point) => ({
     ...point,
-    vector: normalizeVector(point.vector)
+    vector: normalizeVector(point.vector as RawQdrantVector)
   }));
 }
 
