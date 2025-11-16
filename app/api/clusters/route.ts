@@ -1,4 +1,6 @@
 // app/api/clusters/route.ts
+export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getProjectPoints, naiveCluster } from "@/lib/clustering";

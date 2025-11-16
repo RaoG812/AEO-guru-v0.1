@@ -1,7 +1,9 @@
 // app/api/ingest/route.ts
+export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { qdrant, COLLECTION, ensureCollection } from "@/lib/qdrant";
+import { getQdrantClient, COLLECTION, ensureCollection } from "@/lib/qdrant";
 import { extractTextFromUrl } from "@/lib/crawler";
 import { chunkText } from "@/lib/chunker";
 import { embedTexts } from "@/lib/embeddings";
@@ -50,6 +52,7 @@ export async function POST(req: NextRequest) {
   // Ensure collection with correct dimension
   await ensureCollection(vectors[0].length);
 
+  const qdrant = getQdrantClient();
   await qdrant.upsert(COLLECTION, {
     wait: true,
     points: chunksPayload.map((c, i) => ({
