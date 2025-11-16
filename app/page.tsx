@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 
 type WorkspaceKey = "alfa" | "beta" | "gamma";
@@ -41,6 +42,29 @@ const statusSignals = [
   { label: "Collector", value: "Active", tone: "#a8ffef" },
   { label: "Vector sync", value: "2.1s drift", tone: "#a3b9ff" },
   { label: "Content budget", value: "76% utilized", tone: "#f8f3ff" }
+];
+
+const hackathonStack = [
+  {
+    label: "lablab.ai",
+    detail: "Hackathon arena",
+    logo: "https://www.google.com/s2/favicons?domain=lablab.ai&sz=64"
+  },
+  {
+    label: "OpenAI",
+    detail: "Prompt ops",
+    logo: "https://www.google.com/s2/favicons?domain=openai.com&sz=64"
+  },
+  {
+    label: "GitHub",
+    detail: "Ship + review",
+    logo: "https://www.google.com/s2/favicons?domain=github.com&sz=64"
+  },
+  {
+    label: "Gemini API",
+    detail: "Optimization core",
+    logo: "https://www.google.com/s2/favicons?domain=ai.google&sz=64"
+  }
 ];
 
 const timeline = [
@@ -246,13 +270,34 @@ export default function HomePage() {
         <section className="silver-hero">
           <div className="hero-content">
             <header className="hero-header">
-              <div>
-                <p className="panel-title">Command Deck</p>
+              <div className="hero-heading">
                 <h1 className="hero-name">AEO Guru</h1>
+                <p className="hero-subline">Powered by Gemini API</p>
               </div>
-              <span className="hero-pill">Glassmorphic workspace OS</span>
+              <div className="hero-tech-panel">
+                <p className="hero-tech-panel-label">Hackathon tech stack</p>
+                <div className="hero-tech-grid">
+                  {hackathonStack.map((tech) => (
+                    <article key={tech.label} className="hero-tech-card">
+                      <div className="hero-tech-card-copy">
+                        <strong>{tech.label}</strong>
+                        <p>{tech.detail}</p>
+                      </div>
+                      <span className="hero-tech-logo">
+                        <Image
+                          src={tech.logo}
+                          alt={`${tech.label} favicon`}
+                          width={28}
+                          height={28}
+                          loading="lazy"
+                        />
+                      </span>
+                    </article>
+                  ))}
+                </div>
+              </div>
             </header>
-            <h2 className="hero-title">Sleek command center for ingestion, curation, and telemetry.</h2>
+            <h2 className="hero-title">Answer Engine Optimization Toolkit</h2>
             <p className="hero-subtitle">
               Arrange the critical workspaces for domain discovery and ingestion oversight in a single glass dashboard.
               Each touch point is infused with glassmorphism layers, subtle motion, and a silvered palette for instant clarity.
