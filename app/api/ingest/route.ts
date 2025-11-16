@@ -7,6 +7,7 @@ import { getQdrantClient, COLLECTION, ensureCollection } from "@/lib/qdrant";
 import { extractTextFromUrl } from "@/lib/crawler";
 import { chunkText } from "@/lib/chunker";
 import { embedTexts } from "@/lib/embeddings";
+import { getUserForRequest, verifyUserProjectAccess } from "@/lib/supabaseServer";
 
 const bodySchema = z.object({
   projectId: z.string(),
@@ -14,8 +15,18 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const user = await getUserForRequest(req);
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await req.json();
   const { projectId, urls } = bodySchema.parse(body);
+
+  const canAccessProject = await verifyUserProjectAccess(user.id, projectId);
+  if (!canAccessProject) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const chunksPayload: {
     id: string;
