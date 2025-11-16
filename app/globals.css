@@ -82,7 +82,7 @@ main {
   border-radius: 32px;
   background-image: url("/aeo-guru.svg");
   background-repeat: no-repeat;
-  background-position: 80% 25%;
+  background-position: 90% 28%;
   background-size: auto 60%;
   opacity: 0.28;
   filter: blur(1.5px);
@@ -146,6 +146,8 @@ main {
   flex-direction: column;
   gap: 0.45rem;
   align-self: flex-start;
+  justify-self: end;
+  margin-left: auto;
 }
 
 .hero-tech-panel-label {
