@@ -228,6 +228,68 @@ export default function HomePage() {
   const activeVectorPhrase = vectorPhrases[vectorIndex];
   const vectorPhraseKey = `${vectorIndex}-${vectorDirection}`;
 
+  function handleLogin() {
+    pushLog("Initiated login from dock");
+  }
+
+  const dockButtons = [
+    {
+      label: "Home",
+      icon: (
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path
+            d="m4 11 8-7 8 7v8.5c0 .3-.2.5-.5.5H4.5c-.3 0-.5-.2-.5-.5z"
+            fill="currentColor"
+          />
+        </svg>
+      ),
+      action: () => heroRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    },
+    {
+      label: "Projects",
+      icon: (
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path
+            d="M5 6h14c.6 0 1 .4 1 1v10c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1zm0 4h14M9 6v12"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </svg>
+      ),
+      action: () =>
+        document.querySelector(".panel-grid")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    },
+    {
+      label: "Clusters",
+      icon: (
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.5" fill="none" />
+          <circle cx="12" cy="12" r="2.4" fill="currentColor" />
+        </svg>
+      ),
+      action: () =>
+        document.querySelector(".cluster-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    },
+    {
+      label: "Login",
+      icon: (
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path
+            d="M12 4h6c.6 0 1 .4 1 1v14c0 .6-.4 1-1 1h-6M8 8l-4 4 4 4m-4-4h11"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      action: handleLogin
+    }
+  ];
+
   async function handleCreateProject(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!projectForm.id || !projectForm.rootUrl) return;
@@ -374,6 +436,16 @@ export default function HomePage() {
 
   return (
     <main className="app-shell">
+      <nav className="dock-nav" aria-label="Primary">
+        {dockButtons.map((button) => (
+          <button key={button.label} type="button" onClick={button.action}>
+            <span className="dock-icon" aria-hidden="true">
+              {button.icon}
+            </span>
+            <span className="dock-label">{button.label}</span>
+          </button>
+        ))}
+      </nav>
       <div className="content-wrapper">
         <section className="silver-hero" ref={heroRef}>
           <div className="hero-logo-clear" aria-hidden="true" />
@@ -395,53 +467,54 @@ export default function HomePage() {
                   </div>
                   <p className="hero-description">
                     AEO Guru orchestrates crawls, embeddings, clustering, and schema so your site is optimized for
-                    AI-first search experiences—pushing beyond classic SEO playbooks. Build enriched payloads,
-                    intent-aware clusters, and JSON-LD artifacts that help Gemini, Bing Copilot, and Google Overviews
-                    cite your answers when people ask real questions.
+                    AI-first search experiences—pushing beyond classic SEO playbooks.
                   </p>
                 </div>
               </div>
               <div className="hero-aside">
                 <div className="hero-tech-panel">
                   <p className="hero-tech-panel-label">Technology by</p>
-                  <div className="hero-tech-grid">
+                  <ul className="hero-tech-grid">
                     {heroStack.map((item) => (
-                      <div className="hero-tech-item" key={item.label}>
-                        <div className="hero-tech-icon" aria-hidden="true">
+                      <li key={item.label}>
+                        <span className="hero-tech-icon" aria-hidden="true">
                           {item.icon}
-                        </div>
-                        <span>{item.label}</span>
-                      </div>
+                        </span>
+                        <span className="hero-tech-label">{item.label}</span>
+                      </li>
                     ))}
-                  </div>
-                </div>
-                <div className="hero-status-stack">
-                  <div className="hero-status-card">
-                    <p>Projects</p>
-                    <strong>{projects.length}</strong>
-                  </div>
-                  <div className="hero-status-card">
-                    <p>Clusters</p>
-                    <strong>{clusters.length}</strong>
-                  </div>
-                  <div className="hero-status-card">
-                    <p>Last activity</p>
-                    <strong>{logs[0] ?? "Awaiting activity"}</strong>
-                  </div>
-                </div>
-                <div className="hero-status-pills">
-                  <span className={`status-pill ${status.projects ? "active" : ""}`}>
-                    Projects {status.projects ? "refreshing" : "synced"}
-                  </span>
-                  <span className={`status-pill ${status.ingest ? "active" : ""}`}>
-                    Ingestion {status.ingest ? "running" : "idle"}
-                  </span>
-                  <span className={`status-pill ${status.clusters ? "active" : ""}`}>
-                    Clusters {status.clusters ? "building" : "ready"}
-                  </span>
+                  </ul>
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="ops-metrics" aria-label="Operational dashboard">
+          <div className="hero-status-stack">
+            <div className="hero-status-card">
+              <p>Projects</p>
+              <strong>{projects.length}</strong>
+            </div>
+            <div className="hero-status-card">
+              <p>Clusters</p>
+              <strong>{clusters.length}</strong>
+            </div>
+            <div className="hero-status-card">
+              <p>Last activity</p>
+              <strong>{logs[0] ?? "Awaiting activity"}</strong>
+            </div>
+          </div>
+          <div className="hero-status-pills">
+            <span className={`status-pill ${status.projects ? "active" : ""}`}>
+              Projects {status.projects ? "refreshing" : "synced"}
+            </span>
+            <span className={`status-pill ${status.ingest ? "active" : ""}`}>
+              Ingestion {status.ingest ? "running" : "idle"}
+            </span>
+            <span className={`status-pill ${status.clusters ? "active" : ""}`}>
+              Clusters {status.clusters ? "building" : "ready"}
+            </span>
           </div>
         </section>
 
