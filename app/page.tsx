@@ -61,22 +61,26 @@ const hackathonStack = [
   {
     label: "lablab.ai",
     detail: "Hackathon arena",
-    logo: "https://www.google.com/s2/favicons?domain=lablab.ai&sz=64"
+    logo: "https://www.google.com/s2/favicons?domain=lablab.ai&sz=64",
+    url: "https://lablab.ai"
   },
   {
     label: "OpenAI",
     detail: "Prompt ops",
-    logo: "https://www.google.com/s2/favicons?domain=openai.com&sz=64"
+    logo: "https://www.google.com/s2/favicons?domain=openai.com&sz=64",
+    url: "https://openai.com"
   },
   {
     label: "GitHub",
     detail: "Ship + review",
-    logo: "https://www.google.com/s2/favicons?domain=github.com&sz=64"
+    logo: "https://www.google.com/s2/favicons?domain=github.com&sz=64",
+    url: "https://github.com"
   },
   {
     label: "Gemini API",
     detail: "Optimization core",
-    logo: "https://www.google.com/s2/favicons?domain=ai.google&sz=64"
+    logo: "https://www.google.com/s2/favicons?domain=ai.google&sz=64",
+    url: "https://ai.google"
   }
 ];
 
@@ -411,7 +415,13 @@ export default function HomePage() {
                   <p className="hero-tech-panel-label">Hackathon tech stack</p>
                   <div className="hero-tech-grid">
                     {hackathonStack.map((tech) => (
-                      <article key={tech.label} className="hero-tech-card">
+                      <a
+                        key={tech.label}
+                        className="hero-tech-card"
+                        href={tech.url}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                      >
                         <div className="hero-tech-card-copy">
                           <strong>{tech.label}</strong>
                           <p>{tech.detail}</p>
@@ -420,12 +430,12 @@ export default function HomePage() {
                           <Image
                             src={tech.logo}
                             alt={`${tech.label} favicon`}
-                            width={28}
-                            height={28}
+                            width={32}
+                            height={32}
                             loading="lazy"
                           />
                         </span>
-                      </article>
+                      </a>
                     ))}
                   </div>
                 </div>

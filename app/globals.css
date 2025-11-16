@@ -82,8 +82,8 @@ main {
   border-radius: 32px;
   background-image: url("/aeo-guru.svg");
   background-repeat: no-repeat;
-  background-position: 90% 28%;
-  background-size: auto 60%;
+  background-position: center;
+  background-size: auto 66%;
   opacity: 0.28;
   filter: blur(1.5px);
   animation: guruFloat 12s ease-in-out infinite;
@@ -142,7 +142,7 @@ main {
 }
 
 .hero-tech-panel {
-  width: min(360px, 100%);
+  width: min(460px, 100%);
   border-radius: 18px;
   padding: 0.65rem 0.75rem 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -202,12 +202,12 @@ main {
 
 .hero-tech-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.45rem;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.55rem;
 }
 
 .hero-tech-card {
-  padding: 0.45rem 0.55rem;
+  padding: 0.55rem 0.65rem;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.05);
@@ -216,6 +216,17 @@ main {
   align-items: center;
   gap: 0.35rem;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.hero-tech-card:hover,
+.hero-tech-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 25px rgba(0, 0, 0, 0.35);
+  outline: none;
 }
 
 .hero-tech-card-copy strong {
@@ -234,8 +245,8 @@ main {
 }
 
 .hero-tech-logo {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -247,8 +258,8 @@ main {
 }
 
 .hero-tech-logo img {
-  width: 100%;
-  height: 100%;
+  width: 80%;
+  height: 80%;
   object-fit: contain;
   display: block;
 }
