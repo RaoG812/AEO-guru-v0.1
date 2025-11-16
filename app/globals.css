@@ -67,19 +67,69 @@ main {
   overflow: hidden;
   z-index: 3;
   backdrop-filter: blur(24px);
+  isolation: isolate;
 }
 
+.silver-hero::before,
 .silver-hero::after {
   content: "";
   position: absolute;
   inset: 1px;
-  border-radius: 31px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
   pointer-events: none;
 }
 
+.silver-hero::before {
+  border-radius: 32px;
+  background-image: url("/aeo-guru.svg");
+  background-repeat: no-repeat;
+  background-position: 80% 25%;
+  background-size: auto 60%;
+  opacity: 0.28;
+  filter: blur(1.5px);
+}
+
+.silver-hero::after {
+  border-radius: 31px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.hero-name {
+  font-size: clamp(3.2rem, 8vw, 5rem);
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--silver-100);
+  text-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.hero-pill {
+  padding: 0.7rem 1.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--silver-200);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
 .hero-title {
-  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-size: clamp(2rem, 5vw, 3.2rem);
   font-weight: 600;
   letter-spacing: -0.03em;
   margin-bottom: 1rem;

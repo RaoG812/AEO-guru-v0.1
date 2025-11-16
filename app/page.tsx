@@ -244,26 +244,34 @@ export default function HomePage() {
     <main className="app-shell">
       <div className="content-wrapper">
         <section className="silver-hero">
-          <p className="panel-title">AEO Guru</p>
-          <h1 className="hero-title">Sleek command center for ingestion, curation, and telemetry.</h1>
-          <p className="hero-subtitle">
-            Arrange the critical workspaces for domain discovery and ingestion oversight in a single glass dashboard.
-            Each touch point is infused with glassmorphism layers, subtle motion, and a silvered palette for instant clarity.
-          </p>
+          <div className="hero-content">
+            <header className="hero-header">
+              <div>
+                <p className="panel-title">Command Deck</p>
+                <h1 className="hero-name">AEO Guru</h1>
+              </div>
+              <span className="hero-pill">Glassmorphic workspace OS</span>
+            </header>
+            <h2 className="hero-title">Sleek command center for ingestion, curation, and telemetry.</h2>
+            <p className="hero-subtitle">
+              Arrange the critical workspaces for domain discovery and ingestion oversight in a single glass dashboard.
+              Each touch point is infused with glassmorphism layers, subtle motion, and a silvered palette for instant clarity.
+            </p>
 
-          <div className="hero-metrics">
-            <article className="metric-card">
-              <span>Root authority</span>
-              <strong>{rootHostname}</strong>
-            </article>
-            <article className="metric-card">
-              <span>Queued URLs</span>
-              <strong>{totalUrls}</strong>
-            </article>
-            <article className="metric-card">
-              <span>Last response</span>
-              <strong>{message ? "Received" : "Awaiting"}</strong>
-            </article>
+            <div className="hero-metrics">
+              <article className="metric-card">
+                <span>Root authority</span>
+                <strong>{rootHostname}</strong>
+              </article>
+              <article className="metric-card">
+                <span>Queued URLs</span>
+                <strong>{totalUrls}</strong>
+              </article>
+              <article className="metric-card">
+                <span>Last response</span>
+                <strong>{message ? "Received" : "Awaiting"}</strong>
+              </article>
+            </div>
           </div>
         </section>
 
