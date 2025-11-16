@@ -262,9 +262,9 @@ export default function HomePage() {
                 <div className="hero-tech-grid">
                   {hackathonStack.map((tech) => (
                     <article key={tech.label} className="hero-tech-card">
-                      <div>
+                      <div className="hero-tech-card-copy">
                         <strong>{tech.label}</strong>
-                        <span>{tech.detail}</span>
+                        <p>{tech.detail}</p>
                       </div>
                       <span className="hero-tech-logo" aria-hidden="true">
                         {tech.logo}
