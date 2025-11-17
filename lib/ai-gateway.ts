@@ -46,10 +46,7 @@ function getGoogleClient(): GoogleClient {
   }
 
   googleClient = createGoogleGenerativeAI({
-    apiKey,
-    safetySettings: process.env.GOOGLE_GENAI_SAFETY_SETTINGS
-      ? JSON.parse(process.env.GOOGLE_GENAI_SAFETY_SETTINGS)
-      : undefined
+    apiKey
   });
 
   return googleClient;
