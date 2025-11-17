@@ -18,12 +18,27 @@ export function getQdrantClient() {
 
 export const COLLECTION = "aeo_guru_corpus";
 
+async function ensureKeywordIndex(fieldName: string) {
+  const qdrant = getQdrantClient();
+  try {
+    await qdrant.createPayloadIndex(COLLECTION, {
+      field_name: fieldName,
+      field_schema: {
+        type: "keyword"
+      }
+    });
+  } catch (error) {
+    const message = (error as Error)?.message ?? "";
+    if (!message.toLowerCase().includes("already exists")) {
+      throw error;
+    }
+  }
+}
+
 export async function ensureCollection(dim: number) {
   const qdrant = getQdrantClient();
   const collections = await qdrant.getCollections();
-  const exists = collections.collections?.some(
-    (c) => c.name === COLLECTION
-  );
+  const exists = collections.collections?.some((c) => c.name === COLLECTION);
 
   if (!exists) {
     await qdrant.createCollection(COLLECTION, {
@@ -33,4 +48,11 @@ export async function ensureCollection(dim: number) {
       }
     });
   }
+
+  await Promise.all([
+    ensureKeywordIndex("projectId"),
+    ensureKeywordIndex("type"),
+    ensureKeywordIndex("source"),
+    ensureKeywordIndex("lang")
+  ]);
 }
