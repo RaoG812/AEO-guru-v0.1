@@ -6,11 +6,15 @@ const GOOGLE_GENAI_EMBEDDING_MODEL =
   process.env.GOOGLE_GENAI_EMBEDDING_MODEL ?? "gemini-embedding-001";
 
 function getGoogleApiKey(): string {
-  const apiKey = process.env.GOOGLE_GENAI_API_KEY ?? process.env.GEMINI_API_KEY;
+  const apiKey =
+    process.env.GOOGLE_GENAI_API_KEY ??
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY ??
+    process.env.GOOGLE_API_KEY ??
+    process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     throw new Error(
-      "Missing Google Generative AI API key. Set GOOGLE_GENAI_API_KEY or GEMINI_API_KEY to call the Gemini embedding service."
+      "Missing Google Generative AI API key. Set GOOGLE_GENAI_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, GOOGLE_API_KEY, or GEMINI_API_KEY to call the Gemini embedding service."
     );
   }
 

@@ -36,11 +36,12 @@ function getGoogleClient(): GoogleClient {
   const apiKey =
     process.env.GOOGLE_GENAI_API_KEY ??
     process.env.GOOGLE_GENERATIVE_AI_API_KEY ??
+    process.env.GOOGLE_API_KEY ??
     process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     throw new Error(
-      "Missing Google Generative AI API key. Set GOOGLE_GENAI_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, or GEMINI_API_KEY."
+      "Missing Google Generative AI API key. Set GOOGLE_GENAI_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, GOOGLE_API_KEY, or GEMINI_API_KEY."
     );
   }
 
