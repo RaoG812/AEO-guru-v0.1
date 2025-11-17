@@ -412,6 +412,94 @@ main {
   overflow: hidden;
 }
 
+.workflow-timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(0.85rem, 1.6vw, 2rem);
+  flex-wrap: wrap;
+}
+
+.workflow-timeline-flow {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 1.35vw, 1.8rem);
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.workflow-stage {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1vw, 1.25rem);
+  position: relative;
+}
+
+.workflow-stage.is-detached {
+  margin-left: auto;
+  padding-left: clamp(0.5rem, 1vw, 1.2rem);
+  border-left: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.workflow-stage.is-detached .workflow-stage-button {
+  min-width: clamp(150px, 18vw, 220px);
+}
+
+.workflow-stage-button {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border-radius: 999px;
+  padding: 0.4rem 1.2rem 0.4rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(6, 8, 18, 0.78);
+  color: var(--silver-50);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  min-width: clamp(150px, 20vw, 230px);
+  transition: border-color 0.35s ease, background 0.35s ease, color 0.35s ease,
+    box-shadow 0.4s ease, transform 0.4s ease;
+}
+
+.workflow-stage-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(139, 179, 255, 0.55);
+}
+
+.workflow-stage-button:focus-visible {
+  outline: 2px solid rgba(139, 179, 255, 0.8);
+  outline-offset: 4px;
+}
+
+.workflow-stage.is-active .workflow-stage-button {
+  background: linear-gradient(120deg, rgba(105, 139, 255, 0.25), rgba(9, 12, 26, 0.9));
+  border-color: rgba(139, 179, 255, 0.75);
+  box-shadow: 0 10px 30px rgba(7, 10, 22, 0.5);
+}
+
+.workflow-stage.is-complete .workflow-stage-button {
+  border-color: rgba(124, 255, 198, 0.45);
+  background: linear-gradient(120deg, rgba(34, 63, 45, 0.45), rgba(5, 7, 18, 0.9));
+  box-shadow: 0 6px 20px rgba(50, 180, 122, 0.2);
+}
+
+.workflow-connector {
+  display: block;
+  width: clamp(48px, 8vw, 140px);
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 rgba(124, 255, 198, 0);
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+.workflow-stage.is-complete .workflow-connector {
+  background: linear-gradient(90deg, rgba(124, 255, 198, 0.1), rgba(124, 255, 198, 0.7));
+  box-shadow: 0 0 18px rgba(124, 255, 198, 0.4);
+}
+
 .project-controls {
   margin: 2rem 0 2.5rem;
   scroll-margin-top: 120px;
@@ -594,18 +682,29 @@ main {
 }
 
 .workflow-icon {
-  width: clamp(56px, 6vw, 72px);
-  height: clamp(56px, 6vw, 72px);
-  border-radius: 18px;
+  width: clamp(48px, 4vw, 60px);
+  height: clamp(48px, 4vw, 60px);
+  border-radius: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  font-size: clamp(1.5rem, 2vw, 2rem);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: clamp(1.3rem, 1.6vw, 1.6rem);
   line-height: 1;
   flex-shrink: 0;
   position: relative;
+  transition: background 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
+}
+
+.workflow-stage.is-active .workflow-icon {
+  border-color: rgba(139, 179, 255, 0.7);
+  background: rgba(139, 179, 255, 0.18);
+}
+
+.workflow-stage.is-complete .workflow-icon {
+  border-color: rgba(124, 255, 198, 0.6);
+  background: rgba(34, 63, 45, 0.55);
 }
 
 .workflow-icon.large {
@@ -613,6 +712,7 @@ main {
   height: 64px;
   border-radius: 20px;
   font-size: 1.8rem;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .workflow-icon svg {
@@ -622,31 +722,43 @@ main {
 }
 
 .workflow-label {
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .workflow-meta {
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--silver-500);
 }
 
 .workflow-workspace {
   border-radius: 28px;
-  padding: 1.6rem;
+  padding: 1.8rem;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(1, 2, 8, 0.92);
   box-shadow: inset 0 0 80px rgba(3, 6, 18, 0.9);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  margin: 0;
-  opacity: 1;
-  transform: none;
-  transition: opacity 0.2s ease;
+  margin-top: 1.75rem;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: workflowWorkspaceReveal 0.45s cubic-bezier(0.33, 1, 0.68, 1) forwards;
   width: 100%;
-  flex: 1;
+}
+
+@keyframes workflowWorkspaceReveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .workflow-workspace-header {
@@ -668,21 +780,10 @@ main {
 .workflow-text {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.2rem;
+  align-items: flex-start;
+  gap: 0.15rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  text-align: center;
-}
-
-.workflow-grid:not(.is-condensed) .workflow-text {
-  justify-content: center;
-  min-height: 64px;
-  width: 100%;
-}
-
-.workflow-grid.is-condensed .workflow-text {
-  align-items: flex-start;
   text-align: left;
 }
 
@@ -722,7 +823,10 @@ main {
 
 .workflow-tile-shell:hover .workflow-vector,
 .workflow-tile-shell:focus-visible .workflow-vector,
-.workflow-tile.is-active .workflow-vector {
+.workflow-tile.is-active .workflow-vector,
+.workflow-stage-button:hover .workflow-vector,
+.workflow-stage-button:focus-visible .workflow-vector,
+.workflow-stage.is-active .workflow-vector {
   opacity: 1;
 }
 
@@ -1072,10 +1176,28 @@ main {
   animation-delay: 0.2s;
 }
 
+.workflow-vector-outputs .sheet-line:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.workflow-vector-outputs .sheet-line:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+.workflow-vector-outputs .sheet-line:nth-child(6) {
+  animation-delay: 0.5s;
+}
+
 .workflow-tile-shell:hover .workflow-vector-outputs .sheet,
 .workflow-tile-shell:focus-visible .workflow-vector-outputs .sheet,
 .workflow-tile-shell:hover .workflow-vector-outputs .sheet-line,
-.workflow-tile-shell:focus-visible .workflow-vector-outputs .sheet-line {
+.workflow-tile-shell:focus-visible .workflow-vector-outputs .sheet-line,
+.workflow-stage-button:hover .workflow-vector-outputs .sheet,
+.workflow-stage-button:focus-visible .workflow-vector-outputs .sheet,
+.workflow-stage-button:hover .workflow-vector-outputs .sheet-line,
+.workflow-stage-button:focus-visible .workflow-vector-outputs .sheet-line,
+.workflow-stage.is-active .workflow-vector-outputs .sheet,
+.workflow-stage.is-active .workflow-vector-outputs .sheet-line {
   animation-play-state: running;
 }
 

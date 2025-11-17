@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
+import type { JSX, KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { FiActivity, FiFileText, FiShare2, FiUpload } from "react-icons/fi";
 
@@ -42,6 +42,18 @@ type StatusState = {
 };
 
 type WorkflowKey = "ingest" | "cluster" | "activity" | "outputs";
+
+type WorkflowLane = "flow" | "detached";
+
+type WorkflowTile = {
+  key: WorkflowKey;
+  label: string;
+  title: string;
+  meta: string;
+  icon: JSX.Element;
+  lane: WorkflowLane;
+  isComplete: boolean;
+};
 
 const initialStatus: StatusState = {
   ingest: false,
@@ -917,49 +929,66 @@ export default function HomePage() {
     [toggleCockpitCard]
   );
 
-  const workflowTiles = useMemo(
-    () => [
+  const workflowTiles = useMemo<WorkflowTile[]>(() => {
+    const hasProjects = projects.length > 0 || Boolean(selectedProjectId);
+    const hasClusters = clusters.length > 0;
+    const hasExports = Object.keys(exportPreviews).length > 0;
+    return [
       {
-        key: "ingest" as const,
+        key: "ingest",
         label: "Ingest",
         title: "Embed crawl output",
         meta: selectedProjectId ? selectedProjectId : "No project",
-        icon: <FiUpload />
+        icon: <FiUpload />,
+        lane: "flow",
+        isComplete: hasProjects
       },
       {
-        key: "cluster" as const,
+        key: "cluster",
         label: "Cluster",
         title: "Semantic core",
         meta: clusters.length ? `${clusters.length} groups` : "Idle",
-        icon: <FiShare2 />
+        icon: <FiShare2 />,
+        lane: "flow",
+        isComplete: hasClusters
       },
       {
-        key: "activity" as const,
+        key: "outputs",
+        label: "Outputs",
+        title: "Exports",
+        meta: hasExports ? "Downloads" : "Awaiting data",
+        icon: <FiFileText />,
+        lane: "flow",
+        isComplete: hasExports
+      },
+      {
+        key: "activity",
         label: "Activity",
         title: "Latest logs",
         meta: logs.length ? `${logs.length} events` : "Quiet",
-        icon: <FiActivity />
-      },
-      {
-        key: "outputs" as const,
-        label: "Outputs",
-        title: "Exports",
-        meta: clusters.length ? "Downloads" : "Awaiting data",
-        icon: <FiFileText />
+        icon: <FiActivity />,
+        lane: "detached",
+        isComplete: logs.length > 0
       }
-    ],
-    [clusters.length, logs.length, selectedProjectId]
+    ];
+  }, [clusters.length, exportPreviews, logs.length, projects.length, selectedProjectId]);
+
+  const flowTiles = useMemo(
+    () => workflowTiles.filter((tile) => tile.lane === "flow"),
+    [workflowTiles]
   );
 
-  const handleTileActivate = useCallback((key: WorkflowKey) => {
-    setActiveWorkflow((previous) => (previous === key ? previous : key));
-  }, []);
+  const detachedTiles = useMemo(
+    () => workflowTiles.filter((tile) => tile.lane === "detached"),
+    [workflowTiles]
+  );
 
-  const handleWorkflowReset = useCallback(() => {
-    setActiveWorkflow(null);
-  }, []);
+  const activeTile = useMemo(
+    () => (activeWorkflow ? workflowTiles.find((tile) => tile.key === activeWorkflow) ?? null : null),
+    [activeWorkflow, workflowTiles]
+  );
 
-  const renderWorkflowVector = (key: WorkflowKey): ReactNode => {
+  const renderWorkflowVector = useCallback((key: WorkflowKey) => {
     switch (key) {
       case "ingest":
         return (
@@ -1060,19 +1089,25 @@ export default function HomePage() {
           </span>
         );
       case "outputs":
+      default:
         return (
           <span className="workflow-vector workflow-vector-outputs" aria-hidden="true">
             <span className="sheet">
               <span className="sheet-line" />
               <span className="sheet-line" />
               <span className="sheet-line" />
+              <span className="sheet-line" />
+              <span className="sheet-line" />
+              <span className="sheet-line" />
             </span>
           </span>
         );
-      default:
-        return null;
     }
-  };
+  }, []);
+
+  const handleTileActivate = useCallback((key: WorkflowKey) => {
+    setActiveWorkflow((previous) => (previous === key ? null : key));
+  }, []);
 
   const renderWorkflowContent = (key: WorkflowKey) => {
     switch (key) {
@@ -1725,77 +1760,83 @@ export default function HomePage() {
           </article>
         </section>
 
-        <section className={`workflow-section ${activeWorkflow ? "is-condensed" : ""}`} aria-label="Workflow shortcuts">
-          <div className={`workflow-grid ${activeWorkflow ? "is-condensed" : ""}`}>
-            {activeWorkflow && (
-              <div className="workflow-tile workflow-reset-tile" data-key="reset">
-                <button
-                  type="button"
-                  className="workflow-tile-shell workflow-reset-shell"
-                  onClick={handleWorkflowReset}
-                  aria-pressed="false"
-                  aria-label="Return to grid view"
-                >
-                  <span className="workflow-surface workflow-reset-surface" aria-hidden="true">
-                    <span className="workflow-reset-icon">
-                      <span />
-                      <span />
-                      <span />
-                      <span />
-                    </span>
-                    <span className="workflow-reset-hint">Grid view</span>
-                  </span>
-                </button>
-              </div>
-            )}
-            {workflowTiles.map((tile) => {
-              const isActive = tile.key === activeWorkflow;
-              return (
-                <div
-                  key={tile.key}
-                  className={`workflow-tile ${isActive ? "is-active" : ""}`}
-                  data-key={tile.key}
-                  role={isActive ? "group" : undefined}
-                  aria-live={isActive ? "polite" : undefined}
-                >
-                  {!isActive && (
+        <section className="workflow-section" aria-label="Workflow timeline">
+          <div className="workflow-timeline">
+            <div className="workflow-timeline-flow">
+              {flowTiles.map((tile, index) => {
+                const isActive = tile.key === activeWorkflow;
+                const showConnector = index < flowTiles.length - 1;
+                return (
+                  <div
+                    key={tile.key}
+                    className={`workflow-stage ${tile.isComplete ? "is-complete" : ""} ${
+                      isActive ? "is-active" : ""
+                    }`}
+                  >
                     <button
                       type="button"
-                      className="workflow-tile-shell"
+                      className="workflow-stage-button"
                       onClick={() => handleTileActivate(tile.key)}
                       aria-pressed={isActive}
                       aria-expanded={isActive}
                     >
-                      <span className="workflow-surface">
-                        <span className="workflow-icon" aria-hidden="true">
-                          {tile.icon}
-                        </span>
-                        <div className="workflow-text">
-                          <span className="workflow-label">{tile.label}</span>
-                          <span className="workflow-meta">{tile.meta}</span>
-                        </div>
+                      <span className="workflow-icon" aria-hidden="true">
+                        {tile.icon}
                       </span>
+                      <div className="workflow-text">
+                        <span className="workflow-label">{tile.label}</span>
+                        <span className="workflow-meta">{tile.meta}</span>
+                      </div>
                       {renderWorkflowVector(tile.key)}
                     </button>
-                  )}
-                  {isActive && (
-                    <div className="workflow-workspace">
-                      <div className="workflow-workspace-header">
-                        <span className="workflow-icon large" aria-hidden="true">
-                          {tile.icon}
-                        </span>
-                        <div>
-                          <p className="eyebrow">Workspace</p>
-                          <h3>{tile.title}</h3>
-                        </div>
-                      </div>
-                      <div className="workflow-body">{renderWorkflowContent(tile.key)}</div>
+                    {showConnector && <span className="workflow-connector" aria-hidden="true" />}
+                  </div>
+                );
+              })}
+            </div>
+            {detachedTiles.map((tile) => {
+              const isActive = tile.key === activeWorkflow;
+              return (
+                <div
+                  key={tile.key}
+                  className={`workflow-stage is-detached ${tile.isComplete ? "is-complete" : ""} ${
+                    isActive ? "is-active" : ""
+                  }`}
+                >
+                  <button
+                    type="button"
+                    className="workflow-stage-button"
+                    onClick={() => handleTileActivate(tile.key)}
+                    aria-pressed={isActive}
+                    aria-expanded={isActive}
+                  >
+                    <span className="workflow-icon" aria-hidden="true">
+                      {tile.icon}
+                    </span>
+                    <div className="workflow-text">
+                      <span className="workflow-label">{tile.label}</span>
+                      <span className="workflow-meta">{tile.meta}</span>
                     </div>
-                  )}
+                    {renderWorkflowVector(tile.key)}
+                  </button>
                 </div>
               );
             })}
           </div>
+          {activeTile && (
+            <div className="workflow-workspace" role="group" aria-live="polite" key={activeWorkflow}>
+              <div className="workflow-workspace-header">
+                <span className="workflow-icon large" aria-hidden="true">
+                  {activeTile.icon}
+                </span>
+                <div>
+                  <p className="eyebrow">Workspace</p>
+                  <h3>{activeTile.title}</h3>
+                </div>
+              </div>
+              <div className="workflow-body">{renderWorkflowContent(activeTile.key)}</div>
+            </div>
+          )}
         </section>
 
         <section className="ops-metrics" aria-label="Operational dashboard">
