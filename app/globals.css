@@ -420,7 +420,7 @@ main {
 .workflow-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
+  gap: 1.25rem;
   transition: grid-template-columns 0.45s ease, gap 0.45s ease;
 }
 
@@ -431,9 +431,9 @@ main {
 }
 
 .workflow-tile {
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
   color: var(--silver-50);
   display: flex;
   flex-direction: column;
@@ -483,8 +483,8 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.85rem;
-  padding: clamp(1.75rem, 2.5vw, 2.6rem);
+  gap: 0.65rem;
+  padding: clamp(1.4rem, 2.2vw, 2.2rem);
   cursor: pointer;
   border-radius: inherit;
   position: relative;
@@ -499,8 +499,8 @@ main {
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  padding: 1.4rem 1.5rem;
-  gap: 0.65rem;
+  padding: 1.2rem 1.35rem;
+  gap: 0.55rem;
   text-align: left;
 }
 
@@ -519,15 +519,15 @@ main {
 }
 
 .workflow-icon {
-  width: clamp(64px, 7vw, 88px);
-  height: clamp(64px, 7vw, 88px);
-  border-radius: 20px;
+  width: clamp(56px, 6vw, 72px);
+  height: clamp(56px, 6vw, 72px);
+  border-radius: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.24);
-  font-size: clamp(1.75rem, 2.4vw, 2.4rem);
+  font-size: clamp(1.5rem, 2vw, 2rem);
   line-height: 1;
   flex-shrink: 0;
   position: relative;
@@ -547,12 +547,12 @@ main {
 }
 
 .workflow-label {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .workflow-meta {
-  font-size: 0.8rem;
-  letter-spacing: 0.2em;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--silver-500);
 }
@@ -600,7 +600,7 @@ main {
 
 .workflow-grid:not(.is-condensed) .workflow-text {
   justify-content: center;
-  min-height: 72px;
+  min-height: 64px;
 }
 
 .workflow-grid.is-condensed .workflow-text {
@@ -609,10 +609,10 @@ main {
 }
 
 .workflow-grid.is-condensed .workflow-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  font-size: 1.5rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 1.35rem;
 }
 
 .workflow-vector {
@@ -670,48 +670,140 @@ main {
 
 .workflow-vector-cluster .branch {
   transform-origin: 60px 60px;
-  animation: clusterFractalBloom 3s cubic-bezier(0.55, 0.05, 0.35, 1) infinite;
+  animation: clusterFractalBloom 3.2s cubic-bezier(0.55, 0.05, 0.35, 1) infinite;
 }
 
 .workflow-vector-cluster .branch line {
   stroke: rgba(159, 199, 255, 0.65);
   stroke-width: 1.6;
   stroke-linecap: round;
-  stroke-dasharray: 80;
-  stroke-dashoffset: 80;
-  animation: clusterLine 3s ease-in-out infinite;
+  stroke-dasharray: 72;
+  stroke-dashoffset: 72;
+  transform-origin: 60px 60px;
+  animation: clusterLineGrow 3.2s ease-in-out infinite;
+}
+
+.workflow-vector-cluster .branch.level-one line:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.workflow-vector-cluster .branch.level-one line:nth-child(3) {
+  animation-delay: 0.3s;
 }
 
 .workflow-vector-cluster .branch.level-two {
-  animation-delay: 0.35s;
+  animation-delay: 0.45s;
 }
 
 .workflow-vector-cluster .branch.level-two line {
   stroke-width: 1.1;
-  animation-delay: 0.4s;
-  stroke: rgba(120, 180, 255, 0.5);
+  stroke: rgba(120, 180, 255, 0.52);
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(1) {
+  animation-delay: 0.55s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(2) {
+  animation-delay: 0.65s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(3) {
+  animation-delay: 0.75s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(4) {
+  animation-delay: 0.85s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(5) {
+  animation-delay: 0.95s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(6) {
+  animation-delay: 1.05s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(7) {
+  animation-delay: 1.15s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(8) {
+  animation-delay: 1.25s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(9) {
+  animation-delay: 1.35s;
 }
 
 .workflow-vector-cluster .nodes {
   transform-origin: 60px 60px;
-  animation: clusterFractalBloom 3s cubic-bezier(0.55, 0.05, 0.35, 1) infinite;
+  animation: clusterFractalBloom 3.2s cubic-bezier(0.55, 0.05, 0.35, 1) infinite;
 }
 
 .workflow-vector-cluster .nodes circle {
   stroke: rgba(159, 199, 255, 0.65);
   fill: rgba(159, 199, 255, 0.15);
-  stroke-width: 1.1;
+  stroke-width: 1.05;
   opacity: 0;
-  animation: clusterNode 3s ease-in-out infinite;
+  transform-origin: center;
+  animation: clusterNodePop 3.2s ease-in-out infinite;
+}
+
+.workflow-vector-cluster .nodes.level-one circle:nth-child(1) {
+  animation-delay: 0.35s;
+}
+
+.workflow-vector-cluster .nodes.level-one circle:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.workflow-vector-cluster .nodes.level-one circle:nth-child(3) {
+  animation-delay: 0.65s;
 }
 
 .workflow-vector-cluster .nodes.level-two {
-  animation-delay: 0.55s;
+  animation-delay: 0.95s;
 }
 
 .workflow-vector-cluster .nodes.level-two circle {
-  animation-delay: 0.55s;
   stroke-width: 0.8;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(1) {
+  animation-delay: 1.05s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(2) {
+  animation-delay: 1.15s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(3) {
+  animation-delay: 1.25s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(4) {
+  animation-delay: 1.35s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(5) {
+  animation-delay: 1.45s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(6) {
+  animation-delay: 1.55s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(7) {
+  animation-delay: 1.65s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(8) {
+  animation-delay: 1.75s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(9) {
+  animation-delay: 1.85s;
 }
 
 .workflow-vector-activity svg {
@@ -784,48 +876,52 @@ main {
   }
 }
 
-@keyframes clusterLine {
+@keyframes clusterLineGrow {
   0% {
-    stroke-dashoffset: 80;
+    stroke-dashoffset: 72;
     opacity: 0;
   }
-  35% {
-    stroke-dashoffset: 20;
+  20% {
+    opacity: 0.6;
+  }
+  50% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  80% {
     opacity: 0.85;
   }
-  60% {
-    stroke-dashoffset: 0;
-  }
   100% {
-    opacity: 0.25;
+    stroke-dashoffset: 0;
+    opacity: 0;
   }
 }
 
-@keyframes clusterNode {
+@keyframes clusterNodePop {
   0% {
     opacity: 0;
-    transform: scale(0.35);
+    transform: scale(0.25);
   }
   40% {
     opacity: 1;
     transform: scale(1);
   }
-  80% {
+  75% {
     opacity: 1;
   }
   100% {
-    opacity: 0.35;
-    transform: scale(0.8);
+    opacity: 0;
+    transform: scale(0.85);
   }
 }
 
 @keyframes clusterFractalBloom {
   0% {
-    transform: scale(0.18);
+    transform: scale(0.15);
     opacity: 0;
   }
   25% {
-    opacity: 0.9;
+    opacity: 0.85;
   }
   55% {
     transform: scale(1);
