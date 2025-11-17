@@ -414,47 +414,28 @@ main {
 
 
 .workflow-timeline {
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: clamp(0.85rem, 1.6vw, 2.25rem);
-  flex-wrap: wrap;
+  width: 100%;
 }
 
 .workflow-timeline-flow {
+  --lane-gap: clamp(1rem, 2vw, 2.75rem);
   display: flex;
   align-items: stretch;
-  justify-content: center;
-  gap: clamp(0.65rem, 2vw, 2.5rem);
-  flex: 1 1 auto;
-  min-width: min(560px, 100%);
+  justify-content: flex-start;
+  gap: var(--lane-gap);
+  width: 100%;
   padding: 0.25rem 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.workflow-timeline-flow::-webkit-scrollbar {
-  display: none;
+  flex-wrap: nowrap;
 }
 
 .workflow-stage {
   --connector-color: rgba(255, 255, 255, 0.4);
   --node-size: 14px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(60px, 10vw, 140px);
-  column-gap: clamp(0.45rem, 1vw, 1.4rem);
-  align-items: center;
   position: relative;
   flex: 1 1 0;
-  min-width: clamp(200px, 26vw, 320px);
-}
-
-.workflow-stage.has-connector {
-  grid-template-columns: minmax(0, 1fr) clamp(70px, 12vw, 150px);
-}
-
-.workflow-stage.no-connector {
-  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
 }
 
 .workflow-stage.is-active {
@@ -483,6 +464,7 @@ main {
   transition: border-color 0.35s ease, background 0.35s ease, color 0.35s ease,
     box-shadow 0.4s ease, transform 0.4s ease;
   isolation: isolate;
+  z-index: 1;
 }
 
 .workflow-stage-button::before {
@@ -532,7 +514,7 @@ main {
 
 .workflow-connector {
   display: block;
-  width: 100%;
+  width: calc(var(--lane-gap) + var(--node-size));
   height: 2px;
   border-radius: 999px;
   background-image: repeating-linear-gradient(
@@ -542,9 +524,12 @@ main {
   );
   background-size: 32px 2px;
   animation: workflowConnectorSlide 1.1s linear infinite;
-  flex: 0 0 auto;
-  align-self: center;
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: calc(100% - (var(--node-size) / 2));
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .workflow-connector::before,
