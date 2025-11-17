@@ -1730,6 +1730,8 @@ main {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1rem;
+  align-items: start;
+  transition: gap 0.35s ease;
 }
 
 .export-cockpit-card {
@@ -1739,7 +1741,31 @@ main {
   background: rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.35rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease, background 0.35s ease, transform 0.4s ease, box-shadow 0.4s ease;
+  --cockpit-body-max: 0px;
+  --cockpit-body-opacity: 0;
+  --cockpit-body-translate: -6px;
+  --cockpit-body-pointer: none;
+  --cockpit-body-visibility: hidden;
+  --cockpit-body-padding: 0px;
+  --cockpit-body-delay: 0.25s;
+}
+
+.export-cockpit-card[data-active="true"] {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  transform: translateY(-2px);
+  --cockpit-body-max: 1000px;
+  --cockpit-body-opacity: 1;
+  --cockpit-body-translate: 0px;
+  --cockpit-body-pointer: auto;
+  --cockpit-body-visibility: visible;
+  --cockpit-body-padding: 0.6rem;
+  --cockpit-body-delay: 0s;
 }
 
 .export-cockpit-card h4 {
@@ -1750,6 +1776,77 @@ main {
 .cockpit-helper {
   margin: 0;
   font-size: 0.85rem;
+}
+
+.cockpit-card-toggle {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  cursor: pointer;
+  border-radius: 14px;
+  padding: 0.25rem;
+  margin: -0.25rem;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cockpit-card-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+.cockpit-card-toggle:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cockpit-card-toggle > div:first-child {
+  flex: 1;
+}
+
+.cockpit-summary {
+  margin: 0;
+  display: grid;
+  gap: 0.2rem;
+  min-width: 140px;
+}
+
+.cockpit-summary-row {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.cockpit-summary-row dt {
+  margin: 0;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--silver-400);
+}
+
+.cockpit-summary-row dd {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--silver-050);
+}
+
+.cockpit-card-body {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-height: var(--cockpit-body-max);
+  opacity: var(--cockpit-body-opacity);
+  transform: translateY(var(--cockpit-body-translate));
+  pointer-events: var(--cockpit-body-pointer);
+  visibility: var(--cockpit-body-visibility);
+  padding-top: var(--cockpit-body-padding);
+  margin-top: var(--cockpit-body-padding);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  transition: max-height 0.55s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease,
+    transform 0.35s ease, visibility 0s linear var(--cockpit-body-delay);
+  will-change: max-height, opacity, transform;
 }
 
 .checkbox-grid {
