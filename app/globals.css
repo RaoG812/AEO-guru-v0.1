@@ -484,6 +484,15 @@ main {
   animation: tileMorph 0.55s cubic-bezier(0.2, 0.7, 0.15, 1);
 }
 
+.workflow-grid.is-condensed .workflow-tile.is-active .workflow-vector {
+  opacity: 0;
+}
+
+.workflow-grid.is-condensed .workflow-tile.is-active .workflow-vector,
+.workflow-grid.is-condensed .workflow-tile.is-active .workflow-vector * {
+  animation-play-state: paused;
+}
+
 .workflow-tile-shell {
   all: unset;
   cursor: pointer;
@@ -981,7 +990,8 @@ main {
   left: 50%;
   transform: translateX(-50%);
   box-shadow: 0 10px 32px rgba(7, 10, 22, 0.5);
-  animation: sheetPrint 3.2s steps(6, end) infinite;
+  animation: sheetPrint 3.6s steps(7, end) infinite;
+  animation-play-state: paused;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -996,7 +1006,8 @@ main {
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(70, 98, 169, 0.15), rgba(70, 98, 169, 0.45));
   opacity: 0;
-  animation: sheetLineBlink 3s steps(4, end) infinite;
+  animation: sheetLineBlink 3.6s steps(6, end) infinite;
+  animation-play-state: paused;
 }
 
 .workflow-vector-outputs .sheet-line:nth-child(2) {
@@ -1005,6 +1016,13 @@ main {
 
 .workflow-vector-outputs .sheet-line:nth-child(3) {
   animation-delay: 0.2s;
+}
+
+.workflow-tile-shell:hover .workflow-vector-outputs .sheet,
+.workflow-tile-shell:focus-visible .workflow-vector-outputs .sheet,
+.workflow-tile-shell:hover .workflow-vector-outputs .sheet-line,
+.workflow-tile-shell:focus-visible .workflow-vector-outputs .sheet-line {
+  animation-play-state: running;
 }
 
 @keyframes ingestOutline {
