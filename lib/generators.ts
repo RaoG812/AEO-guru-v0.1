@@ -116,15 +116,27 @@ export async function generateFaqJsonLd(
   return faqJsonLd;
 }
 
-export async function generateRobotsTxtFromSummary(summary: {
+type RobotsSummary = {
   rootUrl: string;
   disallowCandidates: string[];
   duplicatePatterns?: string[];
   rationale: string[];
-}): Promise<string> {
+  crawlDelay?: number;
+  sitemapUrls?: string[];
+  requestedAgents?: string[];
+};
+
+export async function generateRobotsTxtFromSummary(summary: RobotsSummary): Promise<string> {
   const { text } = await generateText({
     model: fastModel(),
-    prompt: `You generate minimal, safe robots.txt for SEO. Output ONLY robots.txt content with helpful # comments explaining each disallow.\n\nInput:\n${JSON.stringify(
+    prompt: `You are an enterprise technical SEO that writes defensive robots.txt files for modern crawlers. Always:
+- address each requested user-agent with its own block before the wildcard
+- include a wildcard (*) fallback section
+- reflect any crawl-delay and sitemap URLs provided
+- describe the intent for disallows using concise # comments so ops teams understand the change
+- prefer Allow over Disallow unless explicitly harmful.
+
+Return ONLY robots.txt content. Avoid extra prose.\n\nContext:\n${JSON.stringify(
       summary,
       null,
       2

@@ -110,6 +110,57 @@ const vectorPhrases = [
   "Conversation Seeds"
 ];
 
+const POPULAR_USER_AGENTS = [
+  "Googlebot",
+  "Googlebot-Image",
+  "Bingbot",
+  "Bingbot-Mobile",
+  "Slurp",
+  "DuckDuckBot",
+  "Baiduspider",
+  "YandexBot"
+] as const;
+
+type PopularAgent = (typeof POPULAR_USER_AGENTS)[number];
+
+type ExportCockpitState = {
+  semanticCore: {
+    limit: string;
+    lang: string;
+  };
+  jsonld: {
+    limit: string;
+    lang: string;
+  };
+  robots: {
+    lang: string;
+    rootUrl: string;
+    crawlDelay: string;
+    sitemapUrls: string;
+    additionalAgents: string;
+    agents: Record<PopularAgent, boolean>;
+  };
+};
+
+function buildDefaultAgentSelection(): Record<PopularAgent, boolean> {
+  return POPULAR_USER_AGENTS.reduce(
+    (acc, agent) => {
+      acc[agent] = true;
+      return acc;
+    },
+    {} as Record<PopularAgent, boolean>
+  );
+}
+
+function parseNumberInRange(value: string, min: number, max: number): number | undefined {
+  if (!value) return undefined;
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed)) {
+    return undefined;
+  }
+  return Math.min(Math.max(parsed, min), max);
+}
+
 const HERO_LENS_BASE_RADIUS = 140;
 const HERO_LENS_BLINK_RADIUS = 520;
 const HERO_LENS_RESET_DELAY = 450;
@@ -131,6 +182,7 @@ function getFilenameFromDisposition(disposition: string | null) {
 export default function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null);
   const lensBlinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastRobotsProjectRef = useRef<string | null>(null);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [projectForm, setProjectForm] = useState({ id: "", rootUrl: "", sitemapUrl: "" });
@@ -151,6 +203,18 @@ export default function HomePage() {
   const [authLoading, setAuthLoading] = useState(false);
   const [activeWorkflow, setActiveWorkflow] = useState<WorkflowKey | null>(null);
   const [isMorphing, setIsMorphing] = useState(false);
+  const [exportCockpit, setExportCockpit] = useState<ExportCockpitState>(() => ({
+    semanticCore: { limit: "12", lang: "" },
+    jsonld: { limit: "4", lang: "" },
+    robots: {
+      lang: "",
+      rootUrl: "",
+      crawlDelay: "5",
+      sitemapUrls: "",
+      additionalAgents: "",
+      agents: buildDefaultAgentSelection()
+    }
+  }));
 
   const supabase = useMemo<SupabaseClient | null>(() => {
     try {
@@ -167,6 +231,27 @@ export default function HomePage() {
   );
 
   const accessToken = session?.access_token ?? null;
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      lastRobotsProjectRef.current = null;
+      setExportCockpit((prev) => ({
+        ...prev,
+        robots: { ...prev.robots, rootUrl: "" }
+      }));
+      return;
+    }
+
+    if (lastRobotsProjectRef.current === selectedProjectId) {
+      return;
+    }
+
+    lastRobotsProjectRef.current = selectedProjectId;
+    setExportCockpit((prev) => ({
+      ...prev,
+      robots: { ...prev.robots, rootUrl: selectedProject?.rootUrl ?? "" }
+    }));
+  }, [selectedProjectId, selectedProject?.rootUrl]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -591,6 +676,55 @@ export default function HomePage() {
 
   const clusterLang = clusters[0]?.lang;
 
+  const semanticCoreOverrides = useMemo(() => {
+    const payload: Record<string, unknown> = {};
+    const limit = parseNumberInRange(exportCockpit.semanticCore.limit, 1, 25);
+    const lang = exportCockpit.semanticCore.lang || clusterLang;
+    if (lang) payload.lang = lang;
+    if (limit) payload.limit = limit;
+    return payload;
+  }, [exportCockpit.semanticCore, clusterLang]);
+
+  const jsonldOverrides = useMemo(() => {
+    const payload: Record<string, unknown> = {};
+    const limit = parseNumberInRange(exportCockpit.jsonld.limit, 1, 10);
+    const lang = exportCockpit.jsonld.lang || clusterLang;
+    if (lang) payload.lang = lang;
+    if (limit) payload.limit = limit;
+    return payload;
+  }, [exportCockpit.jsonld, clusterLang]);
+
+  const robotsOverrides = useMemo<
+    (Record<string, unknown> & { rootUrl: string }) | null
+  >(() => {
+    const rootUrl = exportCockpit.robots.rootUrl || selectedProject?.rootUrl;
+    if (!rootUrl) {
+      return null;
+    }
+    const payload: Record<string, unknown> & { rootUrl: string } = { rootUrl };
+    const lang = exportCockpit.robots.lang || clusterLang;
+    if (lang) payload.lang = lang;
+    const crawlDelay = parseNumberInRange(exportCockpit.robots.crawlDelay, 1, 60);
+    if (crawlDelay) payload.crawlDelay = crawlDelay;
+    const sitemapUrls = exportCockpit.robots.sitemapUrls
+      .split(/\r?\n|,/)
+      .map((url) => url.trim())
+      .filter(Boolean);
+    if (sitemapUrls.length) payload.sitemapUrls = sitemapUrls;
+    const selectedAgents = Object.entries(exportCockpit.robots.agents)
+      .filter(([, enabled]) => enabled)
+      .map(([agent]) => agent);
+    const customAgents = exportCockpit.robots.additionalAgents
+      .split(/[\n,]/)
+      .map((agent) => agent.trim())
+      .filter(Boolean);
+    const agents = Array.from(new Set([...selectedAgents, ...customAgents]));
+    if (agents.length) payload.agents = agents;
+    return payload;
+  }, [exportCockpit.robots, selectedProject?.rootUrl, clusterLang]);
+
+  const canGenerateRobots = Boolean(robotsOverrides?.rootUrl);
+
   const workflowTiles = useMemo(
     () => [
       {
@@ -834,13 +968,202 @@ export default function HomePage() {
                   </button>
                   {clusterMessage && <p className="muted">{clusterMessage}</p>}
                 </form>
+                <section className="export-cockpit" aria-label="Export control cockpit">
+                  <div className="cockpit-header">
+                    <div>
+                      <p className="eyebrow">Export cockpit</p>
+                      <h3>Precisely configure each artifact</h3>
+                    </div>
+                    <p className="muted">
+                      Override language, scope, or crawler targets before downloading YAML, JSON-LD, or robots.txt.
+                    </p>
+                  </div>
+                  <div className="export-cockpit-grid">
+                    <section className="export-cockpit-card" aria-label="Semantic core options">
+                      <h4>Semantic core YAML</h4>
+                      <p className="muted cockpit-helper">Limit how many annotated clusters are exported.</p>
+                      <label className="field-label">
+                        Language override
+                        <input
+                          className="text-input"
+                          placeholder={clusterLang ?? "en"}
+                          value={exportCockpit.semanticCore.lang}
+                          onChange={(e) =>
+                            setExportCockpit((prev) => ({
+                              ...prev,
+                              semanticCore: { ...prev.semanticCore, lang: e.target.value }
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="field-label">
+                        Cluster limit (1-25)
+                        <input
+                          className="text-input"
+                          type="number"
+                          min={1}
+                          max={25}
+                          value={exportCockpit.semanticCore.limit}
+                          onChange={(e) =>
+                            setExportCockpit((prev) => ({
+                              ...prev,
+                              semanticCore: { ...prev.semanticCore, limit: e.target.value }
+                            }))
+                          }
+                        />
+                      </label>
+                    </section>
+                    <section className="export-cockpit-card" aria-label="JSON-LD options">
+                      <h4>JSON-LD bundle</h4>
+                      <p className="muted cockpit-helper">
+                        Control how many representative pages are expanded into schema.
+                      </p>
+                      <label className="field-label">
+                        Language override
+                        <input
+                          className="text-input"
+                          placeholder={clusterLang ?? "en"}
+                          value={exportCockpit.jsonld.lang}
+                          onChange={(e) =>
+                            setExportCockpit((prev) => ({
+                              ...prev,
+                              jsonld: { ...prev.jsonld, lang: e.target.value }
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="field-label">
+                        Page limit (1-10)
+                        <input
+                          className="text-input"
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={exportCockpit.jsonld.limit}
+                          onChange={(e) =>
+                            setExportCockpit((prev) => ({
+                              ...prev,
+                              jsonld: { ...prev.jsonld, limit: e.target.value }
+                            }))
+                          }
+                        />
+                      </label>
+                    </section>
+                    <section className="export-cockpit-card" aria-label="robots.txt options">
+                      <h4>robots.txt</h4>
+                      <p className="muted cockpit-helper">
+                        Target popular crawlers with bespoke rules and include sitemaps before shipping.
+                      </p>
+                      <label className="field-label">
+                        Root URL
+                        <input
+                          className="text-input"
+                          value={exportCockpit.robots.rootUrl}
+                          placeholder={selectedProject?.rootUrl ?? "https://example.com"}
+                          onChange={(e) =>
+                            setExportCockpit((prev) => ({
+                              ...prev,
+                              robots: { ...prev.robots, rootUrl: e.target.value }
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="field-label">
+                        Language preference
+                        <input
+                          className="text-input"
+                          placeholder={clusterLang ?? "en"}
+                          value={exportCockpit.robots.lang}
+                          onChange={(e) =>
+                            setExportCockpit((prev) => ({
+                              ...prev,
+                              robots: { ...prev.robots, lang: e.target.value }
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="field-label">
+                        Crawl-delay seconds (1-60)
+                        <input
+                          className="text-input"
+                          type="number"
+                          min={1}
+                          max={60}
+                          value={exportCockpit.robots.crawlDelay}
+                          onChange={(e) =>
+                            setExportCockpit((prev) => ({
+                              ...prev,
+                              robots: { ...prev.robots, crawlDelay: e.target.value }
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="field-label">
+                        Sitemap URLs (one per line)
+                        <textarea
+                          className="text-area"
+                          rows={3}
+                          placeholder={selectedProject?.sitemapUrl ?? "https://example.com/sitemap.xml"}
+                          value={exportCockpit.robots.sitemapUrls}
+                          onChange={(e) =>
+                            setExportCockpit((prev) => ({
+                              ...prev,
+                              robots: { ...prev.robots, sitemapUrls: e.target.value }
+                            }))
+                          }
+                        />
+                      </label>
+                      <div className="field-label">
+                        <span>Popular user-agents</span>
+                        <div className="checkbox-grid">
+                          {POPULAR_USER_AGENTS.map((agent) => (
+                            <label key={agent} className="cockpit-checkbox">
+                              <input
+                                type="checkbox"
+                                checked={exportCockpit.robots.agents[agent]}
+                                onChange={() =>
+                                  setExportCockpit((prev) => ({
+                                    ...prev,
+                                    robots: {
+                                      ...prev.robots,
+                                      agents: {
+                                        ...prev.robots.agents,
+                                        [agent]: !prev.robots.agents[agent]
+                                      }
+                                    }
+                                  }))
+                                }
+                              />
+                              <span>{agent}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <label className="field-label">
+                        Additional user-agents (comma or newline separated)
+                        <textarea
+                          className="text-area"
+                          rows={2}
+                          placeholder="GPTBot, MegaIndex"
+                          value={exportCockpit.robots.additionalAgents}
+                          onChange={(e) =>
+                            setExportCockpit((prev) => ({
+                              ...prev,
+                              robots: { ...prev.robots, additionalAgents: e.target.value }
+                            }))
+                          }
+                        />
+                      </label>
+                    </section>
+                  </div>
+                </section>
                 <div className="download-grid">
                   <button
                     type="button"
                     className="ghost-button"
                     disabled={status.download || clusters.length === 0}
                     onClick={() =>
-                      handleDownload("/api/exports/semantic-core", "semantic-core.yaml", { lang: clusterLang })
+                      handleDownload("/api/exports/semantic-core", "semantic-core.yaml", semanticCoreOverrides)
                     }
                   >
                     Semantic core YAML
@@ -849,19 +1172,19 @@ export default function HomePage() {
                     type="button"
                     className="ghost-button"
                     disabled={status.download || clusters.length === 0}
-                    onClick={() => handleDownload("/api/exports/jsonld", "jsonld.json", { lang: clusterLang })}
+                    onClick={() =>
+                      handleDownload("/api/exports/jsonld", "jsonld.json", jsonldOverrides)
+                    }
                   >
                     JSON-LD bundle
                   </button>
                   <button
                     type="button"
                     className="ghost-button"
-                    disabled={status.download || clusters.length === 0}
+                    disabled={status.download || clusters.length === 0 || !canGenerateRobots}
                     onClick={() =>
-                      handleDownload("/api/exports/robots", "robots.txt", {
-                        rootUrl: selectedProject?.rootUrl,
-                        lang: clusterLang
-                      })
+                      robotsOverrides &&
+                      handleDownload("/api/exports/robots", "robots.txt", robotsOverrides)
                     }
                   >
                     robots.txt
@@ -911,7 +1234,7 @@ export default function HomePage() {
                     className="ghost-button"
                     disabled={status.download}
                     onClick={() =>
-                      handleDownload("/api/exports/semantic-core", "semantic-core.yaml", { lang: clusterLang })
+                      handleDownload("/api/exports/semantic-core", "semantic-core.yaml", semanticCoreOverrides)
                     }
                   >
                     Semantic core
@@ -920,20 +1243,18 @@ export default function HomePage() {
                     type="button"
                     className="ghost-button"
                     disabled={status.download}
-                    onClick={() => handleDownload("/api/exports/jsonld", "jsonld.json", { lang: clusterLang })}
+                    onClick={() =>
+                      handleDownload("/api/exports/jsonld", "jsonld.json", jsonldOverrides)
+                    }
                   >
                     JSON-LD
                   </button>
                   <button
                     type="button"
                     className="ghost-button"
-                    disabled={status.download}
-                    onClick={() =>
-                      handleDownload("/api/exports/robots", "robots.txt", {
-                        rootUrl: selectedProject?.rootUrl,
-                        lang: clusterLang
-                      })
-                    }
+                    disabled={status.download || !canGenerateRobots}
+                    onClick={() => robotsOverrides &&
+                      handleDownload("/api/exports/robots", "robots.txt", robotsOverrides)}
                   >
                     robots.txt
                   </button>
