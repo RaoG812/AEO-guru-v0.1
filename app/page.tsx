@@ -1153,13 +1153,15 @@ export default function HomePage() {
                     aria-pressed={isActive}
                     aria-expanded={isActive}
                   >
-                    <span className="workflow-icon" aria-hidden="true">
-                      {tile.icon}
+                    <span className="workflow-surface">
+                      <span className="workflow-icon" aria-hidden="true">
+                        {tile.icon}
+                      </span>
+                      <div className="workflow-text">
+                        <span className="workflow-label">{tile.label}</span>
+                        <span className="workflow-meta">{tile.meta}</span>
+                      </div>
                     </span>
-                    <div className="workflow-text">
-                      <span className="workflow-label">{tile.label}</span>
-                      <span className="workflow-meta">{tile.meta}</span>
-                    </div>
                     {renderWorkflowVector(tile.key)}
                   </button>
                   {isActive && (
