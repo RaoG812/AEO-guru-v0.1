@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
+import { FiActivity, FiFileText, FiShare2, FiUpload } from "react-icons/fi";
 
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 
@@ -38,6 +39,8 @@ type StatusState = {
   download: boolean;
   projects: boolean;
 };
+
+type WorkflowKey = "ingest" | "cluster" | "activity" | "outputs";
 
 const initialStatus: StatusState = {
   ingest: false,
@@ -145,6 +148,7 @@ export default function HomePage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [activeWorkflow, setActiveWorkflow] = useState<WorkflowKey | null>(null);
 
   const supabase = useMemo<SupabaseClient | null>(() => {
     try {
@@ -583,6 +587,236 @@ export default function HomePage() {
 
   const clusterLang = clusters[0]?.lang;
 
+  const workflowTiles = useMemo(
+    () => [
+      {
+        key: "ingest" as const,
+        label: "Ingest",
+        title: "Embed crawl output",
+        meta: selectedProjectId ? selectedProjectId : "No project",
+        icon: <FiUpload />
+      },
+      {
+        key: "cluster" as const,
+        label: "Cluster",
+        title: "Semantic core",
+        meta: clusters.length ? `${clusters.length} groups` : "Idle",
+        icon: <FiShare2 />
+      },
+      {
+        key: "activity" as const,
+        label: "Activity",
+        title: "Latest logs",
+        meta: logs.length ? `${logs.length} events` : "Quiet",
+        icon: <FiActivity />
+      },
+      {
+        key: "outputs" as const,
+        label: "Outputs",
+        title: "Exports",
+        meta: clusters.length ? "Downloads" : "Awaiting data",
+        icon: <FiFileText />
+      }
+    ],
+    [clusters.length, logs.length, selectedProjectId]
+  );
+
+  const activeTile = workflowTiles.find((tile) => tile.key === activeWorkflow) ?? null;
+
+  const renderWorkflowContent = (key: WorkflowKey) => {
+    switch (key) {
+      case "ingest":
+        return (
+          <div className="workflow-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Ingestion</p>
+                <h2>Embed crawl output</h2>
+              </div>
+              {selectedProject && <span className="pill">{selectedProject.id}</span>}
+            </div>
+            {selectedProject ? (
+              <form className="stacked-form" onSubmit={handleIngest}>
+                <label className="field-label">
+                  Root URL
+                  <input
+                    className="text-input"
+                    value={ingestForm.rootUrl}
+                    onChange={(e) => setIngestForm((prev) => ({ ...prev, rootUrl: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label className="field-label">
+                  Sitemap URL
+                  <input
+                    className="text-input"
+                    value={ingestForm.sitemapUrl}
+                    onChange={(e) => setIngestForm((prev) => ({ ...prev, sitemapUrl: e.target.value }))}
+                  />
+                </label>
+                <label className="field-label">
+                  Additional URLs (one per line)
+                  <textarea
+                    className="text-area"
+                    value={ingestForm.urls}
+                    onChange={(e) => setIngestForm((prev) => ({ ...prev, urls: e.target.value }))}
+                    placeholder={"https://example.com/about\nhttps://example.com/blog/post"}
+                  />
+                </label>
+                <button type="submit" className="primary-button" disabled={status.ingest}>
+                  {status.ingest ? "Embedding…" : "Start ingestion"}
+                </button>
+                {ingestMessage && <p className="muted">{ingestMessage}</p>}
+              </form>
+            ) : (
+              <p className="muted">Select a project to unlock ingestion.</p>
+            )}
+          </div>
+        );
+      case "cluster":
+        return (
+          <div className="workflow-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Clustering</p>
+                <h2>Semantic core + exports</h2>
+              </div>
+              <span className="pill">{clusters.length} clusters</span>
+            </div>
+            {selectedProject ? (
+              <>
+                <form className="stacked-form" onSubmit={handleCluster}>
+                  <p className="muted">
+                    Group embeddings into topic clusters, label intents, and spin up an answer graph of canonical
+                    questions.
+                  </p>
+                  <button type="submit" className="primary-button" disabled={status.clusters}>
+                    {status.clusters ? "Analyzing…" : "Build clusters"}
+                  </button>
+                  {clusterMessage && <p className="muted">{clusterMessage}</p>}
+                </form>
+                <div className="download-grid">
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    disabled={status.download || clusters.length === 0}
+                    onClick={() =>
+                      handleDownload("/api/exports/semantic-core", "semantic-core.yaml", { lang: clusterLang })
+                    }
+                  >
+                    Semantic core YAML
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    disabled={status.download || clusters.length === 0}
+                    onClick={() => handleDownload("/api/exports/jsonld", "jsonld.json", { lang: clusterLang })}
+                  >
+                    JSON-LD bundle
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    disabled={status.download || clusters.length === 0}
+                    onClick={() =>
+                      handleDownload("/api/exports/robots", "robots.txt", {
+                        rootUrl: selectedProject?.rootUrl,
+                        lang: clusterLang
+                      })
+                    }
+                  >
+                    robots.txt
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="muted">Select a project to build clusters and exports.</p>
+            )}
+          </div>
+        );
+      case "activity":
+        return (
+          <div className="workflow-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Activity</p>
+                <h2>Latest log entries</h2>
+              </div>
+              <span className="pill">{logs.length} events</span>
+            </div>
+            <ul className="log-list">
+              {logs.map((entry, idx) => (
+                <li key={`${entry}-${idx}`}>{entry}</li>
+              ))}
+              {logs.length === 0 && <li className="muted">No activity yet.</li>}
+            </ul>
+          </div>
+        );
+      case "outputs":
+        return (
+          <div className="workflow-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Outputs</p>
+                <h2>Preview exports</h2>
+              </div>
+              <span className="pill">{clusters.length} ready</span>
+            </div>
+            {clusters.length === 0 ? (
+              <p className="muted">Run clustering to unlock structured downloads.</p>
+            ) : (
+              <div className="outputs-preview">
+                <div className="download-grid compact">
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    disabled={status.download}
+                    onClick={() =>
+                      handleDownload("/api/exports/semantic-core", "semantic-core.yaml", { lang: clusterLang })
+                    }
+                  >
+                    Semantic core
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    disabled={status.download}
+                    onClick={() => handleDownload("/api/exports/jsonld", "jsonld.json", { lang: clusterLang })}
+                  >
+                    JSON-LD
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    disabled={status.download}
+                    onClick={() =>
+                      handleDownload("/api/exports/robots", "robots.txt", {
+                        rootUrl: selectedProject?.rootUrl,
+                        lang: clusterLang
+                      })
+                    }
+                  >
+                    robots.txt
+                  </button>
+                </div>
+                <div className="outputs-grid">
+                  {clusters.slice(0, 3).map((cluster) => (
+                    <div key={cluster.id} className="outputs-card">
+                      <p className="eyebrow">{cluster.metadata.intent}</p>
+                      <strong>{cluster.metadata.label}</strong>
+                      <p className="muted">{cluster.metadata.summary}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <main className="app-shell">
       <nav className="dock-nav" aria-label="Primary">
@@ -656,6 +890,67 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section
+          className={`workflow-section ${activeWorkflow ? "is-expanded" : ""}`}
+          aria-label="Workflow shortcuts"
+        >
+          {!activeWorkflow && (
+            <div className="workflow-grid">
+              {workflowTiles.map((tile) => (
+                <button
+                  key={tile.key}
+                  type="button"
+                  className="workflow-tile"
+                  onClick={() => setActiveWorkflow(tile.key)}
+                  aria-expanded={false}
+                >
+                  <span className="workflow-icon" aria-hidden="true">
+                    {tile.icon}
+                  </span>
+                  <span className="workflow-label">{tile.label}</span>
+                  <span className="workflow-meta">{tile.meta}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {activeWorkflow && activeTile && (
+            <div className="workflow-stage">
+              <div className="workflow-workspace" aria-live="polite">
+                <div className="workflow-workspace-header">
+                  <span className="workflow-icon large" aria-hidden="true">
+                    {activeTile.icon}
+                  </span>
+                  <div>
+                    <p className="eyebrow">Workspace</p>
+                    <h3>{activeTile.title}</h3>
+                  </div>
+                  <button type="button" className="ghost-button small" onClick={() => setActiveWorkflow(null)}>
+                    Reset layout
+                  </button>
+                </div>
+                <div className="workflow-body">{renderWorkflowContent(activeTile.key)}</div>
+              </div>
+              <div className="workflow-mini-stack">
+                {workflowTiles.map((tile) => (
+                  <button
+                    key={tile.key}
+                    type="button"
+                    className={`workflow-mini ${tile.key === activeWorkflow ? "is-active" : ""}`}
+                    onClick={() => setActiveWorkflow(tile.key)}
+                    aria-pressed={tile.key === activeWorkflow}
+                  >
+                    <span className="workflow-icon" aria-hidden="true">
+                      {tile.icon}
+                    </span>
+                    <span className="workflow-label">{tile.label}</span>
+                    <span className="workflow-meta">{tile.meta}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="ops-metrics" aria-label="Operational dashboard">
@@ -783,126 +1078,6 @@ export default function HomePage() {
             </div>
           </article>
 
-          <article className="panel-card">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Ingestion</p>
-                <h2>Embed crawl output</h2>
-              </div>
-              {selectedProject && <span className="pill">{selectedProject.id}</span>}
-            </div>
-            {selectedProject ? (
-              <form className="stacked-form" onSubmit={handleIngest}>
-                <label className="field-label">
-                  Root URL
-                  <input
-                    className="text-input"
-                    value={ingestForm.rootUrl}
-                    onChange={(e) => setIngestForm((prev) => ({ ...prev, rootUrl: e.target.value }))}
-                    required
-                  />
-                </label>
-                <label className="field-label">
-                  Sitemap URL
-                  <input
-                    className="text-input"
-                    value={ingestForm.sitemapUrl}
-                    onChange={(e) => setIngestForm((prev) => ({ ...prev, sitemapUrl: e.target.value }))}
-                  />
-                </label>
-                <label className="field-label">
-                  Additional URLs (one per line)
-                  <textarea
-                    className="text-area"
-                    value={ingestForm.urls}
-                    onChange={(e) => setIngestForm((prev) => ({ ...prev, urls: e.target.value }))}
-                    placeholder="https://example.com/about\nhttps://example.com/blog/post"
-                  />
-                </label>
-                <button type="submit" className="primary-button" disabled={status.ingest}>
-                  {status.ingest ? "Embedding…" : "Ingest & Embed"}
-                </button>
-                {ingestMessage && <p className="muted">{ingestMessage}</p>}
-              </form>
-            ) : (
-              <p className="muted">Select a project to unlock ingestion.</p>
-            )}
-          </article>
-
-          <article className="panel-card">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Clustering</p>
-                <h2>Semantic core + exports</h2>
-              </div>
-              <span className="pill">{clusters.length} clusters</span>
-            </div>
-            {selectedProject ? (
-              <>
-                <form className="stacked-form" onSubmit={handleCluster}>
-                  <p className="muted">
-                    Group embeddings into topic clusters, label intents, and spin up an answer graph of canonical
-                    questions.
-                  </p>
-                  <button type="submit" className="primary-button" disabled={status.clusters}>
-                    {status.clusters ? "Analyzing…" : "Build clusters"}
-                  </button>
-                  {clusterMessage && <p className="muted">{clusterMessage}</p>}
-                </form>
-                <div className="download-grid">
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    disabled={status.download || clusters.length === 0}
-                    onClick={() =>
-                      handleDownload("/api/exports/semantic-core", "semantic-core.yaml", { lang: clusterLang })
-                    }
-                  >
-                    Semantic core YAML
-                  </button>
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    disabled={status.download || clusters.length === 0}
-                    onClick={() => handleDownload("/api/exports/jsonld", "jsonld.json", { lang: clusterLang })}
-                  >
-                    JSON-LD bundle
-                  </button>
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    disabled={status.download || clusters.length === 0}
-                    onClick={() =>
-                      handleDownload("/api/exports/robots", "robots.txt", {
-                        rootUrl: selectedProject?.rootUrl,
-                        lang: clusterLang
-                      })
-                    }
-                  >
-                    robots.txt
-                  </button>
-                </div>
-              </>
-            ) : (
-              <p className="muted">Select a project to build clusters and exports.</p>
-            )}
-          </article>
-
-          <article className="panel-card">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Activity</p>
-                <h2>Latest log entries</h2>
-              </div>
-              <span className="pill">{logs.length} events</span>
-            </div>
-            <ul className="log-list">
-              {logs.map((entry, idx) => (
-                <li key={`${entry}-${idx}`}>{entry}</li>
-              ))}
-              {logs.length === 0 && <li className="muted">No activity yet.</li>}
-            </ul>
-          </article>
         </section>
 
         {clusters.length > 0 && (
