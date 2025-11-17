@@ -13,10 +13,10 @@ const aimlapi = createOpenAI({
 });
 
 const DEFAULT_MODELS = {
-  reasoning: process.env.AIMLAPI_REASONING_MODEL ?? "gpt-4.1",
-  fast: process.env.AIMLAPI_FAST_MODEL ?? "gpt-4.1-mini",
-  structured: process.env.AIMLAPI_STRUCTURED_MODEL ?? "gpt-4.1-mini",
-  embeddings: process.env.AIMLAPI_EMBEDDING_MODEL ?? "text-embedding-3-small"
+  reasoning: process.env.AIMLAPI_REASONING_MODEL ?? "gemini-1.5-pro",
+  fast: process.env.AIMLAPI_FAST_MODEL ?? "gemini-1.5-flash",
+  structured: process.env.AIMLAPI_STRUCTURED_MODEL ?? "gemini-1.5-flash",
+  embeddings: process.env.AIMLAPI_EMBEDDING_MODEL ?? "text-embedding-004"
 };
 
 export function gatewayModel(preset: keyof typeof DEFAULT_MODELS = "reasoning"): LanguageModelV1 {
