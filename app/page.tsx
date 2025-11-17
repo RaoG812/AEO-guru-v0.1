@@ -597,6 +597,19 @@ export default function HomePage() {
     setAuthMessage(null);
   }
 
+  function handleClusterDockAction() {
+    if (typeof document === "undefined") return;
+    const clusterSection = document.querySelector(".cluster-section");
+    if (clusterSection) {
+      clusterSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    document
+      .querySelector(".workflow-section")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    handleTileActivate("cluster");
+  }
+
   async function handleAuthSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!supabase) {
@@ -643,7 +656,12 @@ export default function HomePage() {
   }
 
   function handleLogin() {
+    if (session) {
+      pushLog("Already signed in");
+      return;
+    }
     pushLog("Initiated login from dock");
+    openLoginModal();
   }
 
   const dockButtons = [
@@ -685,8 +703,7 @@ export default function HomePage() {
           <circle cx="12" cy="12" r="2.4" fill="currentColor" />
         </svg>
       ),
-      action: () =>
-        document.querySelector(".cluster-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
+      action: handleClusterDockAction
     },
     {
       label: "Login",
