@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { generateObject } from "ai";
-import type { LanguageModelV1 } from "ai";
-import { openai } from "@ai-sdk/openai";
 
 import { embedTexts } from "./embeddings";
 import { COLLECTION, ensureCollection, getQdrantClient } from "./qdrant";
+import { fastModel } from "./ai-gateway";
 
 const questionSchema = z.object({
   questions: z
@@ -33,7 +32,7 @@ export async function buildAnswerGraphNodes(input: {
   primaryUrl?: string | null;
   secondaryKeywords?: string[];
 }) {
-  const model = openai("gpt-4.1-mini") as LanguageModelV1;
+  const model = fastModel();
   const { object } = await generateObject({
     model,
     schema: questionSchema,
