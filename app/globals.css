@@ -1608,6 +1608,74 @@ main {
   gap: 0.6rem;
 }
 
+.export-attributes-panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.export-attributes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.export-attributes-header h4 {
+  margin: 0.15rem 0 0;
+}
+
+.export-attributes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.6rem 0.9rem;
+  margin: 0;
+}
+
+.attribute-row {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.6rem 0.8rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.attribute-row dt {
+  margin: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--silver-600);
+}
+
+.attribute-row dd {
+  margin: 0.2rem 0 0;
+  color: var(--silver-50);
+  font-size: 0.9rem;
+}
+
+.export-preview {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.45);
+  padding: 0.8rem;
+}
+
+.export-preview pre {
+  margin: 0.4rem 0 0;
+  max-height: 260px;
+  overflow: auto;
+  font-family: "Space Mono", "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .export-cockpit {
   margin: 1.5rem 0;
   padding: 1.25rem;

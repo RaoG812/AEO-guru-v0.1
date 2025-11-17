@@ -124,6 +124,7 @@ type RobotsSummary = {
   crawlDelay?: number;
   sitemapUrls?: string[];
   requestedAgents?: string[];
+  forbiddenPaths?: string[];
 };
 
 export async function generateRobotsTxtFromSummary(summary: RobotsSummary): Promise<string> {
@@ -135,6 +136,7 @@ export async function generateRobotsTxtFromSummary(summary: RobotsSummary): Prom
 - reflect any crawl-delay and sitemap URLs provided
 - describe the intent for disallows using concise # comments so ops teams understand the change
 - prefer Allow over Disallow unless explicitly harmful.
+- ensure every entry listed in forbiddenPaths is explicitly disallowed for the matching crawlers.
 
 Return ONLY robots.txt content. Avoid extra prose.\n\nContext:\n${JSON.stringify(
       summary,

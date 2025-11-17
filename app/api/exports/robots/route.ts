@@ -24,7 +24,8 @@ const schema = z.object({
   lang: z.string().optional(),
   crawlDelay: z.number().int().min(1).max(60).optional(),
   sitemapUrls: z.array(z.string().url()).max(10).optional(),
-  agents: z.array(z.string()).min(1).max(16).optional()
+  agents: z.array(z.string()).min(1).max(16).optional(),
+  forbiddenPaths: z.array(z.string()).max(25).optional()
 });
 
 function collectPatterns(urls: string[]) {
@@ -83,7 +84,7 @@ function collectPatterns(urls: string[]) {
 }
 
 export async function POST(req: NextRequest) {
-  const { projectId, rootUrl, lang, crawlDelay, sitemapUrls, agents } = schema.parse(
+  const { projectId, rootUrl, lang, crawlDelay, sitemapUrls, agents, forbiddenPaths } = schema.parse(
     await req.json()
   );
   const points = await getProjectPoints(projectId, { lang, withVectors: false });
@@ -101,20 +102,35 @@ export async function POST(req: NextRequest) {
   );
 
   const patternSummary = collectPatterns(urls);
+  const manualForbidden = (forbiddenPaths ?? [])
+    .map((path) => path.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      if (/^https?:\/\//i.test(entry)) {
+        try {
+          const parsed = new URL(entry);
+          return parsed.pathname || "/";
+        } catch {
+          return entry;
+        }
+      }
+      return entry.startsWith("/") ? entry : `/${entry}`;
+    });
   const requestedAgents = Array.from(
     new Set((agents?.length ? agents : POPULAR_CRAWLERS).map((agent) => agent.trim()))
   ).filter(Boolean);
 
   const summary = {
     rootUrl,
-    disallowCandidates: patternSummary.disallow,
+    disallowCandidates: Array.from(new Set([...patternSummary.disallow, ...manualForbidden])),
     duplicatePatterns: patternSummary.duplicatePatterns,
     rationale: patternSummary.rationale,
     crawlDelay,
     sitemapUrls,
     requestedAgents: requestedAgents.length
       ? requestedAgents
-      : Array.from(POPULAR_CRAWLERS)
+      : Array.from(POPULAR_CRAWLERS),
+    forbiddenPaths: manualForbidden
   };
 
   const robotsTxt = await generateRobotsTxtFromSummary(summary);

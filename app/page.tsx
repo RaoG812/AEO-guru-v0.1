@@ -139,8 +139,11 @@ type ExportCockpitState = {
     sitemapUrls: string;
     additionalAgents: string;
     agents: Record<PopularAgent, boolean>;
+    forbiddenPaths: string;
   };
 };
+
+type ExportArtifactKey = "semantic" | "jsonld" | "robots";
 
 function buildDefaultAgentSelection(): Record<PopularAgent, boolean> {
   return POPULAR_USER_AGENTS.reduce(
@@ -160,6 +163,50 @@ function parseNumberInRange(value: string, min: number, max: number): number | u
   }
   return Math.min(Math.max(parsed, min), max);
 }
+
+function splitMultilineList(value: string) {
+  return value
+    .split(/\r?\n|,/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function normalizeForbiddenPath(entry: string): string | null {
+  if (!entry) return null;
+  const trimmed = entry.trim();
+  if (!trimmed) return null;
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      return url.pathname || "/";
+    } catch {
+      return trimmed;
+    }
+  }
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+}
+
+function collectAgents(
+  agentState: Record<PopularAgent, boolean>,
+  additionalAgents: string
+): string[] {
+  const selectedAgents = Object.entries(agentState)
+    .filter(([, enabled]) => enabled)
+    .map(([agent]) => agent);
+  const customAgents = splitMultilineList(additionalAgents);
+  return Array.from(new Set([...selectedAgents, ...customAgents]));
+}
+
+type ExportAttributesMap = Record<
+  ExportArtifactKey,
+  { title: string; attributes: Array<{ label: string; value: string }> }
+>;
+
+const ARTIFACT_TITLES: Record<ExportArtifactKey, string> = {
+  semantic: "Semantic core YAML",
+  jsonld: "JSON-LD bundle",
+  robots: "robots.txt"
+};
 
 const HERO_LENS_BASE_RADIUS = 140;
 const HERO_LENS_BLINK_RADIUS = 520;
@@ -212,9 +259,14 @@ export default function HomePage() {
       crawlDelay: "5",
       sitemapUrls: "",
       additionalAgents: "",
-      agents: buildDefaultAgentSelection()
+      agents: buildDefaultAgentSelection(),
+      forbiddenPaths: ""
     }
   }));
+  const [activeExportKey, setActiveExportKey] = useState<ExportArtifactKey | null>(null);
+  const [exportPreviews, setExportPreviews] = useState<
+    Partial<Record<ExportArtifactKey, string>>
+  >({});
 
   const supabase = useMemo<SupabaseClient | null>(() => {
     try {
@@ -382,6 +434,12 @@ export default function HomePage() {
       window.removeEventListener("resize", setDefaultPosition);
     };
   }, []);
+
+  useEffect(() => {
+    if (!clusters.length) {
+      setActiveExportKey(null);
+    }
+  }, [clusters.length]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -640,7 +698,8 @@ export default function HomePage() {
   async function handleDownload(
     endpoint: string,
     filenameFallback: string,
-    bodyOverrides?: Record<string, unknown>
+    bodyOverrides?: Record<string, unknown>,
+    previewKey?: ExportArtifactKey
   ) {
     if (!selectedProjectId) return;
     setStatus((prev) => ({ ...prev, download: true }));
@@ -659,6 +718,7 @@ export default function HomePage() {
         return;
       }
       const blob = await res.blob();
+      const previewTextPromise = blob.text();
       const suggested = getFilenameFromDisposition(res.headers.get("Content-Disposition"));
       const fileUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
@@ -669,9 +729,23 @@ export default function HomePage() {
       anchor.remove();
       URL.revokeObjectURL(fileUrl);
       pushLog(`Downloaded ${filenameFallback}`);
+      if (previewKey) {
+        const previewText = (await previewTextPromise).slice(0, 8000);
+        setExportPreviews((prev) => ({ ...prev, [previewKey]: previewText }));
+      }
     } finally {
       setStatus((prev) => ({ ...prev, download: false }));
     }
+  }
+
+  function triggerExport(
+    key: ExportArtifactKey,
+    endpoint: string,
+    filenameFallback: string,
+    bodyOverrides?: Record<string, unknown>
+  ) {
+    setActiveExportKey(key);
+    void handleDownload(endpoint, filenameFallback, bodyOverrides, key);
   }
 
   const clusterLang = clusters[0]?.lang;
@@ -706,24 +780,112 @@ export default function HomePage() {
     if (lang) payload.lang = lang;
     const crawlDelay = parseNumberInRange(exportCockpit.robots.crawlDelay, 1, 60);
     if (crawlDelay) payload.crawlDelay = crawlDelay;
-    const sitemapUrls = exportCockpit.robots.sitemapUrls
-      .split(/\r?\n|,/)
-      .map((url) => url.trim())
-      .filter(Boolean);
+    const sitemapUrls = splitMultilineList(exportCockpit.robots.sitemapUrls);
     if (sitemapUrls.length) payload.sitemapUrls = sitemapUrls;
-    const selectedAgents = Object.entries(exportCockpit.robots.agents)
-      .filter(([, enabled]) => enabled)
-      .map(([agent]) => agent);
-    const customAgents = exportCockpit.robots.additionalAgents
-      .split(/[\n,]/)
-      .map((agent) => agent.trim())
-      .filter(Boolean);
-    const agents = Array.from(new Set([...selectedAgents, ...customAgents]));
+    const agents = collectAgents(exportCockpit.robots.agents, exportCockpit.robots.additionalAgents);
     if (agents.length) payload.agents = agents;
+    const forbiddenPaths = splitMultilineList(exportCockpit.robots.forbiddenPaths)
+      .map(normalizeForbiddenPath)
+      .filter((value): value is string => Boolean(value));
+    if (forbiddenPaths.length) payload.forbiddenPaths = forbiddenPaths;
     return payload;
   }, [exportCockpit.robots, selectedProject?.rootUrl, clusterLang]);
 
   const canGenerateRobots = Boolean(robotsOverrides?.rootUrl);
+
+  const exportAttributes = useMemo<ExportAttributesMap>(() => {
+    const semanticLimitValue = parseNumberInRange(exportCockpit.semanticCore.limit, 1, 25);
+    const jsonldLimitValue = parseNumberInRange(exportCockpit.jsonld.limit, 1, 10);
+    const robotsCrawlDelay = parseNumberInRange(exportCockpit.robots.crawlDelay, 1, 60);
+    const sitemapList = splitMultilineList(exportCockpit.robots.sitemapUrls);
+    const fallbackSitemaps = selectedProject?.sitemapUrl ? [selectedProject.sitemapUrl] : [];
+    const agentList = collectAgents(exportCockpit.robots.agents, exportCockpit.robots.additionalAgents);
+    const forbiddenList = splitMultilineList(exportCockpit.robots.forbiddenPaths)
+      .map(normalizeForbiddenPath)
+      .filter((value): value is string => Boolean(value));
+    const semanticLangLabel = exportCockpit.semanticCore.lang || clusterLang || "Project default";
+    const jsonldLangLabel = exportCockpit.jsonld.lang || clusterLang || "Project default";
+    const robotsLangLabel = exportCockpit.robots.lang || clusterLang || "Project default";
+    const rootUrlLabel = exportCockpit.robots.rootUrl || selectedProject?.rootUrl || "Set a root URL";
+    return {
+      semantic: {
+        title: ARTIFACT_TITLES.semantic,
+        attributes: [
+          { label: "Language", value: semanticLangLabel ?? "Project default" },
+          { label: "Cluster limit", value: semanticLimitValue ? `${semanticLimitValue}` : "All clusters" }
+        ]
+      },
+      jsonld: {
+        title: ARTIFACT_TITLES.jsonld,
+        attributes: [
+          { label: "Language", value: jsonldLangLabel ?? "Project default" },
+          {
+            label: "Representative pages",
+            value: jsonldLimitValue ? `${jsonldLimitValue}` : "4 (default)"
+          }
+        ]
+      },
+      robots: {
+        title: ARTIFACT_TITLES.robots,
+        attributes: [
+          { label: "Root URL", value: rootUrlLabel },
+          { label: "Language", value: robotsLangLabel ?? "Project default" },
+          {
+            label: "Crawl delay",
+            value: robotsCrawlDelay ? `${robotsCrawlDelay}s` : "Not specified"
+          },
+          {
+            label: "Sitemaps",
+            value: sitemapList.length
+              ? sitemapList.join(", ")
+              : fallbackSitemaps.join(", ") || "None provided"
+          },
+          {
+            label: "Target agents",
+            value: agentList.length ? agentList.join(", ") : "All popular crawlers"
+          },
+          {
+            label: "Forbidden pages",
+            value: forbiddenList.length ? forbiddenList.join(", ") : "None specified"
+          }
+        ]
+      }
+    };
+  }, [exportCockpit, clusterLang, selectedProject?.rootUrl, selectedProject?.sitemapUrl]);
+
+  const renderAttributesPanel = useCallback(() => {
+    if (!activeExportKey) return null;
+    const config = exportAttributes[activeExportKey];
+    if (!config) return null;
+    const previewText = exportPreviews[activeExportKey];
+    return (
+      <section className="export-attributes-panel" aria-live="polite">
+        <div className="export-attributes-header">
+          <div>
+            <p className="eyebrow">Attributes</p>
+            <h4>{config.title}</h4>
+          </div>
+          <button type="button" className="ghost-button small" onClick={() => setActiveExportKey(null)}>
+            Hide
+          </button>
+        </div>
+        <dl className="export-attributes-grid">
+          {config.attributes.map((item) => (
+            <div key={`${config.title}-${item.label}`} className="attribute-row">
+              <dt>{item.label}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))}
+        </dl>
+        {previewText && (
+          <div className="export-preview">
+            <p className="muted">Latest download preview</p>
+            <pre>{previewText}</pre>
+          </div>
+        )}
+      </section>
+    );
+  }, [activeExportKey, exportAttributes, exportPreviews]);
 
   const workflowTiles = useMemo(
     () => [
@@ -1154,6 +1316,21 @@ export default function HomePage() {
                           }
                         />
                       </label>
+                      <label className="field-label">
+                        Forbidden pages (paths or URLs)
+                        <textarea
+                          className="text-area"
+                          rows={3}
+                          placeholder={"/checkout\n/private/report"}
+                          value={exportCockpit.robots.forbiddenPaths}
+                          onChange={(e) =>
+                            setExportCockpit((prev) => ({
+                              ...prev,
+                              robots: { ...prev.robots, forbiddenPaths: e.target.value }
+                            }))
+                          }
+                        />
+                      </label>
                     </section>
                   </div>
                 </section>
@@ -1163,7 +1340,12 @@ export default function HomePage() {
                     className="ghost-button"
                     disabled={status.download || clusters.length === 0}
                     onClick={() =>
-                      handleDownload("/api/exports/semantic-core", "semantic-core.yaml", semanticCoreOverrides)
+                      triggerExport(
+                        "semantic",
+                        "/api/exports/semantic-core",
+                        "semantic-core.yaml",
+                        semanticCoreOverrides
+                      )
                     }
                   >
                     Semantic core YAML
@@ -1173,7 +1355,7 @@ export default function HomePage() {
                     className="ghost-button"
                     disabled={status.download || clusters.length === 0}
                     onClick={() =>
-                      handleDownload("/api/exports/jsonld", "jsonld.json", jsonldOverrides)
+                      triggerExport("jsonld", "/api/exports/jsonld", "jsonld.json", jsonldOverrides)
                     }
                   >
                     JSON-LD bundle
@@ -1184,12 +1366,13 @@ export default function HomePage() {
                     disabled={status.download || clusters.length === 0 || !canGenerateRobots}
                     onClick={() =>
                       robotsOverrides &&
-                      handleDownload("/api/exports/robots", "robots.txt", robotsOverrides)
+                      triggerExport("robots", "/api/exports/robots", "robots.txt", robotsOverrides)
                     }
                   >
                     robots.txt
                   </button>
                 </div>
+                {renderAttributesPanel()}
               </>
             ) : (
               <p className="muted">Select a project to build clusters and exports.</p>
@@ -1234,7 +1417,12 @@ export default function HomePage() {
                     className="ghost-button"
                     disabled={status.download}
                     onClick={() =>
-                      handleDownload("/api/exports/semantic-core", "semantic-core.yaml", semanticCoreOverrides)
+                      triggerExport(
+                        "semantic",
+                        "/api/exports/semantic-core",
+                        "semantic-core.yaml",
+                        semanticCoreOverrides
+                      )
                     }
                   >
                     Semantic core
@@ -1244,7 +1432,7 @@ export default function HomePage() {
                     className="ghost-button"
                     disabled={status.download}
                     onClick={() =>
-                      handleDownload("/api/exports/jsonld", "jsonld.json", jsonldOverrides)
+                      triggerExport("jsonld", "/api/exports/jsonld", "jsonld.json", jsonldOverrides)
                     }
                   >
                     JSON-LD
@@ -1253,12 +1441,15 @@ export default function HomePage() {
                     type="button"
                     className="ghost-button"
                     disabled={status.download || !canGenerateRobots}
-                    onClick={() => robotsOverrides &&
-                      handleDownload("/api/exports/robots", "robots.txt", robotsOverrides)}
+                    onClick={() =>
+                      robotsOverrides &&
+                      triggerExport("robots", "/api/exports/robots", "robots.txt", robotsOverrides)
+                    }
                   >
                     robots.txt
                   </button>
                 </div>
+                {renderAttributesPanel()}
                 <div className="outputs-grid">
                   {clusters.slice(0, 3).map((cluster) => (
                     <div key={cluster.id} className="outputs-card">
