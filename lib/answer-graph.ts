@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { z } from "zod";
 import { generateObject } from "ai";
 
@@ -52,7 +53,7 @@ export async function buildAnswerGraphNodes(input: {
   await qdrant.upsert(COLLECTION, {
     wait: true,
     points: questions.map((item, idx) => ({
-      id: `${input.clusterId}:query:${Date.now()}:${idx}`,
+      id: randomUUID(),
       vector: vectors[idx],
       payload: {
         projectId: input.projectId,
