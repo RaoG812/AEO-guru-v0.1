@@ -249,7 +249,6 @@ export default function HomePage() {
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [activeWorkflow, setActiveWorkflow] = useState<WorkflowKey | null>(null);
-  const [isMorphing, setIsMorphing] = useState(false);
   const [exportCockpit, setExportCockpit] = useState<ExportCockpitState>(() => ({
     semanticCore: { limit: "12", lang: "" },
     jsonld: { limit: "4", lang: "" },
@@ -952,27 +951,13 @@ export default function HomePage() {
     [clusters.length, logs.length, selectedProjectId]
   );
 
-  const handleTileActivate = useCallback(
-    (key: WorkflowKey) => {
-      if (activeWorkflow === key || isMorphing) return;
-      setIsMorphing(true);
-      // allow CSS to pick up the morphing state for a frame before swapping layouts
-      requestAnimationFrame(() => {
-        setActiveWorkflow(key);
-        setTimeout(() => setIsMorphing(false), 520);
-      });
-    },
-    [activeWorkflow, isMorphing]
-  );
+  const handleTileActivate = useCallback((key: WorkflowKey) => {
+    setActiveWorkflow((previous) => (previous === key ? previous : key));
+  }, []);
 
   const handleWorkflowReset = useCallback(() => {
-    if (isMorphing) return;
-    setIsMorphing(true);
-    requestAnimationFrame(() => {
-      setActiveWorkflow(null);
-      setTimeout(() => setIsMorphing(false), 520);
-    });
-  }, [isMorphing]);
+    setActiveWorkflow(null);
+  }, []);
 
   const renderWorkflowVector = (key: WorkflowKey): ReactNode => {
     switch (key) {
@@ -1740,13 +1725,29 @@ export default function HomePage() {
           </article>
         </section>
 
-        <section
-          className={`workflow-section ${activeWorkflow ? "is-condensed" : ""} ${
-            isMorphing ? "is-morphing" : ""
-          }`}
-          aria-label="Workflow shortcuts"
-        >
+        <section className={`workflow-section ${activeWorkflow ? "is-condensed" : ""}`} aria-label="Workflow shortcuts">
           <div className={`workflow-grid ${activeWorkflow ? "is-condensed" : ""}`}>
+            {activeWorkflow && (
+              <div className="workflow-tile workflow-reset-tile" data-key="reset">
+                <button
+                  type="button"
+                  className="workflow-tile-shell workflow-reset-shell"
+                  onClick={handleWorkflowReset}
+                  aria-pressed="false"
+                  aria-label="Return to grid view"
+                >
+                  <span className="workflow-surface workflow-reset-surface" aria-hidden="true">
+                    <span className="workflow-reset-icon">
+                      <span />
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                    <span className="workflow-reset-hint">Grid view</span>
+                  </span>
+                </button>
+              </div>
+            )}
             {workflowTiles.map((tile) => {
               const isActive = tile.key === activeWorkflow;
               return (
@@ -1785,9 +1786,6 @@ export default function HomePage() {
                           <p className="eyebrow">Workspace</p>
                           <h3>{tile.title}</h3>
                         </div>
-                        <button type="button" className="ghost-button small" onClick={handleWorkflowReset}>
-                          Reset layout
-                        </button>
                       </div>
                       <div className="workflow-body">{renderWorkflowContent(tile.key)}</div>
                     </div>
