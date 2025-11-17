@@ -3,8 +3,8 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
 import { getProjectCore, upsertProjectCore } from "@/lib/projectCoreStore";
+import { resolveProjectUserContext } from "./context";
 
 const clusterNoteSchema = z.object({
   labelOverride: z.string().max(160).optional(),
@@ -20,22 +20,8 @@ const corePayloadSchema = z.object({
 
 type Params = { params: { projectId: string } };
 
-async function getUserContext(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
-    return null;
-  }
-  const token = authHeader.slice(7);
-  const supabase = createSupabaseServerClient(token);
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || !data.user) {
-    return null;
-  }
-  return { userId: data.user.id, supabase };
-}
-
 export async function GET(req: NextRequest, { params }: Params) {
-  const context = await getUserContext(req);
+  const context = await resolveProjectUserContext(req);
   if (!context) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
@@ -59,7 +45,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 }
 
 export async function PUT(req: NextRequest, { params }: Params) {
-  const context = await getUserContext(req);
+  const context = await resolveProjectUserContext(req);
   if (!context) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }

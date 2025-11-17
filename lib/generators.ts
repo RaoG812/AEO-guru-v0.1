@@ -185,11 +185,23 @@ export async function generateIntentDrivenJsonLd(input: {
 
 export async function generateSemanticCoreSummary(
   projectId: string,
-  contexts: PageContext[]
+  contexts: PageContext[],
+  extras?: { manualNotes?: string; semanticCoreYaml?: string }
 ): Promise<SemanticCoreSummary> {
   if (contexts.length === 0) {
     throw new Error("No content available for semantic core generation");
   }
+
+  const trimmedNotes = extras?.manualNotes?.trim();
+  const trimmedYaml = extras?.semanticCoreYaml?.trim();
+  const additionalContext = [
+    trimmedNotes ? `Manual workspace notes:\n${trimmedNotes}` : null,
+    trimmedYaml ? `Existing semantic-core YAML:\n${trimmedYaml}` : null
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const workspaceHint = additionalContext ? `\n\nAdditional operator inputs:\n${additionalContext}` : "";
 
   const model = reasoningModel();
   const { object } = await generateObject({
@@ -199,7 +211,7 @@ export async function generateSemanticCoreSummary(
       contexts,
       null,
       2
-    )}`
+    )}${workspaceHint}`
   });
 
   return object;

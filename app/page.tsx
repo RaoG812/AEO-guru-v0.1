@@ -48,6 +48,17 @@ type SemanticCoreWorkspace = {
   updatedAt: string | null;
 };
 
+type AssociatedRecord = {
+  url: string;
+  title?: string | null;
+  clusterLabel?: string | null;
+  intent?: string | null;
+  primaryKeyword?: string | null;
+  lang?: string | null;
+  recommendedSchemas: string[];
+  excerpt: string;
+};
+
 type StatusState = {
   ingest: boolean;
   clusters: boolean;
@@ -286,10 +297,18 @@ export default function HomePage() {
   const [coreLoading, setCoreLoading] = useState(false);
   const [coreSaving, setCoreSaving] = useState(false);
   const [coreMessage, setCoreMessage] = useState<string | null>(null);
+  const [coreEnlarging, setCoreEnlarging] = useState(false);
+  const [associatedRecords, setAssociatedRecords] = useState<AssociatedRecord[]>([]);
   const [activeClusterId, setActiveClusterId] = useState<string | null>(null);
   const [status, setStatus] = useState<StatusState>(initialStatus);
   const [ingestMessage, setIngestMessage] = useState<string>("");
   const [clusterMessage, setClusterMessage] = useState<string>("");
+  const [clusterInventory, setClusterInventory] = useState<{ checking: boolean; count: number }>(
+    {
+      checking: false,
+      count: 0
+    }
+  );
   const [logs, setLogs] = useState<string[]>([]);
   const [vectorIndex, setVectorIndex] = useState(0);
   const [vectorDirection, setVectorDirection] = useState<"horizontal" | "vertical">("horizontal");
@@ -460,6 +479,44 @@ export default function HomePage() {
       .finally(() => {
         if (!cancelled) {
           setCoreLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProjectId, accessToken]);
+
+  useEffect(() => {
+    setAssociatedRecords([]);
+  }, [selectedProjectId]);
+
+  useEffect(() => {
+    if (!selectedProjectId || !accessToken) {
+      setClusterInventory({ checking: false, count: 0 });
+      return;
+    }
+
+    let cancelled = false;
+    setClusterInventory({ checking: true, count: 0 });
+
+    fetch(`/api/projects/${selectedProjectId}/clusters/status`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
+      .then(async (res) => {
+        const json = await res.json();
+        if (!res.ok || !json.ok) {
+          throw new Error(json.error ?? "Unable to check cluster status");
+        }
+        if (!cancelled) {
+          setClusterInventory({ checking: false, count: json.clusterCount ?? 0 });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setClusterInventory({ checking: false, count: 0 });
         }
       });
 
@@ -865,6 +922,7 @@ export default function HomePage() {
       } else {
         setClusters(json.clusters ?? []);
         setClusterMessage(`Generated ${json.clusters?.length ?? 0} clusters`);
+        setClusterInventory({ checking: false, count: json.clusters?.length ?? 0 });
         pushLog(`Refreshed clusters for ${selectedProjectId}`);
       }
     } catch (error) {
@@ -939,6 +997,65 @@ export default function HomePage() {
     }, {} as Record<string, StoredClusterNote>);
   }
 
+  async function handleEnlargeCore() {
+    if (!selectedProjectId || !accessToken) return;
+    setCoreEnlarging(true);
+    setCoreMessage(null);
+    try {
+      const res = await fetch(`/api/projects/${selectedProjectId}/core/enlarge`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          manualNotes: coreWorkspace.manualNotes?.trim() ? coreWorkspace.manualNotes : undefined,
+          semanticCoreYaml: coreWorkspace.semanticCoreYaml?.trim()
+            ? coreWorkspace.semanticCoreYaml
+            : undefined
+        })
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error ?? "Unable to enlarge core");
+      }
+      if (typeof json.semanticCoreYaml === "string" && json.semanticCoreYaml.trim()) {
+        const timestamp = new Date().toLocaleString();
+        setCoreWorkspace((prev) => {
+          const trimmed = prev.semanticCoreYaml.trim();
+          const appended = trimmed
+            ? `${trimmed}\n\n# Enlarge run ${timestamp}\n${json.semanticCoreYaml}`
+            : json.semanticCoreYaml;
+          return { ...prev, semanticCoreYaml: appended };
+        });
+      }
+      const normalizedRecords = Array.isArray(json.records)
+        ? json.records
+            .filter((record: any) => typeof record?.url === "string")
+            .map((record: any) => ({
+              url: record.url as string,
+              title: typeof record?.title === "string" ? record.title : null,
+              clusterLabel: typeof record?.clusterLabel === "string" ? record.clusterLabel : null,
+              intent: typeof record?.intent === "string" ? record.intent : null,
+              primaryKeyword:
+                typeof record?.primaryKeyword === "string" ? record.primaryKeyword : null,
+              lang: typeof record?.lang === "string" ? record.lang : null,
+              recommendedSchemas: Array.isArray(record?.recommendedSchemas)
+                ? record.recommendedSchemas.filter((item: unknown): item is string => typeof item === "string")
+                : [],
+              excerpt: typeof record?.excerpt === "string" ? record.excerpt : ""
+            }))
+        : [];
+      setAssociatedRecords(normalizedRecords);
+      setCoreMessage("Core enlarged using latest crawl insights.");
+      pushLog(`Enlarged core for ${selectedProjectId}`);
+    } catch (error) {
+      setCoreMessage((error as Error).message);
+    } finally {
+      setCoreEnlarging(false);
+    }
+  }
+
   async function handleSaveWorkspace() {
     if (!selectedProjectId || !accessToken) return;
     setCoreSaving(true);
@@ -974,6 +1091,7 @@ export default function HomePage() {
   }
 
   const clusterLang = clusters[0]?.lang;
+  const hasExistingClusters = clusterInventory.count > 0 || clusters.length > 0;
 
   const lastSavedLabel = coreWorkspace.updatedAt
     ? new Date(coreWorkspace.updatedAt).toLocaleString()
@@ -1382,9 +1500,25 @@ export default function HomePage() {
                     Group embeddings into topic clusters, label intents, and spin up an answer graph of canonical
                     questions.
                   </p>
-                  <button type="submit" className="primary-button" disabled={status.clusters}>
-                    {status.clusters ? "Analyzing…" : "Build clusters"}
-                  </button>
+                  <div className="cluster-action-row">
+                    <button type="submit" className="primary-button" disabled={status.clusters}>
+                      {status.clusters
+                        ? "Analyzing…"
+                        : hasExistingClusters
+                        ? "Rebuild Cluster"
+                        : "Build clusters"}
+                    </button>
+                    {hasExistingClusters && (
+                      <button
+                        type="button"
+                        className="ghost-button"
+                        onClick={handleEnlargeCore}
+                        disabled={coreEnlarging || !selectedProjectId}
+                      >
+                        {coreEnlarging ? "Expanding…" : "Enlarge core"}
+                      </button>
+                    )}
+                  </div>
                   {clusterMessage && <p className="muted">{clusterMessage}</p>}
                 </form>
                 <section className="export-cockpit" aria-label="Export control cockpit">
@@ -2182,15 +2316,58 @@ export default function HomePage() {
                       </label>
                     </div>
                   )}
-                  <button
-                    type="button"
-                    className="primary-button"
-                    onClick={handleSaveWorkspace}
-                    disabled={coreSaving || !selectedProjectId}
-                  >
-                    {coreSaving ? "Saving…" : "Save workspace"}
-                  </button>
+                  <div className="core-actions">
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={handleSaveWorkspace}
+                      disabled={coreSaving || !selectedProjectId}
+                    >
+                      {coreSaving ? "Saving…" : "Save workspace"}
+                    </button>
+                  </div>
                   {coreMessage && <p className="muted">{coreMessage}</p>}
+                  {associatedRecords.length > 0 && (
+                    <div className="associated-records">
+                      <div className="core-header">
+                        <div>
+                          <p className="eyebrow">Associated records</p>
+                          <p className="muted">
+                            Fresh crawl insights that informed the latest expansion.
+                          </p>
+                        </div>
+                        <span className="pill">{associatedRecords.length}</span>
+                      </div>
+                      <ul className="associated-records-list">
+                        {associatedRecords.map((record) => {
+                          const schemaPreview = record.recommendedSchemas.slice(0, 2).join(", ");
+                          const key = `${record.url}-${record.primaryKeyword ?? ""}-${record.clusterLabel ?? ""}`;
+                          return (
+                            <li key={key} className="associated-record">
+                              <div className="associated-record-head">
+                                <div>
+                                  <strong>{record.title ?? record.url}</strong>
+                                  <p className="muted associated-record-url">{record.url}</p>
+                                </div>
+                                <div className="associated-record-meta">
+                                  {record.clusterLabel && <span>{record.clusterLabel}</span>}
+                                  {record.intent && <span>{record.intent}</span>}
+                                </div>
+                              </div>
+                              <p className="associated-record-excerpt">{record.excerpt}</p>
+                              <div className="associated-record-meta">
+                                {record.primaryKeyword && <span>Keyword: {record.primaryKeyword}</span>}
+                                {schemaPreview && <span>Schema: {schemaPreview}</span>}
+                                <a href={record.url} target="_blank" rel="noreferrer">
+                                  Open URL
+                                </a>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
