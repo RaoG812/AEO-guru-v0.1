@@ -418,13 +418,15 @@ main {
 }
 
 .workflow-grid {
+  --workflow-grid-gap: clamp(1rem, 1.6vw, 1.35rem);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.25rem;
+  gap: var(--workflow-grid-gap);
   margin: 0 auto;
   max-width: min(100%, 1040px);
   justify-items: stretch;
   align-items: stretch;
+  justify-content: center;
   transition: grid-template-columns 0.45s ease, gap 0.45s ease;
 }
 
@@ -455,6 +457,7 @@ main {
 
 .workflow-grid:not(.is-condensed) .workflow-tile {
   aspect-ratio: 1 / 1;
+  padding: 0;
 }
 
 .workflow-grid.is-condensed .workflow-tile {
@@ -482,37 +485,40 @@ main {
 
 .workflow-tile-shell {
   all: unset;
-  flex: 1;
-  width: 100%;
-  display: grid;
-  grid-template-rows: auto auto;
-  align-content: center;
-  justify-items: center;
-  gap: 0.65rem;
-  padding: clamp(1.35rem, 2vw, 2rem);
   cursor: pointer;
+  width: 100%;
+  height: 100%;
   border-radius: inherit;
   position: relative;
   overflow: hidden;
   isolation: isolate;
   transition: transform 0.35s ease, background 0.35s ease;
   min-height: 0;
+  display: block;
+}
+
+.workflow-surface {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.55rem, 1vw, 0.85rem);
+  width: 100%;
+  height: 100%;
+  padding: clamp(1.65rem, 2.2vw, 2.45rem);
+  border-radius: inherit;
+  position: relative;
+  z-index: 1;
   text-align: center;
 }
 
-.workflow-grid.is-condensed .workflow-tile-shell {
-  display: flex;
+.workflow-grid.is-condensed .workflow-surface {
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
   padding: 1.2rem 1.35rem;
   gap: 0.55rem;
   text-align: left;
-  border-radius: inherit;
-}
-
-.workflow-grid:not(.is-condensed) .workflow-tile-shell {
-  height: 100%;
 }
 
 .workflow-tile-shell:focus-visible,
@@ -608,6 +614,7 @@ main {
 .workflow-grid:not(.is-condensed) .workflow-text {
   justify-content: center;
   min-height: 64px;
+  width: 100%;
 }
 
 .workflow-grid.is-condensed .workflow-text {
@@ -622,6 +629,15 @@ main {
   font-size: 1.35rem;
 }
 
+.workflow-grid:not(.is-condensed) .workflow-icon {
+  margin-inline: auto;
+}
+
+.workflow-grid:not(.is-condensed) .workflow-vector {
+  -webkit-mask-image: radial-gradient(circle at center, transparent 0 34%, rgba(0, 0, 0, 0.9) 38% 100%);
+  mask-image: radial-gradient(circle at center, transparent 0 34%, rgba(0, 0, 0, 0.9) 38% 100%);
+}
+
 .workflow-vector {
   position: absolute;
   inset: 0;
@@ -634,8 +650,8 @@ main {
   will-change: opacity, transform;
 }
 
-.workflow-tile-shell .workflow-icon,
-.workflow-tile-shell .workflow-text {
+.workflow-surface .workflow-icon,
+.workflow-surface .workflow-text {
   position: relative;
   z-index: 1;
 }
