@@ -7,11 +7,31 @@ import { z } from "zod";
 import { getProjectPoints } from "@/lib/clustering";
 import { generateRobotsTxtFromSummary } from "@/lib/generators";
 
+const POPULAR_CRAWLERS = [
+  "Googlebot",
+  "Googlebot-Image",
+  "Bingbot",
+  "Bingbot-Mobile",
+  "Slurp",
+  "DuckDuckBot",
+  "Baiduspider",
+  "YandexBot"
+] as const;
+
 const schema = z.object({
   projectId: z.string(),
   rootUrl: z.string().url(),
-  lang: z.string().optional()
+  lang: z.string().optional(),
+  crawlDelay: z.number().int().min(1).max(60).optional(),
+  sitemapUrls: z.array(z.string().url()).max(10).optional(),
+  agents: z.array(z.string()).min(1).max(16).optional(),
+  forbiddenPaths: z.array(z.string()).max(25).optional()
 });
+
+function slugify(value: string) {
+  const slug = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return slug || "project";
+}
 
 function collectPatterns(urls: string[]) {
   const disallow = new Set<string>();
@@ -69,7 +89,9 @@ function collectPatterns(urls: string[]) {
 }
 
 export async function POST(req: NextRequest) {
-  const { projectId, rootUrl, lang } = schema.parse(await req.json());
+  const { projectId, rootUrl, lang, crawlDelay, sitemapUrls, agents, forbiddenPaths } = schema.parse(
+    await req.json()
+  );
   const points = await getProjectPoints(projectId, { lang, withVectors: false });
 
   if (!points.length) {
@@ -85,16 +107,44 @@ export async function POST(req: NextRequest) {
   );
 
   const patternSummary = collectPatterns(urls);
+  const manualForbidden = (forbiddenPaths ?? [])
+    .map((path) => path.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      if (/^https?:\/\//i.test(entry)) {
+        try {
+          const parsed = new URL(entry);
+          return parsed.pathname || "/";
+        } catch {
+          return entry;
+        }
+      }
+      return entry.startsWith("/") ? entry : `/${entry}`;
+    });
+  const requestedAgents = Array.from(
+    new Set((agents?.length ? agents : POPULAR_CRAWLERS).map((agent) => agent.trim()))
+  ).filter(Boolean);
+
   const summary = {
     rootUrl,
-    disallowCandidates: patternSummary.disallow,
+    disallowCandidates: Array.from(new Set([...patternSummary.disallow, ...manualForbidden])),
     duplicatePatterns: patternSummary.duplicatePatterns,
-    rationale: patternSummary.rationale
+    rationale: patternSummary.rationale,
+    crawlDelay,
+    sitemapUrls,
+    requestedAgents: requestedAgents.length
+      ? requestedAgents
+      : Array.from(POPULAR_CRAWLERS),
+    forbiddenPaths: manualForbidden
   };
 
   const robotsTxt = await generateRobotsTxtFromSummary(summary);
+  const filename = `${slugify(projectId)}-robots.txt`;
 
   return new NextResponse(robotsTxt, {
-    headers: { "Content-Type": "text/plain; charset=utf-8" }
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${filename}"`
+    }
   });
 }
