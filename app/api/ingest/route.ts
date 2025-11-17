@@ -1,6 +1,7 @@
 // app/api/ingest/route.ts
 export const runtime = "nodejs";
 
+import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -21,6 +22,23 @@ const bodySchema = z.object({
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function deterministicUUID(input: string) {
+  const hash = createHash("sha1").update(input).digest("hex");
+  const timeLow = hash.slice(0, 8);
+  const timeMid = hash.slice(8, 12);
+  const timeHighAndVersion = (parseInt(hash.slice(12, 16), 16) & 0x0fff) | 0x4000;
+  const clockSeq = (parseInt(hash.slice(16, 20), 16) & 0x3fff) | 0x8000;
+  const node = hash.slice(20, 32);
+
+  return [
+    timeLow,
+    timeMid,
+    timeHighAndVersion.toString(16).padStart(4, "0"),
+    clockSeq.toString(16).padStart(4, "0"),
+    node
+  ].join("-");
 }
 
 export async function POST(req: NextRequest) {
@@ -61,7 +79,8 @@ export async function POST(req: NextRequest) {
   for (const page of pages) {
     const chunks = chunkText(page.content);
     chunks.forEach((chunk, idx) => {
-      const id = `${projectId}:${page.url}:chunk-${idx}`;
+      const sourceId = `${projectId}:${page.url}:chunk-${idx}`;
+      const id = deterministicUUID(sourceId);
       chunksPayload.push({
         id,
         text: chunk.text,
@@ -73,6 +92,7 @@ export async function POST(req: NextRequest) {
           h1: page.h1,
           lang: page.lang,
           chunkIndex: idx,
+          chunkId: sourceId,
           chunkParagraphStart: chunk.startParagraph,
           chunkParagraphEnd: chunk.endParagraph,
           source: "site",
