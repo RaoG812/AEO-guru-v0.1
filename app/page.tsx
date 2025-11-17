@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { FiActivity, FiFileText, FiShare2, FiUpload } from "react-icons/fi";
 
@@ -149,6 +150,7 @@ export default function HomePage() {
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [activeWorkflow, setActiveWorkflow] = useState<WorkflowKey | null>(null);
+  const [isMorphing, setIsMorphing] = useState(false);
 
   const supabase = useMemo<SupabaseClient | null>(() => {
     try {
@@ -621,7 +623,94 @@ export default function HomePage() {
     [clusters.length, logs.length, selectedProjectId]
   );
 
-  const activeTile = workflowTiles.find((tile) => tile.key === activeWorkflow) ?? null;
+  const handleTileActivate = useCallback(
+    (key: WorkflowKey) => {
+      if (activeWorkflow === key || isMorphing) return;
+      setIsMorphing(true);
+      // allow CSS to pick up the morphing state for a frame before swapping layouts
+      requestAnimationFrame(() => {
+        setActiveWorkflow(key);
+        setTimeout(() => setIsMorphing(false), 520);
+      });
+    },
+    [activeWorkflow, isMorphing]
+  );
+
+  const handleWorkflowReset = useCallback(() => {
+    setActiveWorkflow(null);
+  }, []);
+
+  const renderWorkflowVector = (key: WorkflowKey): ReactNode => {
+    switch (key) {
+      case "ingest":
+        return (
+          <span className="workflow-vector workflow-vector-ingest" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
+        );
+      case "cluster":
+        return (
+          <span className="workflow-vector workflow-vector-cluster" aria-hidden="true">
+            <svg viewBox="0 0 120 120" preserveAspectRatio="none">
+              <g className="branch level-one">
+                <line x1="60" y1="60" x2="60" y2="12" />
+                <line x1="60" y1="60" x2="105" y2="42" />
+                <line x1="60" y1="60" x2="15" y2="42" />
+              </g>
+              <g className="nodes level-one">
+                <circle cx="60" cy="12" r="4" />
+                <circle cx="105" cy="42" r="4" />
+                <circle cx="15" cy="42" r="4" />
+              </g>
+              <g className="branch level-two">
+                <line x1="60" y1="12" x2="45" y2="0" />
+                <line x1="60" y1="12" x2="75" y2="0" />
+                <line x1="60" y1="12" x2="60" y2="-12" />
+                <line x1="105" y1="42" x2="120" y2="30" />
+                <line x1="105" y1="42" x2="118" y2="60" />
+                <line x1="105" y1="42" x2="92" y2="60" />
+                <line x1="15" y1="42" x2="0" y2="30" />
+                <line x1="15" y1="42" x2="2" y2="60" />
+                <line x1="15" y1="42" x2="28" y2="60" />
+              </g>
+              <g className="nodes level-two">
+                <circle cx="45" cy="0" r="3" />
+                <circle cx="75" cy="0" r="3" />
+                <circle cx="60" cy="-12" r="3" />
+                <circle cx="120" cy="30" r="3" />
+                <circle cx="118" cy="60" r="3" />
+                <circle cx="92" cy="60" r="3" />
+                <circle cx="0" cy="30" r="3" />
+                <circle cx="2" cy="60" r="3" />
+                <circle cx="28" cy="60" r="3" />
+              </g>
+            </svg>
+          </span>
+        );
+      case "activity":
+        return (
+          <span className="workflow-vector workflow-vector-activity" aria-hidden="true">
+            <svg viewBox="0 0 160 80" preserveAspectRatio="none">
+              <path d="M0 40 H30 L45 10 L65 70 L80 40 L110 40 L125 20 L140 60 L160 40" />
+            </svg>
+          </span>
+        );
+      case "outputs":
+        return (
+          <span className="workflow-vector workflow-vector-outputs" aria-hidden="true">
+            <span className="sheet">
+              <span className="sheet-line" />
+              <span className="sheet-line" />
+              <span className="sheet-line" />
+            </span>
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
 
   const renderWorkflowContent = (key: WorkflowKey) => {
     switch (key) {
@@ -893,64 +982,59 @@ export default function HomePage() {
         </section>
 
         <section
-          className={`workflow-section ${activeWorkflow ? "is-expanded" : ""}`}
+          className={`workflow-section ${activeWorkflow ? "is-condensed" : ""} ${
+            isMorphing ? "is-morphing" : ""
+          }`}
           aria-label="Workflow shortcuts"
         >
-          {!activeWorkflow && (
-            <div className="workflow-grid">
-              {workflowTiles.map((tile) => (
-                <button
+          <div className={`workflow-grid ${activeWorkflow ? "is-condensed" : ""}`}>
+            {workflowTiles.map((tile) => {
+              const isActive = tile.key === activeWorkflow;
+              return (
+                <div
                   key={tile.key}
-                  type="button"
-                  className="workflow-tile"
-                  onClick={() => setActiveWorkflow(tile.key)}
-                  aria-expanded={false}
+                  className={`workflow-tile ${isActive ? "is-active" : ""}`}
+                  data-key={tile.key}
+                  role={isActive ? "group" : undefined}
+                  aria-live={isActive ? "polite" : undefined}
                 >
-                  <span className="workflow-icon" aria-hidden="true">
-                    {tile.icon}
-                  </span>
-                  <span className="workflow-label">{tile.label}</span>
-                  <span className="workflow-meta">{tile.meta}</span>
-                </button>
-              ))}
-            </div>
-          )}
-          {activeWorkflow && activeTile && (
-            <div className="workflow-stage">
-              <div className="workflow-workspace" aria-live="polite">
-                <div className="workflow-workspace-header">
-                  <span className="workflow-icon large" aria-hidden="true">
-                    {activeTile.icon}
-                  </span>
-                  <div>
-                    <p className="eyebrow">Workspace</p>
-                    <h3>{activeTile.title}</h3>
-                  </div>
-                  <button type="button" className="ghost-button small" onClick={() => setActiveWorkflow(null)}>
-                    Reset layout
-                  </button>
-                </div>
-                <div className="workflow-body">{renderWorkflowContent(activeTile.key)}</div>
-              </div>
-              <div className="workflow-mini-stack">
-                {workflowTiles.map((tile) => (
                   <button
-                    key={tile.key}
                     type="button"
-                    className={`workflow-mini ${tile.key === activeWorkflow ? "is-active" : ""}`}
-                    onClick={() => setActiveWorkflow(tile.key)}
-                    aria-pressed={tile.key === activeWorkflow}
+                    className="workflow-tile-shell"
+                    onClick={() => handleTileActivate(tile.key)}
+                    aria-pressed={isActive}
+                    aria-expanded={isActive}
                   >
                     <span className="workflow-icon" aria-hidden="true">
                       {tile.icon}
                     </span>
-                    <span className="workflow-label">{tile.label}</span>
-                    <span className="workflow-meta">{tile.meta}</span>
+                    <div className="workflow-text">
+                      <span className="workflow-label">{tile.label}</span>
+                      <span className="workflow-meta">{tile.meta}</span>
+                    </div>
+                    {renderWorkflowVector(tile.key)}
                   </button>
-                ))}
-              </div>
-            </div>
-          )}
+                  {isActive && (
+                    <div className="workflow-workspace">
+                      <div className="workflow-workspace-header">
+                        <span className="workflow-icon large" aria-hidden="true">
+                          {tile.icon}
+                        </span>
+                        <div>
+                          <p className="eyebrow">Workspace</p>
+                          <h3>{tile.title}</h3>
+                        </div>
+                        <button type="button" className="ghost-button small" onClick={handleWorkflowReset}>
+                          Reset layout
+                        </button>
+                      </div>
+                      <div className="workflow-body">{renderWorkflowContent(tile.key)}</div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         <section className="ops-metrics" aria-label="Operational dashboard">
