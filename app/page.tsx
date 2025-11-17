@@ -1771,7 +1771,7 @@ export default function HomePage() {
                     key={tile.key}
                     className={`workflow-stage ${tile.isComplete ? "is-complete" : ""} ${
                       isActive ? "is-active" : ""
-                    }`}
+                    } ${showConnector ? "has-connector" : "no-connector"}`}
                   >
                     <button
                       type="button"
@@ -1799,9 +1799,9 @@ export default function HomePage() {
               return (
                 <div
                   key={tile.key}
-                  className={`workflow-stage is-detached ${tile.isComplete ? "is-complete" : ""} ${
-                    isActive ? "is-active" : ""
-                  }`}
+                  className={`workflow-stage is-detached no-connector ${
+                    tile.isComplete ? "is-complete" : ""
+                  } ${isActive ? "is-active" : ""}`}
                 >
                   <button
                     type="button"
