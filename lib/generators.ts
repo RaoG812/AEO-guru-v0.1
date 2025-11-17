@@ -82,11 +82,31 @@ const semanticCoreSchema = z.object({
     .min(1)
 });
 
+const geoImprovementSectionSchema = z.object({
+  section: z.string(),
+  headline: z.string(),
+  body: z.string(),
+  keywordFocus: z.string(),
+  supportingPoints: z.array(z.string()).min(2),
+  callToAction: z.string().optional()
+});
+
+const geoImprovementBlueprintSchema = z.object({
+  aiOverviewHook: z.string(),
+  evergreenSections: z.array(geoImprovementSectionSchema).min(2),
+  snippetIdeas: z.array(z.string()).min(2),
+  schemaTargets: z.array(z.string()).min(1),
+  faqSeeds: z.array(z.string()).min(2)
+});
+
 export type FaqJsonLd = z.infer<typeof faqJsonLdSchema>;
 export type PageJsonLd = z.infer<typeof baseJsonLdSchema>;
 export type SemanticCoreSummary = z.infer<typeof semanticCoreSchema>;
+export type GeoImprovementSection = z.infer<typeof geoImprovementSectionSchema>;
+export type GeoImprovementBlueprint = z.infer<typeof geoImprovementBlueprintSchema>;
 export const pageJsonLdValidator = baseJsonLdSchema;
 export const faqJsonLdValidator = faqJsonLdSchema;
+export const geoImprovementSectionValidator = geoImprovementSectionSchema;
 
 export async function generateFaqJsonLd(
   url: string,
@@ -197,6 +217,53 @@ export async function generateSemanticCoreSummary(
     schema: semanticCoreSchema,
     prompt: `You are an AEO strategist creating a semantic core for project ${projectId}. Use the following page contexts to describe focus topics, intents, and schema opportunities. Respond with JSON that matches the schema exactly.\n\nPage contexts:\n${JSON.stringify(
       contexts,
+      null,
+      2
+    )}`
+  });
+
+  return object;
+}
+
+export async function generateGeoImprovementBlueprint(input: {
+  projectId: string;
+  clusterLabel: string;
+  summary: string;
+  intent?: string | null;
+  lang?: string | null;
+  primaryKeyword?: string | null;
+  secondaryKeywords?: string[];
+  representativeQueries?: string[];
+  contentGaps?: string[];
+}): Promise<GeoImprovementBlueprint> {
+  const model = structuredModel();
+  const {
+    projectId,
+    clusterLabel,
+    summary,
+    intent,
+    lang,
+    primaryKeyword,
+    secondaryKeywords,
+    representativeQueries,
+    contentGaps
+  } = input;
+
+  const contextSummary = {
+    intent: intent ?? "informational",
+    lang: lang ?? "en",
+    summary,
+    primaryKeyword: primaryKeyword ?? null,
+    secondaryKeywords: secondaryKeywords ?? [],
+    representativeQueries: representativeQueries ?? [],
+    contentGaps: contentGaps ?? []
+  };
+
+  const { object } = await generateObject({
+    model,
+    schema: geoImprovementBlueprintSchema,
+    prompt: `You are an enterprise GEO (Generative Engine Optimization) lead helping ${projectId} ship static content blocks for the cluster "${clusterLabel}". Use the provided context to craft a ready-to-publish hero + evergreen block plan that AI crawlers can cite. Each section must read like on-page copy, avoid placeholders, and stay in ${contextSummary.lang}. Highlight hooks AI Overviews can quote and keep every bullet concise.\n\nCluster intelligence:\n${JSON.stringify(
+      contextSummary,
       null,
       2
     )}`
