@@ -422,18 +422,27 @@ main {
 
 .workflow-timeline-flow {
   display: flex;
-  align-items: center;
-  gap: clamp(0.75rem, 1.35vw, 1.8rem);
-  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(0.65rem, 1.25vw, 1.65rem);
+  flex-wrap: nowrap;
   flex: 1;
   min-width: 0;
+  padding: 0.25rem 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.workflow-timeline-flow::-webkit-scrollbar {
+  display: none;
 }
 
 .workflow-stage {
   display: flex;
   align-items: center;
-  gap: clamp(0.5rem, 1vw, 1.25rem);
+  gap: clamp(0.45rem, 0.9vw, 1rem);
   position: relative;
+  flex: 0 0 auto;
 }
 
 .workflow-stage.is-detached {
@@ -458,9 +467,27 @@ main {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  min-width: clamp(150px, 20vw, 230px);
+  min-width: clamp(170px, 18vw, 240px);
   transition: border-color 0.35s ease, background 0.35s ease, color 0.35s ease,
     box-shadow 0.4s ease, transform 0.4s ease;
+  isolation: isolate;
+}
+
+.workflow-stage-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 30% 30%, rgba(112, 154, 255, 0.35), transparent 70%);
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  z-index: 0;
+}
+
+.workflow-stage-button > * {
+  position: relative;
+  z-index: 1;
 }
 
 .workflow-stage-button:hover {
@@ -475,8 +502,14 @@ main {
 
 .workflow-stage.is-active .workflow-stage-button {
   background: linear-gradient(120deg, rgba(105, 139, 255, 0.25), rgba(9, 12, 26, 0.9));
-  border-color: rgba(139, 179, 255, 0.75);
-  box-shadow: 0 10px 30px rgba(7, 10, 22, 0.5);
+  border-color: rgba(139, 179, 255, 0.85);
+  box-shadow: 0 15px 40px rgba(7, 10, 22, 0.55);
+}
+
+.workflow-stage.is-active .workflow-stage-button::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: workflowActivePulse 4s ease-in-out infinite;
 }
 
 .workflow-stage.is-complete .workflow-stage-button {
@@ -493,6 +526,7 @@ main {
   background: rgba(255, 255, 255, 0.12);
   box-shadow: 0 0 0 rgba(124, 255, 198, 0);
   transition: background 0.4s ease, box-shadow 0.4s ease;
+  flex: 0 0 auto;
 }
 
 .workflow-stage.is-complete .workflow-connector {
@@ -758,6 +792,18 @@ main {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes workflowActivePulse {
+  0% {
+    box-shadow: 0 0 12px rgba(122, 164, 255, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 26px rgba(122, 164, 255, 0.65);
+  }
+  100% {
+    box-shadow: 0 0 12px rgba(122, 164, 255, 0.35);
   }
 }
 
