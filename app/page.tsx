@@ -6,6 +6,7 @@ import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { FiFileText, FiShare2, FiUpload } from "react-icons/fi";
 
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
+import type { StoredClusterNote } from "@/lib/projectCoreStore";
 
 type ProjectRecord = {
   id: string;
@@ -32,6 +33,19 @@ type ClusterResponse = {
   primaryUrl: string | null;
   opportunityScore: number;
   questions: string[];
+};
+
+type ClusterNoteDraft = {
+  labelOverride: string;
+  note: string;
+  keywordsDraft: string;
+};
+
+type SemanticCoreWorkspace = {
+  semanticCoreYaml: string;
+  manualNotes: string;
+  clusterNotes: Record<string, ClusterNoteDraft>;
+  updatedAt: string | null;
 };
 
 type StatusState = {
@@ -119,6 +133,14 @@ const vectorPhrases = [
   "Conversation Seeds"
 ];
 
+const INTENT_COLOR_MAP: Record<string, string> = {
+  informational: "#7C8CFF",
+  transactional: "#FF9F68",
+  navigational: "#4CD4A9",
+  local: "#F6C945",
+  mixed: "#E76BF3"
+};
+
 const POPULAR_USER_AGENTS = [
   "Googlebot",
   "Googlebot-Image",
@@ -154,6 +176,13 @@ type ExportCockpitState = {
 
 type ExportArtifactKey = "semantic" | "jsonld" | "robots";
 
+const emptyWorkspace: SemanticCoreWorkspace = {
+  semanticCoreYaml: "",
+  manualNotes: "",
+  clusterNotes: {},
+  updatedAt: null
+};
+
 function buildDefaultAgentSelection(): Record<PopularAgent, boolean> {
   return POPULAR_USER_AGENTS.reduce(
     (acc, agent) => {
@@ -176,6 +205,13 @@ function parseNumberInRange(value: string, min: number, max: number): number | u
 function splitMultilineList(value: string) {
   return value
     .split(/\r?\n|,/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function splitKeywordDraft(value: string) {
+  return value
+    .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean);
 }
@@ -239,11 +275,18 @@ export default function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null);
   const lensBlinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRobotsProjectRef = useRef<string | null>(null);
+  const workspaceSectionRef = useRef<HTMLElement | null>(null);
+  const workspaceScrollPendingRef = useRef(false);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [projectForm, setProjectForm] = useState({ id: "", rootUrl: "", sitemapUrl: "" });
   const [ingestForm, setIngestForm] = useState({ rootUrl: "", sitemapUrl: "", urls: "" });
   const [clusters, setClusters] = useState<ClusterResponse[]>([]);
+  const [coreWorkspace, setCoreWorkspace] = useState<SemanticCoreWorkspace>(emptyWorkspace);
+  const [coreLoading, setCoreLoading] = useState(false);
+  const [coreSaving, setCoreSaving] = useState(false);
+  const [coreMessage, setCoreMessage] = useState<string | null>(null);
+  const [activeClusterId, setActiveClusterId] = useState<string | null>(null);
   const [status, setStatus] = useState<StatusState>(initialStatus);
   const [ingestMessage, setIngestMessage] = useState<string>("");
   const [clusterMessage, setClusterMessage] = useState<string>("");
@@ -336,8 +379,112 @@ export default function HomePage() {
     };
   }, [supabase]);
 
+  useEffect(() => {
+    if (!clusters.length) {
+      setActiveClusterId(null);
+      return;
+    }
+    setActiveClusterId((prev) => {
+      if (prev && clusters.some((cluster) => cluster.id === prev)) {
+        return prev;
+      }
+      return clusters[0]?.id ?? null;
+    });
+  }, [clusters]);
+
+  useEffect(() => {
+    if (coreLoading || !workspaceScrollPendingRef.current) {
+      return;
+    }
+
+    workspaceScrollPendingRef.current = false;
+    const workspaceNode = workspaceSectionRef.current;
+    if (!workspaceNode) {
+      return;
+    }
+
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(() => {
+        workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    } else {
+      workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [coreLoading]);
+
+  useEffect(() => {
+    if (!selectedProjectId || !accessToken) {
+      setCoreWorkspace(emptyWorkspace);
+      setCoreMessage(null);
+      return;
+    }
+
+    let cancelled = false;
+    setCoreLoading(true);
+    setCoreMessage(null);
+
+    fetch(`/api/projects/${selectedProjectId}/core`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
+      .then(async (res) => {
+        const json = await res.json();
+        if (!res.ok || !json.ok) {
+          throw new Error(json.error ?? "Unable to load workspace");
+        }
+        if (cancelled) return;
+        const nextWorkspace: SemanticCoreWorkspace = {
+          semanticCoreYaml: json.core?.semanticCoreYaml ?? "",
+          manualNotes: json.core?.manualNotes ?? "",
+          clusterNotes: Object.entries(json.core?.clusterNotes ?? {}).reduce(
+            (acc, [clusterId, note]: [string, StoredClusterNote]) => {
+              acc[clusterId] = {
+                labelOverride: note?.labelOverride ?? "",
+                note: note?.note ?? "",
+                keywordsDraft: (note?.keywords ?? []).join(", ")
+              };
+              return acc;
+            },
+            {} as Record<string, ClusterNoteDraft>
+          ),
+          updatedAt: json.core?.updatedAt ?? null
+        };
+        setCoreWorkspace(nextWorkspace);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setCoreMessage((error as Error).message);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setCoreLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProjectId, accessToken]);
+
   function pushLog(message: string) {
     setLogs((prev) => [message, ...prev].slice(0, 12));
+  }
+
+  function updateClusterNote(clusterId: string, patch: Partial<ClusterNoteDraft>) {
+    setCoreWorkspace((prev) => ({
+      ...prev,
+      clusterNotes: {
+        ...prev.clusterNotes,
+        [clusterId]: {
+          labelOverride: prev.clusterNotes[clusterId]?.labelOverride ?? "",
+          note: prev.clusterNotes[clusterId]?.note ?? "",
+          keywordsDraft: prev.clusterNotes[clusterId]?.keywordsDraft ?? "",
+          ...patch
+        }
+      }
+    }));
   }
 
   const refreshProjects = useCallback(async () => {
@@ -481,6 +628,19 @@ export default function HomePage() {
     setAuthMessage(null);
   }
 
+  function handleClusterDockAction() {
+    if (typeof document === "undefined") return;
+    const clusterSection = document.querySelector(".cluster-section");
+    if (clusterSection) {
+      clusterSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    document
+      .querySelector(".workflow-section")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    handleTileActivate("cluster");
+  }
+
   async function handleAuthSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!supabase) {
@@ -527,7 +687,12 @@ export default function HomePage() {
   }
 
   function handleLogin() {
+    if (session) {
+      pushLog("Already signed in");
+      return;
+    }
     pushLog("Initiated login from dock");
+    openLoginModal();
   }
 
   const dockButtons = [
@@ -569,8 +734,7 @@ export default function HomePage() {
           <circle cx="12" cy="12" r="2.4" fill="currentColor" />
         </svg>
       ),
-      action: () =>
-        document.querySelector(".cluster-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
+      action: handleClusterDockAction
     },
     {
       label: "Login",
@@ -629,6 +793,12 @@ export default function HomePage() {
   }
 
   function handleSelectProject(id: string) {
+    if (id !== selectedProjectId) {
+      workspaceScrollPendingRef.current = true;
+      if (accessToken) {
+        setCoreLoading(true);
+      }
+    }
     setSelectedProjectId(id);
     const project = projects.find((item) => item.id === id);
     if (project) {
@@ -757,7 +927,79 @@ export default function HomePage() {
     void handleDownload(endpoint, filenameFallback, bodyOverrides, key);
   }
 
+  function buildClusterNotePayload(notes: Record<string, ClusterNoteDraft>): Record<string, StoredClusterNote> {
+    return Object.entries(notes).reduce((acc, [clusterId, note]) => {
+      const normalizedKeywords = splitKeywordDraft(note.keywordsDraft ?? "");
+      acc[clusterId] = {
+        labelOverride: note.labelOverride?.trim() ? note.labelOverride.trim() : undefined,
+        note: note.note?.trim() ? note.note.trim() : undefined,
+        keywords: normalizedKeywords.length ? normalizedKeywords : undefined
+      };
+      return acc;
+    }, {} as Record<string, StoredClusterNote>);
+  }
+
+  async function handleSaveWorkspace() {
+    if (!selectedProjectId || !accessToken) return;
+    setCoreSaving(true);
+    setCoreMessage(null);
+    try {
+      const res = await fetch(`/api/projects/${selectedProjectId}/core`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          semanticCoreYaml: coreWorkspace.semanticCoreYaml,
+          manualNotes: coreWorkspace.manualNotes,
+          clusterNotes: buildClusterNotePayload(coreWorkspace.clusterNotes)
+        })
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error ?? "Unable to save workspace");
+      }
+      setCoreWorkspace((prev) => ({
+        ...prev,
+        updatedAt: json.core?.updatedAt ?? new Date().toISOString()
+      }));
+      setCoreMessage("Workspace saved");
+      pushLog("Updated semantic core workspace");
+    } catch (error) {
+      setCoreMessage((error as Error).message);
+    } finally {
+      setCoreSaving(false);
+    }
+  }
+
   const clusterLang = clusters[0]?.lang;
+
+  const lastSavedLabel = coreWorkspace.updatedAt
+    ? new Date(coreWorkspace.updatedAt).toLocaleString()
+    : "Not saved yet";
+
+  const activeCluster = activeClusterId
+    ? clusters.find((cluster) => cluster.id === activeClusterId) ?? null
+    : null;
+
+  const activeClusterNote = activeCluster
+    ? coreWorkspace.clusterNotes[activeCluster.id] ?? {
+        labelOverride: "",
+        note: "",
+        keywordsDraft: ""
+      }
+    : null;
+
+  const maxClusterSize = useMemo(() => {
+    if (!clusters.length) return 1;
+    return Math.max(...clusters.map((cluster) => cluster.size));
+  }, [clusters]);
+
+  const maxClusterScore = useMemo(() => {
+    if (!clusters.length) return 1;
+    return Math.max(...clusters.map((cluster) => cluster.opportunityScore ?? 0));
+  }, [clusters]);
 
   const semanticCoreOverrides = useMemo(() => {
     const payload: Record<string, unknown> = {};
@@ -1687,6 +1929,15 @@ export default function HomePage() {
               </form>
               <div className="project-list-card">
                 <p className="muted">Active projects</p>
+                {coreLoading && selectedProjectId && (
+                  <div className="project-card-loading" role="status" aria-live="polite">
+                    <span className="project-card-spinner" aria-hidden="true" />
+                    <div className="project-card-loading-text">
+                      <strong>Loading workspace</strong>
+                      <span>Centering {selectedProjectId}</span>
+                    </div>
+                  </div>
+                )}
                 {status.projects ? (
                   <p className="muted">Loading projects…</p>
                 ) : projects.length === 0 ? (
@@ -1793,6 +2044,155 @@ export default function HomePage() {
                 <h2>Answer graph overview</h2>
               </div>
               <span className="pill">{clusters.length} total</span>
+            </div>
+            <div className="core-workbench">
+              <div>
+                <p className="eyebrow">Cluster map</p>
+                <p className="muted">Bubble size reflects sections captured; higher on the chart equals stronger opportunity.</p>
+              </div>
+              <div className="core-workbench-grid">
+                <div className="cluster-map" aria-live="polite">
+                  <svg viewBox="0 0 520 300" role="img" aria-label="Cluster opportunity map">
+                    <rect x="0" y="0" width="520" height="300" fill="transparent" stroke="#2d2f38" />
+                    <line x1="40" y1="260" x2="500" y2="260" stroke="#2d2f38" strokeDasharray="4 4" />
+                    <line x1="40" y1="40" x2="40" y2="260" stroke="#2d2f38" strokeDasharray="4 4" />
+                    {clusters.map((cluster) => {
+                      const x = 40 + (cluster.size / maxClusterSize) * 440;
+                      const y = 260 - ((cluster.opportunityScore ?? 0) / maxClusterScore) * 220;
+                      const radius = 10 + (cluster.size / maxClusterSize) * 18;
+                      const isActive = cluster.id === activeClusterId;
+                      const fill = INTENT_COLOR_MAP[cluster.metadata.intent] ?? "#8891a5";
+                      return (
+                        <g
+                          key={cluster.id}
+                          className="cluster-map-node"
+                          transform={`translate(${x}, ${y})`}
+                          onClick={() => setActiveClusterId(cluster.id)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              setActiveClusterId(cluster.id);
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          aria-pressed={isActive}
+                        >
+                          <circle r={radius} fill={fill} opacity={isActive ? 0.95 : 0.65} />
+                          <circle r={radius + 4} fill="none" stroke={isActive ? "#fff" : "transparent"} strokeWidth={2} />
+                          <title>{`${cluster.metadata.label} (${cluster.size} sections)`}</title>
+                          <text textAnchor="middle" y={radius + 16} className="cluster-map-label">
+                            {cluster.metadata.label}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                  <ul className="cluster-map-legend">
+                    <li>
+                      <span className="legend-dot informational" /> Informational
+                    </li>
+                    <li>
+                      <span className="legend-dot transactional" /> Transactional
+                    </li>
+                    <li>
+                      <span className="legend-dot navigational" /> Navigational
+                    </li>
+                    <li>
+                      <span className="legend-dot local" /> Local
+                    </li>
+                    <li>
+                      <span className="legend-dot mixed" /> Mixed
+                    </li>
+                  </ul>
+                </div>
+                <div className="core-notes">
+                  <div className="core-header">
+                    <p className="eyebrow">Semantic core workspace</p>
+                    <p className="muted">{coreLoading ? "Loading…" : `Last saved: ${lastSavedLabel}`}</p>
+                  </div>
+                  <label className="field-label">
+                    Manual core summary
+                    <textarea
+                      className="text-input"
+                      rows={4}
+                      value={coreWorkspace.manualNotes}
+                      onChange={(event) =>
+                        setCoreWorkspace((prev) => ({ ...prev, manualNotes: event.target.value }))
+                      }
+                      placeholder="Capture POVs, blockers, and macro recommendations for this project."
+                    />
+                  </label>
+                  <label className="field-label">
+                    Semantic core YAML
+                    <textarea
+                      className="text-input code"
+                      rows={6}
+                      value={coreWorkspace.semanticCoreYaml}
+                      onChange={(event) =>
+                        setCoreWorkspace((prev) => ({ ...prev, semanticCoreYaml: event.target.value }))
+                      }
+                      placeholder="Paste or refine the semantic-core.yaml export to keep a living reference."
+                    />
+                  </label>
+                  {activeCluster && activeClusterNote && (
+                    <div className="cluster-note-editor">
+                      <div className="cluster-note-header">
+                        <div>
+                          <p className="eyebrow">Focused cluster</p>
+                          <strong>{activeCluster.metadata.label}</strong>
+                        </div>
+                        <span className="pill">{activeCluster.metadata.intent}</span>
+                      </div>
+                      <label className="field-label">
+                        Label override
+                        <input
+                          type="text"
+                          className="text-input"
+                          value={activeClusterNote.labelOverride}
+                          onChange={(event) =>
+                            updateClusterNote(activeCluster.id, { labelOverride: event.target.value })
+                          }
+                          placeholder="Human-friendly label for exports"
+                        />
+                      </label>
+                      <label className="field-label">
+                        Enrichment notes
+                        <textarea
+                          className="text-input"
+                          rows={4}
+                          value={activeClusterNote.note}
+                          onChange={(event) =>
+                            updateClusterNote(activeCluster.id, { note: event.target.value })
+                          }
+                          placeholder="Add SME quotes, POV, or experiments to run."
+                        />
+                      </label>
+                      <label className="field-label">
+                        Priority keywords
+                        <input
+                          type="text"
+                          className="text-input"
+                          value={activeClusterNote.keywordsDraft}
+                          onChange={(event) =>
+                            updateClusterNote(activeCluster.id, { keywordsDraft: event.target.value })
+                          }
+                          placeholder="keyword a, keyword b, keyword c"
+                        />
+                      </label>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className="primary-button"
+                    onClick={handleSaveWorkspace}
+                    disabled={coreSaving || !selectedProjectId}
+                  >
+                    {coreSaving ? "Saving…" : "Save workspace"}
+                  </button>
+                  {coreMessage && <p className="muted">{coreMessage}</p>}
+                </div>
+              </div>
             </div>
             <div className="cluster-grid">
               {clusters.map((cluster) => (

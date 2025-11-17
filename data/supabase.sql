@@ -105,3 +105,58 @@ create policy "Users delete own project schemas"
   on public.project_schemas
   for delete
   using (auth.uid() = owner_user_id);
+
+-- Store semantic core workspaces per project/owner combination
+create table if not exists public.project_cores (
+  id uuid primary key default gen_random_uuid(),
+  owner_user_id uuid not null references auth.users(id) on delete cascade,
+  project_id text not null,
+  semantic_core_yaml text,
+  manual_notes text,
+  cluster_notes jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint project_cores_owner_project_key unique (owner_user_id, project_id)
+);
+
+create index if not exists project_cores_owner_idx on public.project_cores(owner_user_id);
+create index if not exists project_cores_project_idx on public.project_cores(project_id);
+
+create or replace function public.touch_project_cores_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger project_cores_set_updated
+before update on public.project_cores
+for each row
+execute function public.touch_project_cores_updated_at();
+
+alter table public.project_cores enable row level security;
+
+drop policy if exists "Users select own project cores" on public.project_cores;
+create policy "Users select own project cores"
+  on public.project_cores
+  for select
+  using (auth.uid() = owner_user_id);
+
+drop policy if exists "Users insert own project cores" on public.project_cores;
+create policy "Users insert own project cores"
+  on public.project_cores
+  for insert
+  with check (auth.uid() = owner_user_id);
+
+drop policy if exists "Users update own project cores" on public.project_cores;
+create policy "Users update own project cores"
+  on public.project_cores
+  for update
+  using (auth.uid() = owner_user_id);
+
+drop policy if exists "Users delete own project cores" on public.project_cores;
+create policy "Users delete own project cores"
+  on public.project_cores
+  for delete
+  using (auth.uid() = owner_user_id);

@@ -116,15 +116,28 @@ export async function generateFaqJsonLd(
   return faqJsonLd;
 }
 
-type RobotsSummary = {
+export type DisallowCandidate = {
+  pattern: string;
+  reasons?: string[];
+  hints?: string[];
+  evidenceCount?: number;
+  sampleUrls?: string[];
+};
+
+export type RobotsSummary = {
   rootUrl: string;
-  disallowCandidates: string[];
+  disallowCandidates: DisallowCandidate[];
   duplicatePatterns?: string[];
   rationale: string[];
   crawlDelay?: number;
   sitemapUrls?: string[];
   requestedAgents?: string[];
   forbiddenPaths?: string[];
+  insightStats?: {
+    totalUrls: number;
+    parameterKeys: number;
+    flaggedClusters: number;
+  };
 };
 
 export async function generateRobotsTxtFromSummary(summary: RobotsSummary): Promise<string> {
@@ -135,6 +148,7 @@ export async function generateRobotsTxtFromSummary(summary: RobotsSummary): Prom
 - include a wildcard (*) fallback section
 - reflect any crawl-delay and sitemap URLs provided
 - describe the intent for disallows using concise # comments so ops teams understand the change
+- leverage the disallowCandidates array, referencing their reason, hints, and evidenceCount numbers when leaving # comments
 - prefer Allow over Disallow unless explicitly harmful.
 - ensure every entry listed in forbiddenPaths is explicitly disallowed for the matching crawlers.
 
