@@ -455,6 +455,7 @@ main {
 
 .workflow-grid:not(.is-condensed) .workflow-tile {
   aspect-ratio: 1 / 1;
+  padding: 0;
 }
 
 .workflow-grid.is-condensed .workflow-tile {
@@ -511,6 +512,7 @@ main {
 }
 
 .workflow-grid:not(.is-condensed) .workflow-tile-shell {
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
