@@ -15,6 +15,12 @@
   --accent-soft: rgba(139, 179, 255, 0.18);
 }
 
+@property --lens-radius {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 140px;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -68,7 +74,7 @@ main {
   --cursor-x: 50%;
   --cursor-y: 45%;
   --lens-opacity: 0.3;
-  --lens-radius: 80px;
+  --lens-radius: 140px;
   --lens-feather: 42px;
   --reveal-opacity: 0;
   --logo-size: 70%;
@@ -113,7 +119,7 @@ main {
     rgba(0, 0, 0, 0.95) 100%
   );
   mask-mode: luminance;
-  transition: mask-position 0.1s ease, mask-size 0.3s ease;
+  transition: mask-position 0.1s ease, mask-size 0.3s ease, --lens-radius 0.22s ease-out;
 }
 
 .hero-logo-clear {
@@ -137,7 +143,7 @@ main {
     rgba(255, 255, 255, 0) calc(var(--lens-radius) * 1.35)
   );
   mask-mode: luminance;
-  transition: opacity 0.35s ease, mask-position 0.1s ease, mask-size 0.3s ease;
+  transition: opacity 0.35s ease, mask-position 0.1s ease, mask-size 0.3s ease, --lens-radius 0.2s ease-out;
   animation: guruFloat 16s ease-in-out infinite;
   animation-delay: -2s;
   will-change: transform;
@@ -159,7 +165,7 @@ main {
     radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.08), transparent 35%);
   mix-blend-mode: screen;
   opacity: var(--lens-opacity, 0.45);
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, --lens-radius 0.2s ease-out;
 }
 
 .hero-outline {

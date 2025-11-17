@@ -106,6 +106,10 @@ const vectorPhrases = [
   "Conversation Seeds"
 ];
 
+const HERO_LENS_BASE_RADIUS = 140;
+const HERO_LENS_BLINK_RADIUS = 520;
+const HERO_LENS_RESET_DELAY = 450;
+
 function formatDate(value: string) {
   try {
     return new Date(value).toLocaleString();
@@ -122,6 +126,7 @@ function getFilenameFromDisposition(disposition: string | null) {
 
 export default function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null);
+  const lensBlinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [projectForm, setProjectForm] = useState({ id: "", rootUrl: "", sitemapUrl: "" });
@@ -237,22 +242,42 @@ export default function HomePage() {
       heroNode.style.setProperty("--cursor-y", `${rect.height / 2}px`);
     };
 
+    const resetLensRadius = () => {
+      heroNode.style.setProperty("--lens-radius", `${HERO_LENS_BASE_RADIUS}px`);
+    };
+
+    const clearBlinkTimeout = () => {
+      if (lensBlinkTimeoutRef.current) {
+        clearTimeout(lensBlinkTimeoutRef.current);
+        lensBlinkTimeoutRef.current = null;
+      }
+    };
+
     setDefaultPosition();
+    resetLensRadius();
     heroNode.style.setProperty("--lens-opacity", "0.3");
     heroNode.style.setProperty("--reveal-opacity", "0");
 
     const handlePointerMove = (event: PointerEvent) => {
+      clearBlinkTimeout();
       const rect = heroNode.getBoundingClientRect();
       heroNode.style.setProperty("--cursor-x", `${event.clientX - rect.left}px`);
       heroNode.style.setProperty("--cursor-y", `${event.clientY - rect.top}px`);
       heroNode.style.setProperty("--lens-opacity", "0.85");
       heroNode.style.setProperty("--reveal-opacity", "1");
+      resetLensRadius();
     };
 
     const handlePointerLeave = () => {
+      clearBlinkTimeout();
       heroNode.style.setProperty("--lens-opacity", "0.25");
       heroNode.style.setProperty("--reveal-opacity", "0");
       setDefaultPosition();
+      heroNode.style.setProperty("--lens-radius", `${HERO_LENS_BLINK_RADIUS}px`);
+
+      lensBlinkTimeoutRef.current = setTimeout(() => {
+        resetLensRadius();
+      }, HERO_LENS_RESET_DELAY);
     };
 
     heroNode.addEventListener("pointermove", handlePointerMove);
@@ -260,6 +285,7 @@ export default function HomePage() {
     window.addEventListener("resize", setDefaultPosition);
 
     return () => {
+      clearBlinkTimeout();
       heroNode.removeEventListener("pointermove", handlePointerMove);
       heroNode.removeEventListener("pointerleave", handlePointerLeave);
       window.removeEventListener("resize", setDefaultPosition);
