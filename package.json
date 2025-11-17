@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^1.0.0",
+    "@ai-sdk/google": "^1.0.0",
     "@qdrant/js-client-rest": "^1.15.1",
     "@supabase/supabase-js": "^2.81.1",
     "ai": "^3.0.0",
