@@ -13,15 +13,15 @@ const DEFAULT_MODELS = {
   reasoning:
     process.env.GOOGLE_GENAI_REASONING_MODEL ??
     process.env.AIMLAPI_REASONING_MODEL ??
-    "gemini-1.5-pro",
+    "gemini-1.5-pro-latest",
   fast:
     process.env.GOOGLE_GENAI_FAST_MODEL ??
     process.env.AIMLAPI_FAST_MODEL ??
-    "gemini-1.5-flash",
+    "gemini-1.5-flash-latest",
   structured:
     process.env.GOOGLE_GENAI_STRUCTURED_MODEL ??
     process.env.AIMLAPI_STRUCTURED_MODEL ??
-    "gemini-1.5-flash"
+    "gemini-1.5-flash-latest"
 };
 
 function normalizeModelName(model: string): string {
