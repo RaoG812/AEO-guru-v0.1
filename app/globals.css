@@ -1442,6 +1442,13 @@ main {
   gap: 1rem;
 }
 
+.cluster-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
 .field-label {
   display: flex;
   flex-direction: column;

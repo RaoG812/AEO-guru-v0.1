@@ -292,6 +292,12 @@ export default function HomePage() {
   const [status, setStatus] = useState<StatusState>(initialStatus);
   const [ingestMessage, setIngestMessage] = useState<string>("");
   const [clusterMessage, setClusterMessage] = useState<string>("");
+  const [clusterInventory, setClusterInventory] = useState<{ checking: boolean; count: number }>(
+    {
+      checking: false,
+      count: 0
+    }
+  );
   const [logs, setLogs] = useState<string[]>([]);
   const [vectorIndex, setVectorIndex] = useState(0);
   const [vectorDirection, setVectorDirection] = useState<"horizontal" | "vertical">("horizontal");
@@ -453,6 +459,40 @@ export default function HomePage() {
   useEffect(() => {
     setAssociatedRecords([]);
   }, [selectedProjectId]);
+
+  useEffect(() => {
+    if (!selectedProjectId || !accessToken) {
+      setClusterInventory({ checking: false, count: 0 });
+      return;
+    }
+
+    let cancelled = false;
+    setClusterInventory({ checking: true, count: 0 });
+
+    fetch(`/api/projects/${selectedProjectId}/clusters/status`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
+      .then(async (res) => {
+        const json = await res.json();
+        if (!res.ok || !json.ok) {
+          throw new Error(json.error ?? "Unable to check cluster status");
+        }
+        if (!cancelled) {
+          setClusterInventory({ checking: false, count: json.clusterCount ?? 0 });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setClusterInventory({ checking: false, count: 0 });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProjectId, accessToken]);
 
   function pushLog(message: string) {
     setLogs((prev) => [message, ...prev].slice(0, 12));
@@ -828,6 +868,7 @@ export default function HomePage() {
       } else {
         setClusters(json.clusters ?? []);
         setClusterMessage(`Generated ${json.clusters?.length ?? 0} clusters`);
+        setClusterInventory({ checking: false, count: json.clusters?.length ?? 0 });
         pushLog(`Refreshed clusters for ${selectedProjectId}`);
       }
     } catch (error) {
@@ -996,6 +1037,7 @@ export default function HomePage() {
   }
 
   const clusterLang = clusters[0]?.lang;
+  const hasExistingClusters = clusterInventory.count > 0 || clusters.length > 0;
 
   const lastSavedLabel = coreWorkspace.updatedAt
     ? new Date(coreWorkspace.updatedAt).toLocaleString()
@@ -1396,9 +1438,25 @@ export default function HomePage() {
                     Group embeddings into topic clusters, label intents, and spin up an answer graph of canonical
                     questions.
                   </p>
-                  <button type="submit" className="primary-button" disabled={status.clusters}>
-                    {status.clusters ? "Analyzing…" : "Build clusters"}
-                  </button>
+                  <div className="cluster-action-row">
+                    <button type="submit" className="primary-button" disabled={status.clusters}>
+                      {status.clusters
+                        ? "Analyzing…"
+                        : hasExistingClusters
+                        ? "Rebuild Cluster"
+                        : "Build clusters"}
+                    </button>
+                    {hasExistingClusters && (
+                      <button
+                        type="button"
+                        className="ghost-button"
+                        onClick={handleEnlargeCore}
+                        disabled={coreEnlarging || !selectedProjectId}
+                      >
+                        {coreEnlarging ? "Expanding…" : "Enlarge core"}
+                      </button>
+                    )}
+                  </div>
                   {clusterMessage && <p className="muted">{clusterMessage}</p>}
                 </form>
                 <section className="export-cockpit" aria-label="Export control cockpit">
@@ -2144,14 +2202,6 @@ export default function HomePage() {
                     </div>
                   )}
                   <div className="core-actions">
-                    <button
-                      type="button"
-                      className="ghost-button"
-                      onClick={handleEnlargeCore}
-                      disabled={coreEnlarging || !selectedProjectId}
-                    >
-                      {coreEnlarging ? "Expanding…" : "Enlarge the core"}
-                    </button>
                     <button
                       type="button"
                       className="primary-button"
