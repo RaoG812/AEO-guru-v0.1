@@ -403,6 +403,16 @@ main {
   transition: padding 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.project-controls {
+  margin: 2rem 0 2.5rem;
+  scroll-margin-top: 120px;
+}
+
+.project-controls .panel-card {
+  background: radial-gradient(circle at top left, rgba(77, 110, 192, 0.2), transparent 65%), rgba(6, 7, 15, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
 .workflow-section.is-condensed {
   padding: 2.5rem 2rem 2.75rem;
 }
@@ -427,13 +437,15 @@ main {
   color: var(--silver-50);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: stretch;
+  align-items: stretch;
   gap: 0.5rem;
   position: relative;
   overflow: hidden;
   transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.15, 1), border-color 0.45s ease, background 0.45s ease,
     box-shadow 0.45s ease;
   will-change: transform;
+  min-height: 0;
 }
 
 .workflow-grid:not(.is-condensed) .workflow-tile {
@@ -447,7 +459,7 @@ main {
 .workflow-grid.is-condensed .workflow-tile:not(.is-active) {
   grid-column: 2 / 3;
   opacity: 0.85;
-  transform: translateX(6px) scale(0.92);
+  transform: scale(0.92);
 }
 
 .workflow-grid.is-condensed .workflow-tile.is-active {
@@ -465,6 +477,7 @@ main {
 
 .workflow-tile-shell {
   all: unset;
+  flex: 1;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -478,6 +491,7 @@ main {
   overflow: hidden;
   isolation: isolate;
   transition: transform 0.35s ease, background 0.35s ease;
+  min-height: 0;
 }
 
 .workflow-grid.is-condensed .workflow-tile-shell {
@@ -485,6 +499,10 @@ main {
   align-items: center;
   justify-content: flex-start;
   padding: 1.4rem 1.5rem;
+}
+
+.workflow-grid:not(.is-condensed) .workflow-tile-shell {
+  height: 100%;
 }
 
 .workflow-tile-shell:focus-visible,
@@ -498,14 +516,15 @@ main {
 }
 
 .workflow-icon {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 1.5rem;
 }
 
 .workflow-icon.large {
@@ -564,10 +583,12 @@ main {
   gap: 0.2rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
+  text-align: center;
 }
 
 .workflow-grid.is-condensed .workflow-text {
   align-items: flex-start;
+  text-align: left;
 }
 
 .workflow-vector {
@@ -579,6 +600,7 @@ main {
   transition: opacity 0.35s ease;
   mix-blend-mode: screen;
   z-index: 0;
+  will-change: opacity, transform;
 }
 
 .workflow-tile-shell .workflow-icon,
@@ -595,29 +617,29 @@ main {
 
 .workflow-vector-ingest span {
   position: absolute;
-  inset: 12px;
+  inset: clamp(12px, 6%, 26px);
   border: 1px dashed rgba(139, 179, 255, 0.65);
-  border-radius: 24px;
+  border-radius: inherit;
   opacity: 0;
-  animation: ingestOutline 2.6s cubic-bezier(0.6, 0, 0.25, 1) infinite;
+  animation: ingestOutline 2.8s cubic-bezier(0.7, 0, 0.3, 1) infinite;
 }
 
 .workflow-vector-ingest span:nth-child(2) {
-  animation-delay: 0.25s;
-  inset: 18px;
+  animation-delay: 0.22s;
+  inset: clamp(18px, 9%, 32px);
 }
 
 .workflow-vector-ingest span:nth-child(3) {
-  animation-delay: 0.45s;
-  inset: 24px;
+  animation-delay: 0.44s;
+  inset: clamp(24px, 12%, 38px);
 }
 
 .workflow-vector-cluster svg {
-  width: 110%;
-  height: 110%;
+  width: 100%;
+  height: 100%;
   position: absolute;
-  top: -5%;
-  left: -5%;
+  top: 0;
+  left: 0;
   overflow: visible;
 }
 
@@ -650,11 +672,11 @@ main {
 }
 
 .workflow-vector-activity svg {
-  width: 115%;
-  height: 115%;
+  width: 100%;
+  height: 100%;
   position: absolute;
-  top: -7%;
-  left: -7%;
+  top: 0;
+  left: 0;
   stroke: rgba(255, 108, 150, 0.85);
   stroke-width: 2;
   fill: none;
@@ -675,11 +697,11 @@ main {
   height: 85%;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 14px;
-  top: -110%;
+  top: -120%;
   left: 50%;
   transform: translateX(-50%);
   box-shadow: 0 12px 35px rgba(7, 10, 22, 0.6);
-  animation: sheetPrint 2.8s ease-in-out infinite;
+  animation: sheetPrint 3s ease-in-out infinite;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -765,17 +787,24 @@ main {
 
 @keyframes sheetPrint {
   0% {
-    transform: translate(-50%, -60%);
+    transform: translate(-50%, -120%) scale(0.96);
     opacity: 0;
   }
-  20% {
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -10%) scale(1);
+  }
+  45% {
+    transform: translate(-50%, 12%);
+  }
+  60% {
+    transform: translate(-50%, 0);
+  }
+  80% {
     opacity: 1;
   }
-  55% {
-    transform: translate(-50%, 10%);
-  }
   100% {
-    transform: translate(-50%, 120%);
+    transform: translate(-50%, 120%) scale(1.02);
     opacity: 0;
   }
 }

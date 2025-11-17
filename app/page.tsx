@@ -405,7 +405,9 @@ export default function HomePage() {
         </svg>
       ),
       action: () =>
-        document.querySelector(".panel-grid")?.scrollIntoView({ behavior: "smooth", block: "start" })
+        document
+          .querySelector(".project-controls")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" })
     },
     {
       label: "Clusters",
@@ -637,8 +639,13 @@ export default function HomePage() {
   );
 
   const handleWorkflowReset = useCallback(() => {
-    setActiveWorkflow(null);
-  }, []);
+    if (isMorphing) return;
+    setIsMorphing(true);
+    requestAnimationFrame(() => {
+      setActiveWorkflow(null);
+      setTimeout(() => setIsMorphing(false), 520);
+    });
+  }, [isMorphing]);
 
   const renderWorkflowVector = (key: WorkflowKey): ReactNode => {
     switch (key) {
@@ -653,38 +660,38 @@ export default function HomePage() {
       case "cluster":
         return (
           <span className="workflow-vector workflow-vector-cluster" aria-hidden="true">
-            <svg viewBox="0 0 120 120" preserveAspectRatio="none">
+            <svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
               <g className="branch level-one">
-                <line x1="60" y1="60" x2="60" y2="12" />
-                <line x1="60" y1="60" x2="105" y2="42" />
-                <line x1="60" y1="60" x2="15" y2="42" />
+                <line x1="60" y1="60" x2="60" y2="20" vectorEffect="non-scaling-stroke" />
+                <line x1="60" y1="60" x2="102" y2="55" vectorEffect="non-scaling-stroke" />
+                <line x1="60" y1="60" x2="18" y2="55" vectorEffect="non-scaling-stroke" />
               </g>
               <g className="nodes level-one">
-                <circle cx="60" cy="12" r="4" />
-                <circle cx="105" cy="42" r="4" />
-                <circle cx="15" cy="42" r="4" />
+                <circle cx="60" cy="20" r="4" vectorEffect="non-scaling-stroke" />
+                <circle cx="102" cy="55" r="4" vectorEffect="non-scaling-stroke" />
+                <circle cx="18" cy="55" r="4" vectorEffect="non-scaling-stroke" />
               </g>
               <g className="branch level-two">
-                <line x1="60" y1="12" x2="45" y2="0" />
-                <line x1="60" y1="12" x2="75" y2="0" />
-                <line x1="60" y1="12" x2="60" y2="-12" />
-                <line x1="105" y1="42" x2="120" y2="30" />
-                <line x1="105" y1="42" x2="118" y2="60" />
-                <line x1="105" y1="42" x2="92" y2="60" />
-                <line x1="15" y1="42" x2="0" y2="30" />
-                <line x1="15" y1="42" x2="2" y2="60" />
-                <line x1="15" y1="42" x2="28" y2="60" />
+                <line x1="60" y1="20" x2="45" y2="10" vectorEffect="non-scaling-stroke" />
+                <line x1="60" y1="20" x2="75" y2="10" vectorEffect="non-scaling-stroke" />
+                <line x1="60" y1="20" x2="60" y2="4" vectorEffect="non-scaling-stroke" />
+                <line x1="102" y1="55" x2="116" y2="45" vectorEffect="non-scaling-stroke" />
+                <line x1="102" y1="55" x2="114" y2="70" vectorEffect="non-scaling-stroke" />
+                <line x1="102" y1="55" x2="92" y2="72" vectorEffect="non-scaling-stroke" />
+                <line x1="18" y1="55" x2="4" y2="45" vectorEffect="non-scaling-stroke" />
+                <line x1="18" y1="55" x2="6" y2="72" vectorEffect="non-scaling-stroke" />
+                <line x1="18" y1="55" x2="30" y2="72" vectorEffect="non-scaling-stroke" />
               </g>
               <g className="nodes level-two">
-                <circle cx="45" cy="0" r="3" />
-                <circle cx="75" cy="0" r="3" />
-                <circle cx="60" cy="-12" r="3" />
-                <circle cx="120" cy="30" r="3" />
-                <circle cx="118" cy="60" r="3" />
-                <circle cx="92" cy="60" r="3" />
-                <circle cx="0" cy="30" r="3" />
-                <circle cx="2" cy="60" r="3" />
-                <circle cx="28" cy="60" r="3" />
+                <circle cx="45" cy="10" r="3" vectorEffect="non-scaling-stroke" />
+                <circle cx="75" cy="10" r="3" vectorEffect="non-scaling-stroke" />
+                <circle cx="60" cy="4" r="3" vectorEffect="non-scaling-stroke" />
+                <circle cx="116" cy="45" r="3" vectorEffect="non-scaling-stroke" />
+                <circle cx="114" cy="70" r="3" vectorEffect="non-scaling-stroke" />
+                <circle cx="92" cy="72" r="3" vectorEffect="non-scaling-stroke" />
+                <circle cx="4" cy="45" r="3" vectorEffect="non-scaling-stroke" />
+                <circle cx="6" cy="72" r="3" vectorEffect="non-scaling-stroke" />
+                <circle cx="30" cy="72" r="3" vectorEffect="non-scaling-stroke" />
               </g>
             </svg>
           </span>
@@ -692,8 +699,11 @@ export default function HomePage() {
       case "activity":
         return (
           <span className="workflow-vector workflow-vector-activity" aria-hidden="true">
-            <svg viewBox="0 0 160 80" preserveAspectRatio="none">
-              <path d="M0 40 H30 L45 10 L65 70 L80 40 L110 40 L125 20 L140 60 L160 40" />
+            <svg viewBox="0 0 160 80" preserveAspectRatio="xMidYMid meet">
+              <path
+                d="M0 45 H20 L35 20 L50 60 L65 38 L80 58 L95 30 L110 45 L125 25 L140 60 L160 40"
+                vectorEffect="non-scaling-stroke"
+              />
             </svg>
           </span>
         );
@@ -981,91 +991,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section
-          className={`workflow-section ${activeWorkflow ? "is-condensed" : ""} ${
-            isMorphing ? "is-morphing" : ""
-          }`}
-          aria-label="Workflow shortcuts"
-        >
-          <div className={`workflow-grid ${activeWorkflow ? "is-condensed" : ""}`}>
-            {workflowTiles.map((tile) => {
-              const isActive = tile.key === activeWorkflow;
-              return (
-                <div
-                  key={tile.key}
-                  className={`workflow-tile ${isActive ? "is-active" : ""}`}
-                  data-key={tile.key}
-                  role={isActive ? "group" : undefined}
-                  aria-live={isActive ? "polite" : undefined}
-                >
-                  <button
-                    type="button"
-                    className="workflow-tile-shell"
-                    onClick={() => handleTileActivate(tile.key)}
-                    aria-pressed={isActive}
-                    aria-expanded={isActive}
-                  >
-                    <span className="workflow-icon" aria-hidden="true">
-                      {tile.icon}
-                    </span>
-                    <div className="workflow-text">
-                      <span className="workflow-label">{tile.label}</span>
-                      <span className="workflow-meta">{tile.meta}</span>
-                    </div>
-                    {renderWorkflowVector(tile.key)}
-                  </button>
-                  {isActive && (
-                    <div className="workflow-workspace">
-                      <div className="workflow-workspace-header">
-                        <span className="workflow-icon large" aria-hidden="true">
-                          {tile.icon}
-                        </span>
-                        <div>
-                          <p className="eyebrow">Workspace</p>
-                          <h3>{tile.title}</h3>
-                        </div>
-                        <button type="button" className="ghost-button small" onClick={handleWorkflowReset}>
-                          Reset layout
-                        </button>
-                      </div>
-                      <div className="workflow-body">{renderWorkflowContent(tile.key)}</div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="ops-metrics" aria-label="Operational dashboard">
-          <div className="hero-status-stack">
-            <div className="hero-status-card">
-              <p>Projects</p>
-              <strong>{projects.length}</strong>
-            </div>
-            <div className="hero-status-card">
-              <p>Clusters</p>
-              <strong>{clusters.length}</strong>
-            </div>
-            <div className="hero-status-card">
-              <p>Last activity</p>
-              <strong>{logs[0] ?? "Awaiting activity"}</strong>
-            </div>
-          </div>
-          <div className="hero-status-pills">
-            <span className={`status-pill ${status.projects ? "active" : ""}`}>
-              Projects {status.projects ? "refreshing" : "synced"}
-            </span>
-            <span className={`status-pill ${status.ingest ? "active" : ""}`}>
-              Ingestion {status.ingest ? "running" : "idle"}
-            </span>
-            <span className={`status-pill ${status.clusters ? "active" : ""}`}>
-              Clusters {status.clusters ? "building" : "ready"}
-            </span>
-          </div>
-        </section>
-
-        <section className="panel-grid">
+        <section className="project-controls" aria-label="Project controls">
           <article className="panel-card wide-panel">
             <div className="panel-header">
               <div>
@@ -1161,7 +1087,90 @@ export default function HomePage() {
               </div>
             </div>
           </article>
+        </section>
 
+        <section
+          className={`workflow-section ${activeWorkflow ? "is-condensed" : ""} ${
+            isMorphing ? "is-morphing" : ""
+          }`}
+          aria-label="Workflow shortcuts"
+        >
+          <div className={`workflow-grid ${activeWorkflow ? "is-condensed" : ""}`}>
+            {workflowTiles.map((tile) => {
+              const isActive = tile.key === activeWorkflow;
+              return (
+                <div
+                  key={tile.key}
+                  className={`workflow-tile ${isActive ? "is-active" : ""}`}
+                  data-key={tile.key}
+                  role={isActive ? "group" : undefined}
+                  aria-live={isActive ? "polite" : undefined}
+                >
+                  <button
+                    type="button"
+                    className="workflow-tile-shell"
+                    onClick={() => handleTileActivate(tile.key)}
+                    aria-pressed={isActive}
+                    aria-expanded={isActive}
+                  >
+                    <span className="workflow-icon" aria-hidden="true">
+                      {tile.icon}
+                    </span>
+                    <div className="workflow-text">
+                      <span className="workflow-label">{tile.label}</span>
+                      <span className="workflow-meta">{tile.meta}</span>
+                    </div>
+                    {renderWorkflowVector(tile.key)}
+                  </button>
+                  {isActive && (
+                    <div className="workflow-workspace">
+                      <div className="workflow-workspace-header">
+                        <span className="workflow-icon large" aria-hidden="true">
+                          {tile.icon}
+                        </span>
+                        <div>
+                          <p className="eyebrow">Workspace</p>
+                          <h3>{tile.title}</h3>
+                        </div>
+                        <button type="button" className="ghost-button small" onClick={handleWorkflowReset}>
+                          Reset layout
+                        </button>
+                      </div>
+                      <div className="workflow-body">{renderWorkflowContent(tile.key)}</div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="ops-metrics" aria-label="Operational dashboard">
+          <div className="hero-status-stack">
+            <div className="hero-status-card">
+              <p>Projects</p>
+              <strong>{projects.length}</strong>
+            </div>
+            <div className="hero-status-card">
+              <p>Clusters</p>
+              <strong>{clusters.length}</strong>
+            </div>
+            <div className="hero-status-card">
+              <p>Last activity</p>
+              <strong>{logs[0] ?? "Awaiting activity"}</strong>
+            </div>
+          </div>
+          <div className="hero-status-pills">
+            <span className={`status-pill ${status.projects ? "active" : ""}`}>
+              Projects {status.projects ? "refreshing" : "synced"}
+            </span>
+            <span className={`status-pill ${status.ingest ? "active" : ""}`}>
+              Ingestion {status.ingest ? "running" : "idle"}
+            </span>
+            <span className={`status-pill ${status.clusters ? "active" : ""}`}>
+              Clusters {status.clusters ? "building" : "ready"}
+            </span>
+          </div>
         </section>
 
         {clusters.length > 0 && (
