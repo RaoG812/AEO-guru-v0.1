@@ -1676,6 +1676,16 @@ main {
   word-break: break-word;
 }
 
+.preview-placeholder {
+  margin: 0.4rem 0 0;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: var(--silver-400);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .export-cockpit {
   margin: 1.5rem 0;
   padding: 1.25rem;

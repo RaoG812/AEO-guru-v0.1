@@ -877,12 +877,10 @@ export default function HomePage() {
             </div>
           ))}
         </dl>
-        {previewText && (
-          <div className="export-preview">
-            <p className="muted">Latest download preview</p>
-            <pre>{previewText}</pre>
-          </div>
-        )}
+        <div className="export-preview">
+          <p className="muted">{previewText ? "Latest download preview" : "Download to view preview"}</p>
+          {previewText ? <pre>{previewText}</pre> : <div className="preview-placeholder">No preview captured yet.</div>}
+        </div>
       </section>
     );
   }, [activeExportKey, exportAttributes, exportPreviews]);
@@ -1372,7 +1370,6 @@ export default function HomePage() {
                     robots.txt
                   </button>
                 </div>
-                {renderAttributesPanel()}
               </>
             ) : (
               <p className="muted">Select a project to build clusters and exports.</p>

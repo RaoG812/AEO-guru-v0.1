@@ -28,6 +28,11 @@ const schema = z.object({
   forbiddenPaths: z.array(z.string()).max(25).optional()
 });
 
+function slugify(value: string) {
+  const slug = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return slug || "project";
+}
+
 function collectPatterns(urls: string[]) {
   const disallow = new Set<string>();
   const rationale: string[] = [];
@@ -134,8 +139,12 @@ export async function POST(req: NextRequest) {
   };
 
   const robotsTxt = await generateRobotsTxtFromSummary(summary);
+  const filename = `${slugify(projectId)}-robots.txt`;
 
   return new NextResponse(robotsTxt, {
-    headers: { "Content-Type": "text/plain; charset=utf-8" }
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${filename}"`
+    }
   });
 }
