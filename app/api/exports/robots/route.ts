@@ -112,7 +112,9 @@ export async function POST(req: NextRequest) {
     rationale: patternSummary.rationale,
     crawlDelay,
     sitemapUrls,
-    requestedAgents: requestedAgents.length ? requestedAgents : POPULAR_CRAWLERS
+    requestedAgents: requestedAgents.length
+      ? requestedAgents
+      : Array.from(POPULAR_CRAWLERS)
   };
 
   const robotsTxt = await generateRobotsTxtFromSummary(summary);
