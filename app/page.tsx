@@ -1758,24 +1758,26 @@ export default function HomePage() {
                   role={isActive ? "group" : undefined}
                   aria-live={isActive ? "polite" : undefined}
                 >
-                  <button
-                    type="button"
-                    className="workflow-tile-shell"
-                    onClick={() => handleTileActivate(tile.key)}
-                    aria-pressed={isActive}
-                    aria-expanded={isActive}
-                  >
-                    <span className="workflow-surface">
-                      <span className="workflow-icon" aria-hidden="true">
-                        {tile.icon}
+                  {!isActive && (
+                    <button
+                      type="button"
+                      className="workflow-tile-shell"
+                      onClick={() => handleTileActivate(tile.key)}
+                      aria-pressed={isActive}
+                      aria-expanded={isActive}
+                    >
+                      <span className="workflow-surface">
+                        <span className="workflow-icon" aria-hidden="true">
+                          {tile.icon}
+                        </span>
+                        <div className="workflow-text">
+                          <span className="workflow-label">{tile.label}</span>
+                          <span className="workflow-meta">{tile.meta}</span>
+                        </div>
                       </span>
-                      <div className="workflow-text">
-                        <span className="workflow-label">{tile.label}</span>
-                        <span className="workflow-meta">{tile.meta}</span>
-                      </div>
-                    </span>
-                    {renderWorkflowVector(tile.key)}
-                  </button>
+                      {renderWorkflowVector(tile.key)}
+                    </button>
+                  )}
                   {isActive && (
                     <div className="workflow-workspace">
                       <div className="workflow-workspace-header">
