@@ -483,8 +483,8 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 2rem;
+  gap: 0.85rem;
+  padding: clamp(1.75rem, 2.5vw, 2.6rem);
   cursor: pointer;
   border-radius: inherit;
   position: relative;
@@ -492,6 +492,7 @@ main {
   isolation: isolate;
   transition: transform 0.35s ease, background 0.35s ease;
   min-height: 0;
+  text-align: center;
 }
 
 .workflow-grid.is-condensed .workflow-tile-shell {
@@ -499,6 +500,8 @@ main {
   align-items: center;
   justify-content: flex-start;
   padding: 1.4rem 1.5rem;
+  gap: 0.65rem;
+  text-align: left;
 }
 
 .workflow-grid:not(.is-condensed) .workflow-tile-shell {
@@ -516,15 +519,18 @@ main {
 }
 
 .workflow-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+  width: clamp(64px, 7vw, 88px);
+  height: clamp(64px, 7vw, 88px);
+  border-radius: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  font-size: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: clamp(1.75rem, 2.4vw, 2.4rem);
+  line-height: 1;
+  flex-shrink: 0;
+  position: relative;
 }
 
 .workflow-icon.large {
@@ -532,6 +538,12 @@ main {
   height: 64px;
   border-radius: 20px;
   font-size: 1.8rem;
+}
+
+.workflow-icon svg {
+  width: 1em;
+  height: 1em;
+  display: block;
 }
 
 .workflow-label {
@@ -586,9 +598,21 @@ main {
   text-align: center;
 }
 
+.workflow-grid:not(.is-condensed) .workflow-text {
+  justify-content: center;
+  min-height: 72px;
+}
+
 .workflow-grid.is-condensed .workflow-text {
   align-items: flex-start;
   text-align: left;
+}
+
+.workflow-grid.is-condensed .workflow-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  font-size: 1.5rem;
 }
 
 .workflow-vector {
@@ -622,15 +646,16 @@ main {
   border-radius: inherit;
   opacity: 0;
   animation: ingestOutline 2.8s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+  animation-delay: -1.4s;
 }
 
 .workflow-vector-ingest span:nth-child(2) {
-  animation-delay: 0.22s;
+  animation-delay: -1.15s;
   inset: clamp(18px, 9%, 32px);
 }
 
 .workflow-vector-ingest span:nth-child(3) {
-  animation-delay: 0.44s;
+  animation-delay: -0.9s;
   inset: clamp(24px, 12%, 38px);
 }
 
@@ -643,6 +668,11 @@ main {
   overflow: visible;
 }
 
+.workflow-vector-cluster .branch {
+  transform-origin: 60px 60px;
+  animation: clusterFractalBloom 3s cubic-bezier(0.55, 0.05, 0.35, 1) infinite;
+}
+
 .workflow-vector-cluster .branch line {
   stroke: rgba(159, 199, 255, 0.65);
   stroke-width: 1.6;
@@ -652,10 +682,19 @@ main {
   animation: clusterLine 3s ease-in-out infinite;
 }
 
+.workflow-vector-cluster .branch.level-two {
+  animation-delay: 0.35s;
+}
+
 .workflow-vector-cluster .branch.level-two line {
   stroke-width: 1.1;
   animation-delay: 0.4s;
   stroke: rgba(120, 180, 255, 0.5);
+}
+
+.workflow-vector-cluster .nodes {
+  transform-origin: 60px 60px;
+  animation: clusterFractalBloom 3s cubic-bezier(0.55, 0.05, 0.35, 1) infinite;
 }
 
 .workflow-vector-cluster .nodes circle {
@@ -664,6 +703,10 @@ main {
   stroke-width: 1.1;
   opacity: 0;
   animation: clusterNode 3s ease-in-out infinite;
+}
+
+.workflow-vector-cluster .nodes.level-two {
+  animation-delay: 0.55s;
 }
 
 .workflow-vector-cluster .nodes.level-two circle {
@@ -687,7 +730,7 @@ main {
 .workflow-vector-activity path {
   stroke-dasharray: 320;
   stroke-dashoffset: 320;
-  animation: heartbeatTrace 2.2s ease-in-out infinite;
+  animation: heartbeatTrace 2.6s ease-in-out infinite;
   filter: drop-shadow(0 0 12px rgba(255, 108, 150, 0.35));
 }
 
@@ -695,13 +738,13 @@ main {
   position: absolute;
   width: 70%;
   height: 85%;
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(180deg, rgba(248, 249, 255, 0.92), rgba(232, 235, 255, 0.9));
   border-radius: 14px;
   top: -120%;
   left: 50%;
   transform: translateX(-50%);
-  box-shadow: 0 12px 35px rgba(7, 10, 22, 0.6);
-  animation: sheetPrint 3s ease-in-out infinite;
+  box-shadow: 0 10px 32px rgba(7, 10, 22, 0.5);
+  animation: sheetPrint 3.2s steps(6, end) infinite;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -714,9 +757,9 @@ main {
   width: 100%;
   height: 3px;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(70, 98, 169, 0.2), rgba(70, 98, 169, 0.6));
+  background: linear-gradient(90deg, rgba(70, 98, 169, 0.15), rgba(70, 98, 169, 0.45));
   opacity: 0;
-  animation: sheetLineBlink 2.8s ease-in-out infinite;
+  animation: sheetLineBlink 3s steps(4, end) infinite;
 }
 
 .workflow-vector-outputs .sheet-line:nth-child(2) {
@@ -746,26 +789,53 @@ main {
     stroke-dashoffset: 80;
     opacity: 0;
   }
-  40% {
+  35% {
+    stroke-dashoffset: 20;
+    opacity: 0.85;
+  }
+  60% {
     stroke-dashoffset: 0;
-    opacity: 0.9;
   }
   100% {
-    opacity: 0.3;
+    opacity: 0.25;
   }
 }
 
 @keyframes clusterNode {
   0% {
     opacity: 0;
-    transform: scale(0.4);
+    transform: scale(0.35);
   }
-  45% {
+  40% {
     opacity: 1;
     transform: scale(1);
   }
+  80% {
+    opacity: 1;
+  }
   100% {
     opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes clusterFractalBloom {
+  0% {
+    transform: scale(0.18);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.9;
+  }
+  55% {
+    transform: scale(1);
+  }
+  80% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0;
   }
 }
 
@@ -774,37 +844,44 @@ main {
     stroke-dashoffset: 320;
     opacity: 0;
   }
-  35% {
+  10% {
     opacity: 1;
   }
-  70% {
+  55% {
     stroke-dashoffset: 0;
   }
   100% {
-    opacity: 0;
+    stroke-dashoffset: -320;
+    opacity: 1;
   }
 }
 
 @keyframes sheetPrint {
   0% {
-    transform: translate(-50%, -120%) scale(0.96);
-    opacity: 0;
+    transform: translate(-50%, -120%);
+    opacity: 0.75;
   }
-  18% {
-    opacity: 1;
-    transform: translate(-50%, -10%) scale(1);
+  15% {
+    transform: translate(-50%, -95%);
+  }
+  30% {
+    transform: translate(-50%, -70%);
+    opacity: 0.9;
   }
   45% {
-    transform: translate(-50%, 12%);
+    transform: translate(-50%, -45%);
   }
   60% {
-    transform: translate(-50%, 0);
+    transform: translate(-50%, -20%);
   }
-  80% {
-    opacity: 1;
+  75% {
+    transform: translate(-50%, 0%);
+  }
+  85% {
+    transform: translate(-50%, 8%);
   }
   100% {
-    transform: translate(-50%, 120%) scale(1.02);
+    transform: translate(-50%, 125%);
     opacity: 0;
   }
 }
@@ -812,15 +889,18 @@ main {
 @keyframes sheetLineBlink {
   0% {
     opacity: 0;
-    transform: translateX(-10%);
+    transform: translateX(-8%);
   }
   35% {
     opacity: 1;
     transform: translateX(0);
   }
+  70% {
+    opacity: 1;
+  }
   100% {
     opacity: 0;
-    transform: translateX(5%);
+    transform: translateX(6%);
   }
 }
 
