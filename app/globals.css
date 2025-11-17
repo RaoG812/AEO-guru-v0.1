@@ -392,6 +392,785 @@ main {
   height: 14px;
 }
 
+.workflow-section {
+  margin: 2rem 0 2.5rem;
+  border-radius: 32px;
+  padding: 2rem;
+  background: radial-gradient(circle at top, rgba(61, 87, 161, 0.35), transparent 60%), rgba(5, 7, 18, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  transition: padding 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.project-controls {
+  margin: 2rem 0 2.5rem;
+  scroll-margin-top: 120px;
+}
+
+.project-controls .panel-card {
+  background: radial-gradient(circle at top left, rgba(77, 110, 192, 0.2), transparent 65%), rgba(6, 7, 15, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.workflow-section.is-condensed {
+  padding: 2.5rem 2rem 2.75rem;
+}
+
+.workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin: 0 auto;
+  max-width: min(100%, 1040px);
+  justify-items: stretch;
+  align-items: stretch;
+  transition: grid-template-columns 0.45s ease, gap 0.45s ease;
+}
+
+.workflow-grid.is-condensed {
+  grid-template-columns: minmax(0, 2.4fr) minmax(220px, 0.9fr);
+  grid-auto-rows: minmax(130px, 1fr);
+  gap: 1.25rem;
+}
+
+.workflow-tile {
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+  color: var(--silver-50);
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  align-items: stretch;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  padding: clamp(0.35rem, 0.8vw, 0.75rem);
+  transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.15, 1), border-color 0.45s ease, background 0.45s ease,
+    box-shadow 0.45s ease;
+  will-change: transform;
+  min-height: 0;
+}
+
+.workflow-grid:not(.is-condensed) .workflow-tile {
+  aspect-ratio: 1 / 1;
+}
+
+.workflow-grid.is-condensed .workflow-tile {
+  min-height: 130px;
+}
+
+.workflow-grid.is-condensed .workflow-tile:not(.is-active) {
+  grid-column: 2 / 3;
+  opacity: 0.85;
+  transform: scale(0.92);
+}
+
+.workflow-grid.is-condensed .workflow-tile.is-active {
+  grid-column: 1 / 2;
+  grid-row: 1 / span 2;
+  transform: scale(1.02);
+  background: linear-gradient(155deg, rgba(101, 140, 255, 0.2), rgba(7, 10, 26, 0.85));
+  border-color: rgba(139, 179, 255, 0.65);
+  box-shadow: inset 0 0 60px rgba(4, 6, 18, 0.85), 0 30px 60px rgba(2, 4, 12, 0.8);
+}
+
+.workflow-section.is-morphing .workflow-grid.is-condensed .workflow-tile.is-active {
+  animation: tileMorph 0.55s cubic-bezier(0.2, 0.7, 0.15, 1);
+}
+
+.workflow-tile-shell {
+  all: unset;
+  flex: 1;
+  width: 100%;
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: center;
+  justify-items: center;
+  gap: 0.65rem;
+  padding: clamp(1.35rem, 2vw, 2rem);
+  cursor: pointer;
+  border-radius: inherit;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.35s ease, background 0.35s ease;
+  min-height: 0;
+  text-align: center;
+}
+
+.workflow-grid.is-condensed .workflow-tile-shell {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 1.2rem 1.35rem;
+  gap: 0.55rem;
+  text-align: left;
+  border-radius: inherit;
+}
+
+.workflow-grid:not(.is-condensed) .workflow-tile-shell {
+  height: 100%;
+}
+
+.workflow-tile-shell:focus-visible,
+.workflow-tile-shell:hover {
+  background: radial-gradient(circle at top, rgba(120, 160, 255, 0.2), transparent 65%);
+}
+
+.workflow-tile-shell:focus-visible {
+  outline: 2px solid rgba(139, 179, 255, 0.8);
+  outline-offset: 4px;
+}
+
+.workflow-icon {
+  width: clamp(56px, 6vw, 72px);
+  height: clamp(56px, 6vw, 72px);
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  line-height: 1;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.workflow-icon.large {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  font-size: 1.8rem;
+}
+
+.workflow-icon svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
+
+.workflow-label {
+  font-size: 1rem;
+}
+
+.workflow-meta {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--silver-500);
+}
+
+.workflow-workspace {
+  border-radius: 28px;
+  padding: 1.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(1, 2, 8, 0.92);
+  box-shadow: inset 0 0 80px rgba(3, 6, 18, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 0 1.4rem 1.4rem;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: workspaceMorph 0.45s ease forwards;
+}
+
+.workflow-workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.workflow-workspace-header h3 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.workflow-body {
+  min-height: 320px;
+}
+
+.workflow-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  text-align: center;
+}
+
+.workflow-grid:not(.is-condensed) .workflow-text {
+  justify-content: center;
+  min-height: 64px;
+}
+
+.workflow-grid.is-condensed .workflow-text {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.workflow-grid.is-condensed .workflow-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 1.35rem;
+}
+
+.workflow-vector {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  mix-blend-mode: screen;
+  z-index: 0;
+  will-change: opacity, transform;
+}
+
+.workflow-tile-shell .workflow-icon,
+.workflow-tile-shell .workflow-text {
+  position: relative;
+  z-index: 1;
+}
+
+.workflow-tile-shell:hover .workflow-vector,
+.workflow-tile-shell:focus-visible .workflow-vector,
+.workflow-tile.is-active .workflow-vector {
+  opacity: 1;
+}
+
+.workflow-vector-ingest span {
+  position: absolute;
+  inset: clamp(12px, 6%, 26px);
+  border: 1px dashed rgba(139, 179, 255, 0.65);
+  border-radius: inherit;
+  opacity: 0;
+  animation: ingestOutline 2.8s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+  animation-delay: -1.4s;
+}
+
+.workflow-vector-ingest span:nth-child(2) {
+  animation-delay: -1.15s;
+  inset: clamp(18px, 9%, 32px);
+}
+
+.workflow-vector-ingest span:nth-child(3) {
+  animation-delay: -0.9s;
+  inset: clamp(24px, 12%, 38px);
+}
+
+.workflow-vector-cluster svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+}
+
+.workflow-vector-cluster .branch line {
+  stroke: rgba(159, 199, 255, 0.7);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transform-origin: 60px 60px;
+  animation: clusterLineTrace 4s cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
+}
+
+.workflow-vector-cluster .branch.level-one line:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.workflow-vector-cluster .branch.level-one line:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.workflow-vector-cluster .branch.level-two line {
+  stroke-width: 1.15;
+  stroke: rgba(120, 180, 255, 0.55);
+  animation-delay: 0.55s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(2) {
+  animation-delay: 0.65s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(3) {
+  animation-delay: 0.75s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(4) {
+  animation-delay: 0.85s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(5) {
+  animation-delay: 0.95s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(6) {
+  animation-delay: 1.05s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(7) {
+  animation-delay: 1.15s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(8) {
+  animation-delay: 1.25s;
+}
+
+.workflow-vector-cluster .branch.level-two line:nth-child(9) {
+  animation-delay: 1.35s;
+}
+
+.workflow-vector-cluster .branch.level-three line {
+  stroke-width: 0.9;
+  stroke: rgba(111, 170, 255, 0.45);
+  animation-delay: 1.55s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(2) {
+  animation-delay: 1.65s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(3) {
+  animation-delay: 1.75s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(4) {
+  animation-delay: 1.85s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(5) {
+  animation-delay: 1.95s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(6) {
+  animation-delay: 2.05s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(7) {
+  animation-delay: 2.15s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(8) {
+  animation-delay: 2.25s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(9) {
+  animation-delay: 2.35s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(10) {
+  animation-delay: 2.45s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(11) {
+  animation-delay: 2.55s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(12) {
+  animation-delay: 2.65s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(13) {
+  animation-delay: 2.75s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(14) {
+  animation-delay: 2.85s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(15) {
+  animation-delay: 2.95s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(16) {
+  animation-delay: 3.05s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(17) {
+  animation-delay: 3.15s;
+}
+
+.workflow-vector-cluster .branch.level-three line:nth-child(18) {
+  animation-delay: 3.25s;
+}
+
+.workflow-vector-cluster .nodes circle {
+  stroke: rgba(159, 199, 255, 0.8);
+  fill: rgba(159, 199, 255, 0.12);
+  stroke-width: 1;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transform-origin: center;
+  animation: clusterNodeDraw 4s ease-in-out infinite;
+}
+
+.workflow-vector-cluster .nodes.level-one circle:nth-child(2) {
+  animation-delay: 0.35s;
+}
+
+.workflow-vector-cluster .nodes.level-one circle:nth-child(3) {
+  animation-delay: 0.45s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle {
+  stroke-width: 0.85;
+  animation-delay: 0.95s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(2) {
+  animation-delay: 1.05s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(3) {
+  animation-delay: 1.15s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(4) {
+  animation-delay: 1.25s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(5) {
+  animation-delay: 1.35s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(6) {
+  animation-delay: 1.45s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(7) {
+  animation-delay: 1.55s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(8) {
+  animation-delay: 1.65s;
+}
+
+.workflow-vector-cluster .nodes.level-two circle:nth-child(9) {
+  animation-delay: 1.75s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle {
+  stroke-width: 0.7;
+  fill: rgba(139, 189, 255, 0.1);
+  animation-delay: 1.95s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(2) {
+  animation-delay: 2.05s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(3) {
+  animation-delay: 2.15s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(4) {
+  animation-delay: 2.25s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(5) {
+  animation-delay: 2.35s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(6) {
+  animation-delay: 2.45s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(7) {
+  animation-delay: 2.55s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(8) {
+  animation-delay: 2.65s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(9) {
+  animation-delay: 2.75s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(10) {
+  animation-delay: 2.85s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(11) {
+  animation-delay: 2.95s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(12) {
+  animation-delay: 3.05s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(13) {
+  animation-delay: 3.15s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(14) {
+  animation-delay: 3.25s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(15) {
+  animation-delay: 3.35s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(16) {
+  animation-delay: 3.45s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(17) {
+  animation-delay: 3.55s;
+}
+
+.workflow-vector-cluster .nodes.level-three circle:nth-child(18) {
+  animation-delay: 3.65s;
+}
+
+.workflow-vector-activity svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  stroke: rgba(255, 108, 150, 0.85);
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.workflow-vector-activity path {
+  stroke-dasharray: 320;
+  stroke-dashoffset: 320;
+  animation: heartbeatTrace 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px rgba(255, 108, 150, 0.35));
+}
+
+.workflow-vector-outputs .sheet {
+  position: absolute;
+  width: 70%;
+  height: 85%;
+  background: linear-gradient(180deg, rgba(248, 249, 255, 0.92), rgba(232, 235, 255, 0.9));
+  border-radius: 14px;
+  top: -120%;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 32px rgba(7, 10, 22, 0.5);
+  animation: sheetPrint 3.2s steps(6, end) infinite;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.2rem;
+}
+
+.workflow-vector-outputs .sheet-line {
+  display: block;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(70, 98, 169, 0.15), rgba(70, 98, 169, 0.45));
+  opacity: 0;
+  animation: sheetLineBlink 3s steps(4, end) infinite;
+}
+
+.workflow-vector-outputs .sheet-line:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.workflow-vector-outputs .sheet-line:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+@keyframes ingestOutline {
+  0% {
+    transform: scale(1);
+    opacity: 0.15;
+  }
+  40% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+}
+
+@keyframes clusterLineTrace {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+  }
+  45% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes clusterNodeDraw {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.8;
+  }
+  55% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes heartbeatTrace {
+  0% {
+    stroke-dashoffset: 320;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  55% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -320;
+    opacity: 1;
+  }
+}
+
+@keyframes sheetPrint {
+  0% {
+    transform: translate(-50%, -120%);
+    opacity: 0.75;
+  }
+  15% {
+    transform: translate(-50%, -95%);
+  }
+  30% {
+    transform: translate(-50%, -70%);
+    opacity: 0.9;
+  }
+  45% {
+    transform: translate(-50%, -45%);
+  }
+  60% {
+    transform: translate(-50%, -20%);
+  }
+  75% {
+    transform: translate(-50%, 0%);
+  }
+  85% {
+    transform: translate(-50%, 8%);
+  }
+  100% {
+    transform: translate(-50%, 125%);
+    opacity: 0;
+  }
+}
+
+@keyframes sheetLineBlink {
+  0% {
+    opacity: 0;
+    transform: translateX(-8%);
+  }
+  35% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(6%);
+  }
+}
+
+@keyframes tileMorph {
+  0% {
+    transform: scale(0.8);
+  }
+  100% {
+    transform: scale(1.02);
+  }
+}
+
+.workflow-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.workflow-panel .panel-header {
+  padding: 0;
+}
+
+.workflow-panel .panel-header h2 {
+  margin: 0;
+}
+
+.outputs-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.download-grid.compact {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.outputs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.9rem;
+}
+
+.outputs-card {
+  border-radius: 18px;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+@keyframes workspaceMorph {
+  0% {
+    transform: scale(0.98) translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
 .hero-status-stack {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -515,6 +1294,31 @@ main {
     left: 50%;
     transform: translateX(-50%);
     grid-auto-flow: column;
+  }
+
+  .workflow-section {
+    padding: 1.5rem;
+  }
+
+  .workflow-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-grid.is-condensed {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-grid.is-condensed .workflow-tile {
+    grid-column: auto;
+    transform: scale(0.97);
+  }
+
+  .workflow-grid.is-condensed .workflow-tile.is-active {
+    grid-row: auto;
+  }
+
+  .workflow-workspace {
+    margin: 0.5rem 0 0;
   }
 }
 
