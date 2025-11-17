@@ -93,6 +93,7 @@ main {
   opacity: 0.45;
   filter: blur(6px);
   animation: guruFloat 14s ease-in-out infinite;
+  will-change: transform;
   z-index: 0;
 }
 
@@ -137,6 +138,9 @@ main {
   );
   mask-mode: luminance;
   transition: opacity 0.35s ease, mask-position 0.1s ease, mask-size 0.3s ease;
+  animation: guruFloat 16s ease-in-out infinite;
+  animation-delay: -2s;
+  will-change: transform;
 }
 
 .hero-lens {
@@ -170,13 +174,13 @@ main {
 
 @keyframes guruFloat {
   0% {
-    transform: translateY(-6px);
+    transform: translateY(-12px);
   }
   50% {
-    transform: translateY(6px);
+    transform: translateY(12px);
   }
   100% {
-    transform: translateY(-6px);
+    transform: translateY(-12px);
   }
 }
 
