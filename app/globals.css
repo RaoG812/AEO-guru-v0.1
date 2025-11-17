@@ -438,55 +438,48 @@ main {
 }
 
 .workflow-stage {
-  display: flex;
+  --connector-color: rgba(255, 255, 255, 0.4);
+  --node-size: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(60px, 10vw, 140px);
+  column-gap: clamp(0.45rem, 1vw, 1.4rem);
   align-items: center;
-  gap: clamp(0.45rem, 0.9vw, 1rem);
   position: relative;
   flex: 1 1 0;
-  min-width: clamp(180px, 26vw, 320px);
-}
-
-.workflow-stage:not(.is-detached) {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: clamp(0.45rem, 1vw, 1.5rem);
-  align-items: center;
+  min-width: clamp(200px, 26vw, 320px);
 }
 
 .workflow-stage.has-connector {
-  grid-template-columns: minmax(0, 1fr) clamp(52px, 10vw, 140px);
+  grid-template-columns: minmax(0, 1fr) clamp(70px, 12vw, 150px);
 }
 
 .workflow-stage.no-connector {
   grid-template-columns: minmax(0, 1fr);
 }
 
-.workflow-stage.is-detached {
-  margin-left: auto;
-  padding-left: clamp(0.5rem, 1vw, 1.2rem);
-  border-left: 1px dashed rgba(255, 255, 255, 0.12);
-  display: flex;
-  min-width: clamp(150px, 18vw, 220px);
+.workflow-stage.is-active {
+  --connector-color: rgba(139, 179, 255, 0.8);
 }
 
-.workflow-stage.is-detached .workflow-stage-button {
-  min-width: clamp(150px, 18vw, 220px);
+.workflow-stage.is-complete {
+  --connector-color: rgba(124, 255, 198, 0.85);
 }
 
 .workflow-stage-button {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  border-radius: 999px;
-  padding: 0.4rem 1.2rem 0.4rem 0.4rem;
+  gap: 0.9rem;
+  border-radius: 26px;
+  padding: 0.75rem 1.35rem 0.75rem 0.6rem;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(6, 8, 18, 0.78);
+  background: linear-gradient(145deg, rgba(6, 8, 18, 0.9), rgba(12, 16, 32, 0.75));
   color: var(--silver-50);
   cursor: pointer;
   position: relative;
   overflow: hidden;
   min-width: 0;
   width: 100%;
+  min-height: 96px;
   transition: border-color 0.35s ease, background 0.35s ease, color 0.35s ease,
     box-shadow 0.4s ease, transform 0.4s ease;
   isolation: isolate;
@@ -533,32 +526,55 @@ main {
 
 .workflow-stage.is-complete .workflow-stage-button {
   border-color: rgba(124, 255, 198, 0.45);
-  background: linear-gradient(120deg, rgba(34, 63, 45, 0.45), rgba(5, 7, 18, 0.9));
+  background: linear-gradient(120deg, rgba(34, 63, 45, 0.5), rgba(5, 7, 18, 0.92));
   box-shadow: 0 6px 20px rgba(50, 180, 122, 0.2);
 }
 
 .workflow-connector {
   display: block;
   width: 100%;
-  height: 3px;
+  height: 2px;
   border-radius: 999px;
   background-image: repeating-linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.35) 0 12px,
-    transparent 12px 22px
+    var(--connector-color) 0 16px,
+    transparent 16px 28px
   );
-  background-size: 24px 3px;
+  background-size: 32px 2px;
   animation: workflowConnectorSlide 1.1s linear infinite;
   flex: 0 0 auto;
   align-self: center;
+  position: relative;
+}
+
+.workflow-connector::before,
+.workflow-connector::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: var(--node-size);
+  height: var(--node-size);
+  border-radius: 50%;
+  border: 1px solid var(--connector-color);
+  background: rgba(3, 5, 14, 0.95);
+  transform: translateY(-50%);
+  box-shadow: 0 0 0 2px rgba(3, 5, 14, 0.9);
+}
+
+.workflow-connector::before {
+  left: calc(var(--node-size) * -0.5);
+}
+
+.workflow-connector::after {
+  right: calc(var(--node-size) * -0.5);
+}
+
+.workflow-stage.is-active .workflow-connector::before,
+.workflow-stage.is-active .workflow-connector::after {
+  box-shadow: 0 0 12px rgba(122, 164, 255, 0.45);
 }
 
 .workflow-stage.is-complete .workflow-connector {
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgba(124, 255, 198, 0.85) 0 12px,
-    transparent 12px 22px
-  );
   box-shadow: 0 0 18px rgba(124, 255, 198, 0.3);
 }
 
@@ -746,12 +762,12 @@ main {
 .workflow-icon {
   width: clamp(48px, 4vw, 60px);
   height: clamp(48px, 4vw, 60px);
-  border-radius: 16px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: radial-gradient(circle at 30% 30%, rgba(139, 179, 255, 0.35), rgba(10, 14, 32, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.18);
   font-size: clamp(1.3rem, 1.6vw, 1.6rem);
   line-height: 1;
   flex-shrink: 0;
@@ -772,9 +788,9 @@ main {
 .workflow-icon.large {
   width: 64px;
   height: 64px;
-  border-radius: 20px;
+  border-radius: 50%;
   font-size: 1.8rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: radial-gradient(circle at 30% 30%, rgba(139, 179, 255, 0.35), rgba(10, 14, 32, 0.9));
 }
 
 .workflow-icon svg {
@@ -1202,26 +1218,6 @@ main {
   animation-delay: 3.65s;
 }
 
-.workflow-vector-activity svg {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  stroke: rgba(255, 108, 150, 0.85);
-  stroke-width: 2;
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.workflow-vector-activity path {
-  stroke-dasharray: 320;
-  stroke-dashoffset: 320;
-  animation: heartbeatTrace 2.6s ease-in-out infinite;
-  filter: drop-shadow(0 0 12px rgba(255, 108, 150, 0.35));
-}
-
 .workflow-vector-outputs .sheet {
   position: absolute;
   width: 70%;
@@ -1338,23 +1334,6 @@ main {
   100% {
     stroke-dashoffset: 0;
     opacity: 0;
-  }
-}
-
-@keyframes heartbeatTrace {
-  0% {
-    stroke-dashoffset: 320;
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  55% {
-    stroke-dashoffset: 0;
-  }
-  100% {
-    stroke-dashoffset: -320;
-    opacity: 1;
   }
 }
 

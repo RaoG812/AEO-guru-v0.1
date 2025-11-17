@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { JSX, KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
-import { FiActivity, FiFileText, FiShare2, FiUpload } from "react-icons/fi";
+import { FiFileText, FiShare2, FiUpload } from "react-icons/fi";
 
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 
@@ -41,9 +41,7 @@ type StatusState = {
   projects: boolean;
 };
 
-type WorkflowKey = "ingest" | "cluster" | "activity" | "outputs";
-
-type WorkflowLane = "flow" | "detached";
+type WorkflowKey = "ingest" | "cluster" | "outputs";
 
 type WorkflowTile = {
   key: WorkflowKey;
@@ -51,7 +49,6 @@ type WorkflowTile = {
   title: string;
   meta: string;
   icon: JSX.Element;
-  lane: WorkflowLane;
   isComplete: boolean;
 };
 
@@ -940,7 +937,6 @@ export default function HomePage() {
         title: "Embed crawl output",
         meta: selectedProjectId ? selectedProjectId : "No project",
         icon: <FiUpload />,
-        lane: "flow",
         isComplete: hasProjects
       },
       {
@@ -949,7 +945,6 @@ export default function HomePage() {
         title: "Semantic core",
         meta: clusters.length ? `${clusters.length} groups` : "Idle",
         icon: <FiShare2 />,
-        lane: "flow",
         isComplete: hasClusters
       },
       {
@@ -958,30 +953,10 @@ export default function HomePage() {
         title: "Exports",
         meta: hasExports ? "Downloads" : "Awaiting data",
         icon: <FiFileText />,
-        lane: "flow",
         isComplete: hasExports
-      },
-      {
-        key: "activity",
-        label: "Activity",
-        title: "Latest logs",
-        meta: logs.length ? `${logs.length} events` : "Quiet",
-        icon: <FiActivity />,
-        lane: "detached",
-        isComplete: logs.length > 0
       }
     ];
-  }, [clusters.length, exportPreviews, logs.length, projects.length, selectedProjectId]);
-
-  const flowTiles = useMemo(
-    () => workflowTiles.filter((tile) => tile.lane === "flow"),
-    [workflowTiles]
-  );
-
-  const detachedTiles = useMemo(
-    () => workflowTiles.filter((tile) => tile.lane === "detached"),
-    [workflowTiles]
-  );
+  }, [clusters.length, exportPreviews, projects.length, selectedProjectId]);
 
   const activeTile = useMemo(
     () => (activeWorkflow ? workflowTiles.find((tile) => tile.key === activeWorkflow) ?? null : null),
@@ -1074,17 +1049,6 @@ export default function HomePage() {
                 <circle cx="26" cy="84" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
                 <circle cx="36" cy="84" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
               </g>
-            </svg>
-          </span>
-        );
-      case "activity":
-        return (
-          <span className="workflow-vector workflow-vector-activity" aria-hidden="true">
-            <svg viewBox="0 0 160 80" preserveAspectRatio="xMidYMid meet">
-              <path
-                d="M0 45 H20 L35 20 L50 60 L65 38 L80 58 L95 30 L110 45 L125 25 L140 60 L160 40"
-                vectorEffect="non-scaling-stroke"
-              />
             </svg>
           </span>
         );
@@ -1498,24 +1462,6 @@ export default function HomePage() {
             )}
           </div>
         );
-      case "activity":
-        return (
-          <div className="workflow-panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Activity</p>
-                <h2>Latest log entries</h2>
-              </div>
-              <span className="pill">{logs.length} events</span>
-            </div>
-            <ul className="log-list">
-              {logs.map((entry, idx) => (
-                <li key={`${entry}-${idx}`}>{entry}</li>
-              ))}
-              {logs.length === 0 && <li className="muted">No activity yet.</li>}
-            </ul>
-          </div>
-        );
       case "outputs":
         return (
           <div className="workflow-panel">
@@ -1662,6 +1608,34 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className="ops-metrics" aria-label="Operational dashboard">
+          <div className="hero-status-stack">
+            <div className="hero-status-card">
+              <p>Projects</p>
+              <strong>{projects.length}</strong>
+            </div>
+            <div className="hero-status-card">
+              <p>Clusters</p>
+              <strong>{clusters.length}</strong>
+            </div>
+            <div className="hero-status-card">
+              <p>Last activity</p>
+              <strong>{logs[0] ?? "Awaiting activity"}</strong>
+            </div>
+          </div>
+          <div className="hero-status-pills">
+            <span className={`status-pill ${status.projects ? "active" : ""}`}>
+              Projects {status.projects ? "refreshing" : "synced"}
+            </span>
+            <span className={`status-pill ${status.ingest ? "active" : ""}`}>
+              Ingestion {status.ingest ? "running" : "idle"}
+            </span>
+            <span className={`status-pill ${status.clusters ? "active" : ""}`}>
+              Clusters {status.clusters ? "building" : "ready"}
+            </span>
+          </div>
+        </section>
+
         <section className="project-controls" aria-label="Project controls">
           <article className="panel-card wide-panel">
             <div className="panel-header">
@@ -1763,9 +1737,9 @@ export default function HomePage() {
         <section className="workflow-section" aria-label="Workflow timeline">
           <div className="workflow-timeline">
             <div className="workflow-timeline-flow">
-              {flowTiles.map((tile, index) => {
+              {workflowTiles.map((tile, index) => {
                 const isActive = tile.key === activeWorkflow;
-                const showConnector = index < flowTiles.length - 1;
+                const showConnector = index < workflowTiles.length - 1;
                 return (
                   <div
                     key={tile.key}
@@ -1794,34 +1768,6 @@ export default function HomePage() {
                 );
               })}
             </div>
-            {detachedTiles.map((tile) => {
-              const isActive = tile.key === activeWorkflow;
-              return (
-                <div
-                  key={tile.key}
-                  className={`workflow-stage is-detached no-connector ${
-                    tile.isComplete ? "is-complete" : ""
-                  } ${isActive ? "is-active" : ""}`}
-                >
-                  <button
-                    type="button"
-                    className="workflow-stage-button"
-                    onClick={() => handleTileActivate(tile.key)}
-                    aria-pressed={isActive}
-                    aria-expanded={isActive}
-                  >
-                    <span className="workflow-icon" aria-hidden="true">
-                      {tile.icon}
-                    </span>
-                    <div className="workflow-text">
-                      <span className="workflow-label">{tile.label}</span>
-                      <span className="workflow-meta">{tile.meta}</span>
-                    </div>
-                    {renderWorkflowVector(tile.key)}
-                  </button>
-                </div>
-              );
-            })}
           </div>
           {activeTile && (
             <div className="workflow-workspace" role="group" aria-live="polite" key={activeWorkflow}>
@@ -1837,34 +1783,6 @@ export default function HomePage() {
               <div className="workflow-body">{renderWorkflowContent(activeTile.key)}</div>
             </div>
           )}
-        </section>
-
-        <section className="ops-metrics" aria-label="Operational dashboard">
-          <div className="hero-status-stack">
-            <div className="hero-status-card">
-              <p>Projects</p>
-              <strong>{projects.length}</strong>
-            </div>
-            <div className="hero-status-card">
-              <p>Clusters</p>
-              <strong>{clusters.length}</strong>
-            </div>
-            <div className="hero-status-card">
-              <p>Last activity</p>
-              <strong>{logs[0] ?? "Awaiting activity"}</strong>
-            </div>
-          </div>
-          <div className="hero-status-pills">
-            <span className={`status-pill ${status.projects ? "active" : ""}`}>
-              Projects {status.projects ? "refreshing" : "synced"}
-            </span>
-            <span className={`status-pill ${status.ingest ? "active" : ""}`}>
-              Ingestion {status.ingest ? "running" : "idle"}
-            </span>
-            <span className={`status-pill ${status.clusters ? "active" : ""}`}>
-              Clusters {status.clusters ? "building" : "ready"}
-            </span>
-          </div>
         </section>
 
         {clusters.length > 0 && (
