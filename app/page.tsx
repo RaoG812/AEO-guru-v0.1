@@ -662,36 +662,76 @@ export default function HomePage() {
           <span className="workflow-vector workflow-vector-cluster" aria-hidden="true">
             <svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
               <g className="branch level-one">
-                <line x1="60" y1="60" x2="60" y2="20" vectorEffect="non-scaling-stroke" />
-                <line x1="60" y1="60" x2="102" y2="55" vectorEffect="non-scaling-stroke" />
-                <line x1="60" y1="60" x2="18" y2="55" vectorEffect="non-scaling-stroke" />
+                <line x1="60" y1="60" x2="60" y2="20" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="60" y1="60" x2="102" y2="55" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="60" y1="60" x2="18" y2="55" vectorEffect="non-scaling-stroke" pathLength={1} />
               </g>
               <g className="nodes level-one">
-                <circle cx="60" cy="20" r="4" vectorEffect="non-scaling-stroke" />
-                <circle cx="102" cy="55" r="4" vectorEffect="non-scaling-stroke" />
-                <circle cx="18" cy="55" r="4" vectorEffect="non-scaling-stroke" />
+                <circle cx="60" cy="20" r="4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="102" cy="55" r="4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="18" cy="55" r="4" vectorEffect="non-scaling-stroke" pathLength={1} />
               </g>
               <g className="branch level-two">
-                <line x1="60" y1="20" x2="45" y2="10" vectorEffect="non-scaling-stroke" />
-                <line x1="60" y1="20" x2="75" y2="10" vectorEffect="non-scaling-stroke" />
-                <line x1="60" y1="20" x2="60" y2="4" vectorEffect="non-scaling-stroke" />
-                <line x1="102" y1="55" x2="116" y2="45" vectorEffect="non-scaling-stroke" />
-                <line x1="102" y1="55" x2="114" y2="70" vectorEffect="non-scaling-stroke" />
-                <line x1="102" y1="55" x2="92" y2="72" vectorEffect="non-scaling-stroke" />
-                <line x1="18" y1="55" x2="4" y2="45" vectorEffect="non-scaling-stroke" />
-                <line x1="18" y1="55" x2="6" y2="72" vectorEffect="non-scaling-stroke" />
-                <line x1="18" y1="55" x2="30" y2="72" vectorEffect="non-scaling-stroke" />
+                <line x1="60" y1="20" x2="45" y2="10" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="60" y1="20" x2="75" y2="10" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="60" y1="20" x2="60" y2="4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="102" y1="55" x2="116" y2="45" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="102" y1="55" x2="114" y2="70" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="102" y1="55" x2="92" y2="72" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="18" y1="55" x2="4" y2="45" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="18" y1="55" x2="6" y2="72" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="18" y1="55" x2="30" y2="72" vectorEffect="non-scaling-stroke" pathLength={1} />
               </g>
               <g className="nodes level-two">
-                <circle cx="45" cy="10" r="3" vectorEffect="non-scaling-stroke" />
-                <circle cx="75" cy="10" r="3" vectorEffect="non-scaling-stroke" />
-                <circle cx="60" cy="4" r="3" vectorEffect="non-scaling-stroke" />
-                <circle cx="116" cy="45" r="3" vectorEffect="non-scaling-stroke" />
-                <circle cx="114" cy="70" r="3" vectorEffect="non-scaling-stroke" />
-                <circle cx="92" cy="72" r="3" vectorEffect="non-scaling-stroke" />
-                <circle cx="4" cy="45" r="3" vectorEffect="non-scaling-stroke" />
-                <circle cx="6" cy="72" r="3" vectorEffect="non-scaling-stroke" />
-                <circle cx="30" cy="72" r="3" vectorEffect="non-scaling-stroke" />
+                <circle cx="45" cy="10" r="3" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="75" cy="10" r="3" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="60" cy="4" r="3" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="116" cy="45" r="3" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="114" cy="70" r="3" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="92" cy="72" r="3" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="4" cy="45" r="3" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="6" cy="72" r="3" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="30" cy="72" r="3" vectorEffect="non-scaling-stroke" pathLength={1} />
+              </g>
+              <g className="branch level-three">
+                <line x1="45" y1="10" x2="39" y2="4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="45" y1="10" x2="44" y2="2" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="75" y1="10" x2="81" y2="4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="75" y1="10" x2="76" y2="2" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="60" y1="4" x2="54" y2="0" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="60" y1="4" x2="66" y2="0" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="116" y1="45" x2="122" y2="38" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="116" y1="45" x2="120" y2="34" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="114" y1="70" x2="122" y2="78" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="114" y1="70" x2="122" y2="68" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="92" y1="72" x2="96" y2="84" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="92" y1="72" x2="100" y2="80" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="4" y1="45" x2="2" y2="36" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="4" y1="45" x2="0" y2="40" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="6" y1="72" x2="2" y2="82" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="6" y1="72" x2="0" y2="80" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="30" y1="72" x2="26" y2="84" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <line x1="30" y1="72" x2="36" y2="84" vectorEffect="non-scaling-stroke" pathLength={1} />
+              </g>
+              <g className="nodes level-three">
+                <circle cx="39" cy="4" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="44" cy="2" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="81" cy="4" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="76" cy="2" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="54" cy="0" r="2.2" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="66" cy="0" r="2.2" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="122" cy="38" r="2.6" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="120" cy="34" r="2.6" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="122" cy="78" r="2.6" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="122" cy="68" r="2.6" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="96" cy="84" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="100" cy="80" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="2" cy="36" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="0" cy="40" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="2" cy="82" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="0" cy="80" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="26" cy="84" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
+                <circle cx="36" cy="84" r="2.4" vectorEffect="non-scaling-stroke" pathLength={1} />
               </g>
             </svg>
           </span>
