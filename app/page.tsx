@@ -266,6 +266,8 @@ export default function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null);
   const lensBlinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRobotsProjectRef = useRef<string | null>(null);
+  const workspaceSectionRef = useRef<HTMLElement | null>(null);
+  const workspaceScrollPendingRef = useRef(false);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [projectForm, setProjectForm] = useState({ id: "", rootUrl: "", sitemapUrl: "" });
@@ -380,6 +382,26 @@ export default function HomePage() {
       return clusters[0]?.id ?? null;
     });
   }, [clusters]);
+
+  useEffect(() => {
+    if (coreLoading || !workspaceScrollPendingRef.current) {
+      return;
+    }
+
+    workspaceScrollPendingRef.current = false;
+    const workspaceNode = workspaceSectionRef.current;
+    if (!workspaceNode) {
+      return;
+    }
+
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(() => {
+        workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    } else {
+      workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [coreLoading]);
 
   useEffect(() => {
     if (!selectedProjectId || !accessToken) {
@@ -745,6 +767,12 @@ export default function HomePage() {
   }
 
   function handleSelectProject(id: string) {
+    if (id !== selectedProjectId) {
+      workspaceScrollPendingRef.current = true;
+      if (accessToken) {
+        setCoreLoading(true);
+      }
+    }
     setSelectedProjectId(id);
     const project = projects.find((item) => item.id === id);
     if (project) {
@@ -1788,6 +1816,15 @@ export default function HomePage() {
               </form>
               <div className="project-list-card">
                 <p className="muted">Active projects</p>
+                {coreLoading && selectedProjectId && (
+                  <div className="project-card-loading" role="status" aria-live="polite">
+                    <span className="project-card-spinner" aria-hidden="true" />
+                    <div className="project-card-loading-text">
+                      <strong>Loading workspace</strong>
+                      <span>Centering {selectedProjectId}</span>
+                    </div>
+                  </div>
+                )}
                 {status.projects ? (
                   <p className="muted">Loading projects…</p>
                 ) : projects.length === 0 ? (
@@ -1836,6 +1873,7 @@ export default function HomePage() {
         </section>
 
         <section
+          ref={workspaceSectionRef}
           className={`workflow-section ${activeWorkflow ? "is-condensed" : ""} ${
             isMorphing ? "is-morphing" : ""
           }`}
