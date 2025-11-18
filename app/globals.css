@@ -463,9 +463,9 @@ main {
 .workflow-stage-button {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 1.1rem;
   border-radius: 26px;
-  padding: 0.75rem 1.35rem 0.75rem 0.6rem;
+  padding: 0.85rem 1.45rem 0.85rem 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: linear-gradient(145deg, rgba(6, 8, 18, 0.9), rgba(12, 16, 32, 0.75));
   color: var(--silver-50);
