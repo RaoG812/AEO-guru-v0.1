@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { load as parseYaml } from "js-yaml";
 import type { JSX, KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { FiFileText, FiShare2, FiUpload } from "react-icons/fi";
@@ -57,6 +58,53 @@ type AssociatedRecord = {
   lang?: string | null;
   recommendedSchemas: string[];
   excerpt: string;
+};
+
+type VectorDistribution = { label: string; count: number };
+
+type VectorSampleSummary = {
+  id: string;
+  url: string | null;
+  title: string | null;
+  intent: string | null;
+  primaryKeyword: string | null;
+  lang: string | null;
+  magnitude: number | null;
+  preview: number[];
+};
+
+type ProjectVectorSummary = {
+  totalPoints: number;
+  vectorDimension: number | null;
+  avgMagnitude: number | null;
+  maxMagnitude: number | null;
+  languages: VectorDistribution[];
+  intents: VectorDistribution[];
+  sources: VectorDistribution[];
+  samples: VectorSampleSummary[];
+};
+
+type SemanticDigestTopic = {
+  topic: string;
+  intent: string | null;
+  queries: string[];
+  actions: string[];
+};
+
+type SemanticDigestPage = {
+  title: string | null;
+  url: string | null;
+  intent: string | null;
+  schema: string[];
+  supporting: string[];
+};
+
+type SemanticDigest = {
+  label: string;
+  summary: string | null;
+  focusTopics: SemanticDigestTopic[];
+  keyPages: SemanticDigestPage[];
+  error?: string | null;
 };
 
 type StatusState = {
@@ -194,6 +242,121 @@ const emptyWorkspace: SemanticCoreWorkspace = {
   updatedAt: null
 };
 
+type SemanticSegment = { label: string; body: string };
+
+function splitSemanticSegments(raw: string): SemanticSegment[] {
+  const segments: SemanticSegment[] = [];
+  let label = "Base semantic core";
+  let cursor = 0;
+  const markerRegex = /^#\s*Enlarge run[^\n]*$/gim;
+  let match: RegExpExecArray | null;
+  while ((match = markerRegex.exec(raw))) {
+    const chunk = raw.slice(cursor, match.index).trim();
+    if (chunk) {
+      segments.push({ label, body: chunk });
+    }
+    label = match[0].replace(/^#\s*/, "").trim() || "Enlarge run";
+    cursor = match.index + match[0].length;
+    while (raw[cursor] === "\n" || raw[cursor] === "\r") {
+      cursor += 1;
+    }
+  }
+  const tail = raw.slice(cursor).trim();
+  if (tail) {
+    segments.push({ label, body: tail });
+  }
+  return segments;
+}
+
+function coerceString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function normalizeStrings(value: unknown, limit?: number): string[] {
+  if (!Array.isArray(value)) return [];
+  const normalized = value
+    .map((item) => (typeof item === "string" ? item.trim() : ""))
+    .filter((item): item is string => item.length > 0);
+  if (typeof limit === "number") {
+    return normalized.slice(0, limit);
+  }
+  return normalized;
+}
+
+function buildSemanticDigestsFromYaml(raw: string | null | undefined): SemanticDigest[] {
+  const yaml = raw?.trim();
+  if (!yaml) return [];
+  const segments = splitSemanticSegments(yaml);
+  return segments.map((segment) => {
+    try {
+      const parsed = parseYaml(segment.body);
+      if (!parsed || typeof parsed !== "object") {
+        return {
+          label: segment.label,
+          summary: null,
+          focusTopics: [],
+          keyPages: [],
+          error: "Segment is missing semantic core fields"
+        };
+      }
+      const record = parsed as Record<string, any>;
+      const summary = coerceString(record.executiveSummary);
+      const focusTopics = Array.isArray(record.focusTopics)
+        ? record.focusTopics
+            .map((item: any) => {
+              const topic = coerceString(item?.topic);
+              if (!topic) return null;
+              return {
+                topic,
+                intent: coerceString(item?.audienceIntent),
+                queries: normalizeStrings(item?.supportingQueries, 3),
+                actions: normalizeStrings(item?.recommendedActions, 3)
+              };
+            })
+            .filter((item): item is SemanticDigestTopic => Boolean(item))
+            .slice(0, 3)
+        : [];
+      const keyPages = Array.isArray(record.keyPages)
+        ? record.keyPages
+            .map((item: any) => {
+              const url = coerceString(item?.url);
+              const title = coerceString(item?.title);
+              if (!url && !title) return null;
+              return {
+                title,
+                url,
+                intent: coerceString(item?.primaryIntent),
+                schema: normalizeStrings(item?.schemaOpportunities, 3),
+                supporting: normalizeStrings(item?.supportingContent, 3)
+              };
+            })
+            .filter((item): item is SemanticDigestPage => Boolean(item))
+            .slice(0, 3)
+        : [];
+      return {
+        label: segment.label,
+        summary,
+        focusTopics,
+        keyPages,
+        error: null
+      };
+    } catch (error) {
+      console.warn("Unable to parse semantic core YAML", error);
+      return {
+        label: segment.label,
+        summary: null,
+        focusTopics: [],
+        keyPages: [],
+        error: "Invalid YAML block"
+      };
+    }
+  });
+}
+
+function formatMagnitude(value: number | null): string {
+  return typeof value === "number" ? value.toFixed(2) : "–";
+}
+
 function buildDefaultAgentSelection(): Record<PopularAgent, boolean> {
   return POPULAR_USER_AGENTS.reduce(
     (acc, agent) => {
@@ -299,6 +462,9 @@ export default function HomePage() {
   const [coreMessage, setCoreMessage] = useState<string | null>(null);
   const [coreEnlarging, setCoreEnlarging] = useState(false);
   const [associatedRecords, setAssociatedRecords] = useState<AssociatedRecord[]>([]);
+  const [vectorSummary, setVectorSummary] = useState<ProjectVectorSummary | null>(null);
+  const [vectorSummaryLoading, setVectorSummaryLoading] = useState(false);
+  const [vectorSummaryError, setVectorSummaryError] = useState<string | null>(null);
   const [activeClusterId, setActiveClusterId] = useState<string | null>(null);
   const [status, setStatus] = useState<StatusState>(initialStatus);
   const [ingestMessage, setIngestMessage] = useState<string>("");
@@ -410,6 +576,41 @@ export default function HomePage() {
       return clusters[0]?.id ?? null;
     });
   }, [clusters]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!selectedProjectId) {
+      setVectorSummary(null);
+      setVectorSummaryError(null);
+      setVectorSummaryLoading(false);
+      return;
+    }
+    setVectorSummaryLoading(true);
+    setVectorSummaryError(null);
+    (async () => {
+      try {
+        const res = await fetch(`/api/projects/${selectedProjectId}/vectors`);
+        const json = await res.json();
+        if (cancelled) return;
+        if (!res.ok || json?.ok === false) {
+          throw new Error(json?.error ?? "Unable to inspect vectors");
+        }
+        setVectorSummary(json.summary ?? null);
+      } catch (error) {
+        if (cancelled) return;
+        setVectorSummary(null);
+        setVectorSummaryError((error as Error).message);
+      } finally {
+        if (!cancelled) {
+          setVectorSummaryLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProjectId]);
 
   useEffect(() => {
     if (coreLoading || !workspaceScrollPendingRef.current) {
@@ -1108,6 +1309,11 @@ export default function HomePage() {
         keywordsDraft: ""
       }
     : null;
+
+  const semanticCoreDigests = useMemo(
+    () => buildSemanticDigestsFromYaml(coreWorkspace.semanticCoreYaml),
+    [coreWorkspace.semanticCoreYaml]
+  );
 
   const maxClusterSize = useMemo(() => {
     if (!clusters.length) return 1;
@@ -2269,6 +2475,196 @@ export default function HomePage() {
                       placeholder="Paste or refine the semantic-core.yaml export to keep a living reference."
                     />
                   </label>
+                  <div className="semantic-core-visualizer" aria-live="polite">
+                    <article className="semantic-panel">
+                      <div className="core-header">
+                        <div>
+                          <p className="eyebrow">Qdrant vector lab</p>
+                          <p className="muted">Peek at the embeddings driving this semantic core.</p>
+                        </div>
+                        {vectorSummary?.vectorDimension ? (
+                          <span className="pill">{vectorSummary.vectorDimension} dims</span>
+                        ) : null}
+                      </div>
+                      {!selectedProjectId ? (
+                        <p className="muted">Select a project to visualize its Qdrant vectors.</p>
+                      ) : vectorSummaryLoading ? (
+                        <p className="muted">Inspecting vector store…</p>
+                      ) : vectorSummaryError ? (
+                        <p className="error-text small">{vectorSummaryError}</p>
+                      ) : vectorSummary ? (
+                        <>
+                          <div className="vector-metrics">
+                            <div className="vector-metric">
+                              <p className="eyebrow">Vectors</p>
+                              <strong>{vectorSummary.totalPoints.toLocaleString()}</strong>
+                              <span className="muted">records captured</span>
+                            </div>
+                            <div className="vector-metric">
+                              <p className="eyebrow">Avg magnitude</p>
+                              <strong>{formatMagnitude(vectorSummary.avgMagnitude)}</strong>
+                              <span className="muted">Peak {formatMagnitude(vectorSummary.maxMagnitude)}</span>
+                            </div>
+                            <div className="vector-metric">
+                              <p className="eyebrow">Top languages</p>
+                              <div className="vector-distribution">
+                                {vectorSummary.languages.length > 0 ? (
+                                  vectorSummary.languages.map((lang) => (
+                                    <span key={`lang-${lang.label}`}>
+                                      {lang.label} · {lang.count}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span>No language signals</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="vector-metric">
+                              <p className="eyebrow">Dominant intents</p>
+                              <div className="vector-distribution">
+                                {vectorSummary.intents.length > 0 ? (
+                                  vectorSummary.intents.map((intent) => (
+                                    <span key={`intent-${intent.label}`}>
+                                      {intent.label} · {intent.count}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span>Awaiting annotations</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          {vectorSummary.sources.length > 0 && (
+                            <div className="vector-sources">
+                              <p className="muted">
+                                Sources: {vectorSummary.sources.map((source) => `${source.label} (${source.count})`).join(", ")}
+                              </p>
+                            </div>
+                          )}
+                          {vectorSummary.samples.length > 0 ? (
+                            <ul className="vector-samples">
+                              {vectorSummary.samples.map((sample) => (
+                                <li key={sample.id} className="vector-sample">
+                                  <div className="vector-sample-head">
+                                    <div>
+                                      <strong>{sample.title ?? sample.url ?? sample.id}</strong>
+                                      {sample.url && <p className="muted vector-url">{sample.url}</p>}
+                                    </div>
+                                    <div className="vector-sample-meta">
+                                      {sample.intent && <span>{sample.intent}</span>}
+                                      {sample.lang && <span>{sample.lang}</span>}
+                                      {sample.primaryKeyword && <span>{sample.primaryKeyword}</span>}
+                                    </div>
+                                  </div>
+                                  <div className="vector-sample-meta">
+                                    <span>Magnitude: {formatMagnitude(sample.magnitude)}</span>
+                                    <span>Preview slice</span>
+                                  </div>
+                                  <div className="vector-preview" aria-label="Vector preview values">
+                                    {sample.preview.length > 0 ? (
+                                      sample.preview.map((value, index) => (
+                                        <span key={`${sample.id}-${index}`}>
+                                          {Number.isFinite(value) ? Number(value).toFixed(2) : "0.00"}
+                                        </span>
+                                      ))
+                                    ) : (
+                                      <span>No preview available</span>
+                                    )}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="muted">No enriched vectors sampled yet.</p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="muted">Vector embeddings not available. Ingest a crawl to get started.</p>
+                      )}
+                    </article>
+                    <article className="semantic-panel">
+                      <div className="core-header">
+                        <div>
+                          <p className="eyebrow">Semantic digest</p>
+                          <p className="muted">UX view of basic + enlarged core material.</p>
+                        </div>
+                        {semanticCoreDigests.length > 1 && (
+                          <span className="pill">{semanticCoreDigests.length} slices</span>
+                        )}
+                      </div>
+                      {semanticCoreDigests.length === 0 ? (
+                        <p className="muted">Paste semantic-core.yaml to unlock a structured digest.</p>
+                      ) : (
+                        <div className="semantic-digest-cards">
+                          {semanticCoreDigests.map((digest, index) => (
+                            <div key={`${digest.label}-${index}`} className="semantic-digest-card">
+                              <div className="semantic-digest-head">
+                                <strong>{digest.label}</strong>
+                                {digest.summary && <p className="muted">{digest.summary}</p>}
+                              </div>
+                              {digest.error ? (
+                                <p className="error-text small">{digest.error}</p>
+                              ) : (
+                                <div className="semantic-digest-groups">
+                                  <div>
+                                    <p className="eyebrow">Focus topics</p>
+                                    {digest.focusTopics.length === 0 ? (
+                                      <p className="muted">No focus topics parsed.</p>
+                                    ) : (
+                                      <ul className="semantic-list">
+                                        {digest.focusTopics.map((topic, topicIndex) => (
+                                          <li key={`${topic.topic}-${topicIndex}`}>
+                                            <div className="semantic-topic-head">
+                                              <strong>{topic.topic}</strong>
+                                              {topic.intent && <span>{topic.intent}</span>}
+                                            </div>
+                                            <div className="semantic-topic-body">
+                                              {topic.queries.length > 0 && (
+                                                <span>Queries: {topic.queries.join(", ")}</span>
+                                              )}
+                                              {topic.actions.length > 0 && (
+                                                <span>Actions: {topic.actions.join(" · ")}</span>
+                                              )}
+                                            </div>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="eyebrow">Key pages</p>
+                                    {digest.keyPages.length === 0 ? (
+                                      <p className="muted">No key pages parsed.</p>
+                                    ) : (
+                                      <ul className="semantic-list">
+                                        {digest.keyPages.map((page, pageIndex) => (
+                                          <li key={`${page.url ?? page.title ?? pageIndex}-${pageIndex}`}>
+                                            <div className="semantic-topic-head">
+                                              <strong>{page.title ?? page.url ?? "Untitled"}</strong>
+                                              {page.intent && <span>{page.intent}</span>}
+                                            </div>
+                                            {page.url && <p className="muted semantic-url">{page.url}</p>}
+                                            <div className="semantic-topic-body">
+                                              {page.schema.length > 0 && (
+                                                <span>Schema: {page.schema.join(", ")}</span>
+                                              )}
+                                              {page.supporting.length > 0 && (
+                                                <span>Support: {page.supporting.join(" · ")}</span>
+                                              )}
+                                            </div>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </article>
+                  </div>
                   {activeCluster && activeClusterNote && (
                     <div className="cluster-note-editor">
                       <div className="cluster-note-header">

@@ -2269,6 +2269,182 @@ main {
   gap: 1rem;
 }
 
+.semantic-core-visualizer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.semantic-panel {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.vector-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.vector-metric {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.6rem 0.8rem;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.vector-metric strong {
+  display: block;
+  font-size: 1.3rem;
+}
+
+.vector-distribution {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+  color: var(--silver-300);
+}
+
+.vector-sources {
+  font-size: 0.85rem;
+  color: var(--silver-300);
+}
+
+.vector-samples {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.vector-sample {
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.vector-sample-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.vector-sample-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.65rem;
+  font-size: 0.8rem;
+  color: var(--silver-300);
+}
+
+.vector-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 0.4rem;
+  font-family: "Space Grotesk", "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+}
+
+.vector-preview span {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.2rem 0.35rem;
+  text-align: center;
+}
+
+.vector-url {
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+.semantic-digest-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.semantic-digest-card {
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.9rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.semantic-digest-head {
+  display: flex;
+  flex-direction: column;
+}
+
+.semantic-digest-head p {
+  margin: 0.25rem 0 0;
+}
+
+.semantic-digest-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.semantic-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.semantic-list li {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.6rem 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.semantic-topic-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.semantic-topic-head span {
+  font-size: 0.75rem;
+  color: var(--silver-300);
+  text-transform: capitalize;
+}
+
+.semantic-topic-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+  color: var(--silver-200);
+}
+
+.semantic-url {
+  font-size: 0.78rem;
+  word-break: break-all;
+}
+
 .core-header {
   display: flex;
   justify-content: space-between;
