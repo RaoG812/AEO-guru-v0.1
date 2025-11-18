@@ -1974,10 +1974,10 @@ export default function HomePage() {
                   {ingestMessage && <p className="muted">{ingestMessage}</p>}
                 </form>
                 {hasExistingIngestion && vectorSummary && (
-                  <section className="seek-widget" aria-live="polite">
-                    <div className="seek-widget-head">
+                  <section className="sleek-widget" aria-live="polite">
+                    <div className="sleek-widget-head">
                       <div>
-                        <p className="eyebrow">Seek widget</p>
+                        <p className="eyebrow">Sleek widget</p>
                         <h3>Ingestion results</h3>
                         <p className="muted small">Latest crawl coverage synced from Qdrant.</p>
                       </div>
@@ -1985,30 +1985,30 @@ export default function HomePage() {
                         {vectorSummary.totalPoints.toLocaleString()} vectors
                       </span>
                     </div>
-                    <div className="seek-widget-grid">
-                      <div className="seek-metric">
+                    <div className="sleek-widget-grid">
+                      <div className="sleek-metric">
                         <p className="muted small">Languages detected</p>
                         <strong>{vectorSummary.languages.length}</strong>
                       </div>
-                      <div className="seek-metric">
+                      <div className="sleek-metric">
                         <p className="muted small">Intent families</p>
                         <strong>{vectorSummary.intents.length}</strong>
                       </div>
-                      <div className="seek-metric">
+                      <div className="sleek-metric">
                         <p className="muted small">Source inputs</p>
                         <strong>{vectorSummary.sources.length}</strong>
                       </div>
                     </div>
-                    <div className="seek-score-card">
+                    <div className="sleek-score-card">
                       <p className="eyebrow">AEO/GEO optimization score</p>
                       {overallOptimizationScore ? (
                         <>
-                          <div className="seek-score-value">
+                          <div className="sleek-score-value">
                             <strong>{overallOptimizationScore.value}</strong>
                             <span>/100</span>
                           </div>
                           <p className="muted">{overallOptimizationScore.summary}</p>
-                          <div className="seek-score-breakdown">
+                          <div className="sleek-score-breakdown">
                             <span>Semantic avg {overallOptimizationScore.base}</span>
                             <span>
                               {overallOptimizationScore.geoBonus > 0

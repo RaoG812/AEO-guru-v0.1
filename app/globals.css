@@ -1451,7 +1451,7 @@ main {
   gap: 0.5rem;
 }
 
-.seek-widget {
+.sleek-widget {
   margin-top: 1.5rem;
   border-radius: 26px;
   padding: 1.5rem;
@@ -1463,24 +1463,24 @@ main {
   gap: 1.2rem;
 }
 
-.seek-widget-head {
+.sleek-widget-head {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   align-items: flex-start;
 }
 
-.seek-widget-head h3 {
+.sleek-widget-head h3 {
   margin: 0.2rem 0 0;
 }
 
-.seek-widget-grid {
+.sleek-widget-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 0.9rem;
 }
 
-.seek-metric {
+.sleek-metric {
   border-radius: 18px;
   padding: 0.95rem 1rem;
   background: rgba(0, 0, 0, 0.45);
@@ -1490,11 +1490,11 @@ main {
   gap: 0.3rem;
 }
 
-.seek-metric strong {
+.sleek-metric strong {
   font-size: 1.5rem;
 }
 
-.seek-score-card {
+.sleek-score-card {
   border-radius: 18px;
   padding: 1rem 1.2rem;
   background: rgba(0, 0, 0, 0.55);
@@ -1504,7 +1504,7 @@ main {
   gap: 0.5rem;
 }
 
-.seek-score-value {
+.sleek-score-value {
   display: flex;
   align-items: baseline;
   gap: 0.35rem;
@@ -1512,12 +1512,12 @@ main {
   font-weight: 600;
 }
 
-.seek-score-value span {
+.sleek-score-value span {
   font-size: 1rem;
   color: var(--silver-400);
 }
 
-.seek-score-breakdown {
+.sleek-score-breakdown {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
