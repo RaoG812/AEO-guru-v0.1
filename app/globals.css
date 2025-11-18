@@ -2231,14 +2231,12 @@ main {
   gap: 0.35rem;
   position: relative;
   overflow: hidden;
-  transition: border-color 0.3s ease, background-color 0.35s ease, transform 0.4s ease, box-shadow 0.4s ease;
   --cockpit-body-max: 0px;
   --cockpit-body-opacity: 0;
   --cockpit-body-translate: -6px;
   --cockpit-body-pointer: none;
   --cockpit-body-visibility: hidden;
   --cockpit-body-padding: 0px;
-  --cockpit-body-delay: 0.25s;
   contain: paint;
 }
 
@@ -2246,14 +2244,12 @@ main {
   border-color: rgba(255, 255, 255, 0.18);
   background-color: #050505;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-  transform: translateY(-2px);
   --cockpit-body-max: 1000px;
   --cockpit-body-opacity: 1;
   --cockpit-body-translate: 0px;
   --cockpit-body-pointer: auto;
   --cockpit-body-visibility: visible;
   --cockpit-body-padding: 0.6rem;
-  --cockpit-body-delay: 0s;
 }
 
 .export-cockpit-card h4 {
@@ -2332,9 +2328,6 @@ main {
   padding-top: var(--cockpit-body-padding);
   margin-top: var(--cockpit-body-padding);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  transition: max-height 0.55s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease,
-    transform 0.35s ease, visibility 0s linear var(--cockpit-body-delay);
-  will-change: max-height, opacity, transform;
 }
 
 .checkbox-grid {
