@@ -1929,7 +1929,7 @@ export default function HomePage() {
           <div className="hero-content">
             <div className="hero-header">
               <div className="hero-heading">
-                <p className="hero-subline">Answer Engine Ops</p>
+                <p className="hero-subline">Answer Engine Optimization</p>
                 <h1>AEO Guru</h1>
                 <div className="hero-auth-controls">
                   {session ? (
