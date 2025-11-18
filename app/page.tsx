@@ -584,6 +584,20 @@ export default function HomePage() {
       workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, []);
+  const scrollHeroIntoView = useCallback(() => {
+    const heroNode = heroRef.current;
+    if (!heroNode) {
+      return;
+    }
+
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(() => {
+        heroNode.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    } else {
+      heroNode.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
   const [exportPreviews, setExportPreviews] = useState<
     Partial<Record<ExportArtifactKey, string>>
   >({});
@@ -628,13 +642,6 @@ export default function HomePage() {
         targetRef: projectRegistryRef
       },
       {
-        key: "workflow",
-        title: "Work through each stage",
-        body: "Follow the ingest → cluster → outputs flow. Selecting any tile reveals the tools housed in that workspace.",
-        placement: "bottom",
-        targetRef: workspaceSectionRef
-      },
-      {
         key: "workflow-ingest",
         title: "Kick off ingest",
         body:
@@ -660,6 +667,13 @@ export default function HomePage() {
         placement: "bottom",
         targetRef: outputsStageRef,
         workflowTarget: "outputs"
+      },
+      {
+        key: "workflow",
+        title: "Review the flow",
+        body: "With each tile complete, keep following the ingest → cluster → outputs loop whenever you return.",
+        placement: "bottom",
+        targetRef: workspaceSectionRef
       }
     ];
 
@@ -730,11 +744,12 @@ export default function HomePage() {
 
   const handleGuideNext = useCallback(() => {
     if (isLastGuideStep) {
+      scrollHeroIntoView();
       closeGuide();
       return;
     }
     setGuideStepIndex((prev) => Math.min(prev + 1, totalGuideSteps - 1));
-  }, [closeGuide, isLastGuideStep, totalGuideSteps]);
+  }, [closeGuide, isLastGuideStep, scrollHeroIntoView, totalGuideSteps]);
 
   const handleGuidePrev = useCallback(() => {
     setGuideStepIndex((prev) => Math.max(prev - 1, 0));
@@ -912,6 +927,23 @@ export default function HomePage() {
     setActiveWorkflow(step.workflowTarget);
     scrollWorkspaceIntoView();
   }, [guideOpen, guidanceSteps, guideStepIndex, scrollWorkspaceIntoView]);
+
+  useEffect(() => {
+    if (!guideOpen) return;
+    const step = guidanceSteps[guideStepIndex];
+    if (!step?.targetRef?.current || step.workflowTarget) {
+      return;
+    }
+    const node = step.targetRef.current;
+    const runScroll = () => {
+      node.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+    };
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(runScroll);
+    } else {
+      runScroll();
+    }
+  }, [guideOpen, guidanceSteps, guideStepIndex]);
 
   useEffect(() => {
     if (!clusters.length) {
