@@ -155,6 +155,11 @@ type SpotlightRect = {
   height: number;
 };
 
+type ScrollWorkspaceOptions = {
+  target?: HTMLElement | null;
+  offset?: number;
+};
+
 const initialStatus: StatusState = {
   ingest: false,
   clusters: false,
@@ -570,21 +575,22 @@ export default function HomePage() {
   const guideTooltipRef = useRef<HTMLDivElement | null>(null);
   const [guideTooltipSize, setGuideTooltipSize] = useState({ width: 0, height: 0 });
   const [dockAnchorTop, setDockAnchorTop] = useState<number | null>(null);
-  const scrollWorkspaceIntoView = useCallback(() => {
-    const workspaceNode = workspaceSectionRef.current;
-    if (!workspaceNode) {
+  const scrollWorkspaceIntoView = useCallback((options?: ScrollWorkspaceOptions) => {
+    const targetNode = options?.target ?? workspaceSectionRef.current;
+    if (!targetNode) {
       return;
     }
 
     const runScroll = () => {
       if (typeof window === "undefined") {
-        workspaceNode.scrollIntoView({ behavior: "smooth", block: "start" });
+        targetNode.scrollIntoView({ behavior: "smooth", block: "start" });
         return;
       }
 
-      const rect = workspaceNode.getBoundingClientRect();
-      const offset = Math.max(rect.top + window.scrollY - 48, 0);
-      window.scrollTo({ top: offset, behavior: "smooth" });
+      const rect = targetNode.getBoundingClientRect();
+      const desiredOffset = Math.max(options?.offset ?? 48, 0);
+      const offsetTop = Math.max(rect.top + window.scrollY - desiredOffset, 0);
+      window.scrollTo({ top: offsetTop, behavior: "smooth" });
     };
 
     if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
@@ -934,7 +940,7 @@ export default function HomePage() {
     const step = guidanceSteps[guideStepIndex];
     if (!step?.workflowTarget) return;
     setActiveWorkflow(step.workflowTarget);
-    scrollWorkspaceIntoView();
+    scrollWorkspaceIntoView({ target: step.targetRef?.current ?? null, offset: 120 });
   }, [guideOpen, guidanceSteps, guideStepIndex, scrollWorkspaceIntoView]);
 
   useEffect(() => {
