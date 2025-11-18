@@ -674,29 +674,24 @@
               <p>Gemini Pro Latest plus Gemini 2.5 Flash Lite cover reasoning, summarization, and export copy.</p>
             </div>
             <div class="provider-logo">
-              <img src="./lablab.png" alt="lablab.ai logo" />
-              <span>lablab.ai Arena</span>
-              <p>AI Genesis infrastructure hosts the live demo track + judging arena.</p>
-            </div>
-            <div class="provider-logo">
               <img src="./supabase.png" alt="Supabase logo" />
               <span>Supabase</span>
-              <p>Auth + Postgres persistence secure users, workspaces, and audit trails.</p>
+              <p>@supabase/supabase-js powers the auth flow, workspace storage, and row-level policies.</p>
             </div>
             <div class="provider-logo">
               <img src="./qdrant.png" alt="Qdrant logo" />
               <span>Qdrant</span>
-              <p>Holds semantic fingerprints + retrieval indexes for every artifact.</p>
+              <p>@qdrant/js-client-rest stores every embedding + payload so clusters stay reproducible.</p>
             </div>
             <div class="provider-logo">
               <img src="./vercel.png" alt="Vercel logo" />
               <span>Vercel</span>
-              <p>Deploys the Next.js experience + background jobs on the edge.</p>
+              <p>Next.js App Router pages stream from Vercel edge regions with zero-config deployments.</p>
             </div>
             <div class="provider-logo">
               <img src="./github.png" alt="GitHub logo" />
               <span>GitHub</span>
-              <p>Source of truth for the repo, Actions CI, and community issue tracking.</p>
+              <p>Source of truth for the repo plus documentation so judges can audit every commit.</p>
             </div>
           </div>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
@@ -825,10 +820,10 @@
                   <div class="phase-badge">3</div>
                   <div class="phase-copy">
                     <h3>Cluster</h3>
-                    <p class="muted">Spectral clustering feeds entity graphs, structured prompts, and scoring hints.</p>
+                    <p class="muted">Custom k-means clusters (lib/clustering.ts) feed entity graphs + scoring hints.</p>
                   </div>
                   <div class="phase-meta">
-                    <span>Stack: Custom clustering</span>
+                    <span>Stack: lib/clustering.ts · Qdrant vectors</span>
                     <span>Output: Brief-ready narratives</span>
                   </div>
                 </article>
@@ -956,7 +951,7 @@
           </div>
           <p class="muted">
             Pricing stays approachable for hackathon judges while still covering the November 2025 Gemini token tables,
-            Qdrant dedicated capacity, Supabase auth/storage, Vercel edge compute, and lablab.ai arena egress. Every
+            Qdrant dedicated capacity, Supabase auth/storage, and Vercel edge compute. Every
             plan ties to observed ingest → cluster → export runs.
           </p>
           <div class="projection-grid">
@@ -969,7 +964,7 @@
                 <li>160k output tokens · $0.17 (Gemini 2.5 Flash Lite streaming)</li>
                 <li>120k audit tokens · $0.94 (Gemini Pro Latest eval + critique)</li>
                 <li>Qdrant dedicated writes + Supabase storage · $0.80</li>
-                <li>Vercel edge compute + lablab.ai arena egress · $0.81</li>
+                <li>Vercel edge streaming + Supabase bandwidth · $0.81</li>
               </ul>
             </div>
             <div class="projection-card">
@@ -996,7 +991,7 @@
             </div>
           </div>
           <p class="projection-note">Assumptions cite Google Gemini November 2025 pricing, Qdrant Dedicated Large,
-            Supabase Pro storage/auth, Vercel Pro bandwidth, and lablab.ai arena metered egress.</p>
+            Supabase Pro storage/auth, and Vercel Pro bandwidth.</p>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
         </div>
       </section>
