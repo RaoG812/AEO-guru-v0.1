@@ -379,6 +379,72 @@
         padding-left: 1.2rem;
       }
 
+      .projection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+      }
+
+      .projection-card {
+        border-radius: 24px;
+        padding: 1.4rem;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .projection-card strong {
+        font-size: 2rem;
+        display: block;
+      }
+
+      .projection-card ul {
+        margin: 0.8rem 0 0;
+        padding-left: 1.1rem;
+        color: var(--silver-200);
+      }
+
+      .projection-note {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: var(--silver-400);
+      }
+
+      .provider-logos {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .provider-logo {
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.03);
+        padding: 1rem;
+        text-align: center;
+      }
+
+      .provider-logo img {
+        height: 40px;
+        object-fit: contain;
+        filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.35));
+        margin-bottom: 0.6rem;
+      }
+
+      .provider-logo span {
+        display: block;
+        font-size: 0.9rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--silver-200);
+      }
+
+      .provider-logo p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--silver-400);
+      }
+
       .roadmap {
         display: flex;
         flex-direction: column;
@@ -524,6 +590,113 @@
           </div>
         </div>
         <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Technology Backbone</p>
+              <h2>Trusted providers keep the experience smooth</h2>
+            </div>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Trusted logos</span>
+            </div>
+          </div>
+          <p class="muted">
+            We intentionally assemble the stack from public, well-documented providers so judges know exactly how we
+            scale. Every logo below links to a service with transparent usage limits and status pages.
+          </p>
+          <div class="provider-logos">
+            <div class="provider-logo">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI logo" />
+              <span>OpenAI</span>
+              <p>GPT-4o + embeddings power clustering + copy.</p>
+            </div>
+            <div class="provider-logo">
+              <img
+                src="https://assets-global.website-files.com/5f7f92e72071db893acdc2bd/640f26acb3e7f91c87de1c97_Pinecone_logo.svg"
+                alt="Pinecone logo"
+              />
+              <span>Pinecone</span>
+              <p>Dedicated pods handle semantic search + recall.</p>
+            </div>
+            <div class="provider-logo">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Supabase_logo.svg" alt="Supabase logo" />
+              <span>Supabase</span>
+              <p>Postgres edge functions gate tokens + auth.</p>
+            </div>
+            <div class="provider-logo">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Cloudflare_logo.svg" alt="Cloudflare logo" />
+              <span>Cloudflare R2</span>
+              <p>Low-cost storage + generous egress caps.</p>
+            </div>
+            <div class="provider-logo">
+              <img src="https://assets.vercel.com/image/upload/v1588805858/repositories/vercel/logo.svg" alt="Vercel logo" />
+              <span>Vercel</span>
+              <p>Edge functions host the ingest + export UI.</p>
+            </div>
+          </div>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Financial Projections</p>
+              <h2>Unit economics mapped to token + egress ceilings</h2>
+            </div>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Forecast</span>
+            </div>
+          </div>
+          <p class="muted">
+            Pricing stays approachable for hackathon judges while still covering GPT-4o tokens, vector storage, and
+            egress-heavy exports. Every plan is modeled against actual usage from the ingest → cluster → export loop.
+          </p>
+          <div class="projection-grid">
+            <div class="projection-card">
+              <h3>Per run @ $5</h3>
+              <strong>$3.05 cost</strong>
+              <p class="muted">39% gross margin with transparent pass-through inputs.</p>
+              <ul>
+                <li>450k input tokens · $1.35 (OpenAI GPT-4o mini)</li>
+                <li>150k output tokens · $0.45 (narrative + exports)</li>
+                <li>Embeddings + vector writes · $0.55 (Pinecone/Supabase)</li>
+                <li>File egress + Vercel compute · $0.70</li>
+              </ul>
+            </div>
+            <div class="projection-card">
+              <h3>Growth plan @ $49</h3>
+              <strong>$31 avg margin</strong>
+              <p class="muted">Assumes 12 heavy runs + 8 light runs per workspace.</p>
+              <ul>
+                <li>Light runs reuse embeddings (50% cheaper)</li>
+                <li>Shared storage amortizes R2 costs to $0.20/run</li>
+                <li>Seat-based telemetry upsells add $9 ARPU</li>
+                <li>Support + infra stay under $3 per seat</li>
+              </ul>
+            </div>
+            <div class="projection-card">
+              <h3>12-month outlook</h3>
+              <strong>$420k GMV</strong>
+              <p class="muted">2.5k paid runs + 300 growth seats + 12 enterprise pilots.</p>
+              <ul>
+                <li>Token budget: $140k</li>
+                <li>Vector/egress budget: $48k</li>
+                <li>Gross margin: 55% with partner services</li>
+                <li>Breakeven headcount: 3 FTE</li>
+              </ul>
+            </div>
+          </div>
+          <p class="projection-note">Assumptions include OpenAI rate card (June 2024), Pinecone pod pricing, Supabase
+            storage tiers, and Cloudflare R2 egress caps.</p>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
+        </div>
       </section>
 
       <section class="slide">
@@ -707,17 +880,17 @@
           <div class="pricing-grid">
             <div class="pricing-card">
               <h3>Starter</h3>
-              <strong>$499 / run</strong>
-              <p class="muted">1 project • 3 exports • basic collaboration</p>
+              <strong>$5 / run</strong>
+              <p class="muted">Buy tokens per deliverable • instant PDF + CSV exports</p>
               <ul>
-                <li>Ideal for hackathon pilot</li>
+                <li>Great for ad-hoc briefs</li>
                 <li>Email support</li>
               </ul>
             </div>
             <div class="pricing-card" data-tier="highlight">
               <h3>Growth</h3>
-              <strong>$2.5k / month</strong>
-              <p class="muted">Unlimited runs • team seats • AI telemetry</p>
+              <strong>$49 / month</strong>
+              <p class="muted">Up to 20 runs • shared workspace • live AI telemetry</p>
               <ul>
                 <li>White-label exports</li>
                 <li>Custom taxonomies</li>
