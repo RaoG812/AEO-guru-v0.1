@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AEO Guru — Product Presentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --obsidian: #04050a;
+        --obsidian-soft: #070915;
+        --silver-50: #f6f7fb;
+        --silver-200: #dfe4f1;
+        --silver-400: #b5bdd4;
+        --silver-600: #7a8096;
+        --accent: #8bb3ff;
+        --accent-soft: rgba(139, 179, 255, 0.18);
+        --lens-radius: 140px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.1), transparent 50%),
+          radial-gradient(circle at 85% 0%, rgba(149, 174, 255, 0.18), transparent 40%),
+          linear-gradient(135deg, #03040b 0%, #050813 40%, #05040a 100%);
+        color: var(--silver-50);
+        padding: 0;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background: radial-gradient(circle at 25% 20%, rgba(255, 255, 255, 0.12), transparent 55%),
+          radial-gradient(circle at 70% 0%, rgba(147, 159, 255, 0.25), transparent 50%),
+          linear-gradient(135deg, #03040b 0%, #050813 40%, #05040a 100%);
+        filter: blur(10px);
+      }
+
+      .deck {
+        min-height: 100vh;
+        padding: 4rem 2.5rem 6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 4rem;
+        align-items: center;
+      }
+
+      .slide {
+        position: relative;
+        width: min(1600px, 92vw);
+        aspect-ratio: 16 / 9;
+        padding: clamp(2.5rem, 4vw, 4rem);
+        border-radius: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+        overflow: hidden;
+        backdrop-filter: blur(24px) saturate(160%);
+        box-shadow: 0 35px 80px rgba(0, 0, 0, 0.45);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 2rem;
+      }
+
+      .slide::before,
+      .slide::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .slide::before {
+        background: radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.18), transparent 60%);
+        filter: blur(60px);
+      }
+
+      .slide::after {
+        background: radial-gradient(circle at 80% 10%, rgba(110, 148, 255, 0.28), transparent 58%);
+        filter: blur(120px);
+        opacity: 0.9;
+      }
+
+      .slide-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        height: 100%;
+      }
+
+      .slide-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+      }
+
+      .slide h1,
+      .slide h2,
+      .slide h3 {
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+
+      .slide h1 {
+        font-size: clamp(3rem, 5vw, 5.5rem);
+        line-height: 1.05;
+      }
+
+      .slide h2 {
+        font-size: clamp(2rem, 3vw, 3.8rem);
+      }
+
+      .slide h3 {
+        font-size: clamp(1.3rem, 2vw, 2.3rem);
+      }
+
+      .eyebrow {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.3em;
+        font-size: 0.75rem;
+        color: var(--silver-400);
+      }
+
+      .muted {
+        color: var(--silver-200);
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      .pill {
+        border-radius: 999px;
+        padding: 0.4rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: var(--accent-soft);
+        font-weight: 600;
+        font-size: 0.9rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .stat-card {
+        border-radius: 22px;
+        padding: 1.2rem 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(5, 9, 20, 0.65);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .stat-card strong {
+        display: block;
+        font-size: clamp(1.8rem, 2.8vw, 3.4rem);
+        font-weight: 600;
+      }
+
+      .feature-grid,
+      .tech-grid,
+      .timeline {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .feature-card,
+      .tech-card,
+      .timeline-card {
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(6, 9, 22, 0.7);
+        padding: 1.4rem 1.6rem;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .feature-card svg,
+      .tech-card svg,
+      .timeline-card svg {
+        width: 32px;
+        height: 32px;
+        color: var(--accent);
+      }
+
+      .feature-card strong,
+      .timeline-card strong {
+        font-size: 1.1rem;
+      }
+
+      .bullet-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 0.6rem;
+      }
+
+      .bullet-list li {
+        display: flex;
+        gap: 0.7rem;
+        align-items: center;
+      }
+
+      .bullet-list span {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--accent);
+        display: inline-block;
+      }
+
+      .workflow-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 2rem;
+        height: 100%;
+      }
+
+      .workflow-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .workflow-steps .timeline-card {
+        border-left: 4px solid transparent;
+      }
+
+      .workflow-steps .timeline-card[data-active="true"] {
+        border-color: var(--accent);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+      }
+
+      .workspace-panel {
+        border-radius: 26px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        padding: 1.5rem;
+        background: linear-gradient(120deg, rgba(8, 12, 26, 0.75), rgba(5, 6, 18, 0.9));
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .workspace-panel h4 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .workspace-panel .note-box {
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 1rem;
+        background: rgba(3, 5, 14, 0.9);
+      }
+
+      .tech-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .tech-card strong {
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+      }
+
+      .callout-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.2rem;
+      }
+
+      .callout-card {
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(6, 9, 22, 0.65);
+        padding: 1.3rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .cta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .primary-button,
+      .ghost-button {
+        border-radius: 999px;
+        font-size: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        padding: 0.85rem 1.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        cursor: pointer;
+        background: transparent;
+        color: inherit;
+      }
+
+      .primary-button {
+        background: linear-gradient(120deg, rgba(139, 179, 255, 0.8), rgba(139, 179, 255, 0.4));
+        color: #04050a;
+        border: none;
+      }
+
+      .ghost-button {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      @media (max-width: 1100px) {
+        .workflow-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .slide {
+          aspect-ratio: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck">
+      <section class="slide hero-slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Answer Engine Optimization</p>
+              <h1>AEO Guru</h1>
+              <p class="muted">
+                A semantic operations cockpit that ingests crawls, maps clusters, and manufactures
+                structured assets for every AI overview and search result that matters.
+              </p>
+            </div>
+            <span class="pill">Gemini-native</span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <strong>3-stage</strong>
+              <p class="muted">workflow & dock navigation keeps ingestion, clustering, and exports focused.</p>
+            </div>
+            <div class="stat-card">
+              <strong>25+</strong>
+              <p class="muted">topic clusters annotated per project with canonical questions & schema hints.</p>
+            </div>
+            <div class="stat-card">
+              <strong>4 artifacts</strong>
+              <p class="muted">Semantic core YAML, JSON-LD, geo-improvements, and robots.txt ready on tap.</p>
+            </div>
+          </div>
+          <div class="cta-row">
+            <button class="primary-button">Launch demo</button>
+            <button class="ghost-button">View clusters</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Operational storyline</p>
+              <h2>Signal-driven workflow</h2>
+            </div>
+            <span class="pill">Embeddings-first</span>
+          </div>
+          <div class="workflow-grid">
+            <div class="workflow-steps">
+              <div class="timeline-card" data-active="true">
+                <strong>1 · Ingest</strong>
+                <p class="muted">
+                  Submit root domains, sitemaps, and curated URL lists. Every document is embedded, tagged with
+                  metadata, and assigned to a project so you can re-run crawls or append fresh data.
+                </p>
+                <ul class="bullet-list">
+                  <li><span></span><p class="muted">Form-driven intake with validation and status messaging.</p></li>
+                  <li><span></span><p class="muted">Project-aware so teams can maintain multiple sites in parallel.</p></li>
+                </ul>
+              </div>
+              <div class="timeline-card" data-active="true">
+                <strong>2 · Cluster</strong>
+                <p class="muted">
+                  Group embeddings into an intent-labelled semantic core, surface canonical questions, and list
+                  content gaps before they impact AI Overviews.
+                </p>
+                <ul class="bullet-list">
+                  <li><span></span><p class="muted">Opportunity scores, recommended schema blocks, and intent colors.</p></li>
+                  <li><span></span><p class="muted">Manual "Enlarge core" runs pull in fresh crawl intelligence.</p></li>
+                </ul>
+              </div>
+              <div class="timeline-card">
+                <strong>3 · Outputs</strong>
+                <p class="muted">
+                  Preview the most relevant clusters, check attribute deltas, then trigger downloads when the
+                  cockpit's overrides look perfect.
+                </p>
+                <ul class="bullet-list">
+                  <li><span></span><p class="muted">Status pills track ingestion, clustering, download, and projects.</p></li>
+                  <li><span></span><p class="muted">Ghost buttons expose Semantic core, JSON-LD, GEO, and robots exports.</p></li>
+                </ul>
+              </div>
+            </div>
+            <div class="workspace-panel">
+              <h4>Dock timeline</h4>
+              <div class="note-box">
+                <p class="muted">
+                  Workflow tiles glow as each stage completes, and an SVG vector pulse animates when a tile is
+                  active. Keyboard focus states and aria-live regions keep power users informed without leaving
+                  the hero surface.
+                </p>
+              </div>
+              <h4>Cluster glances</h4>
+              <div class="note-box">
+                <p class="muted">
+                  Each cluster card carries intents, schemas, canonical questions, and gap lists so strategists
+                  can storyboard briefs before exporting a single artifact.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Workspace intelligence</p>
+              <h2>Semantic core editing room</h2>
+            </div>
+            <span class="pill">Collaborative</span>
+          </div>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              <strong>Manual notes + YAML</strong>
+              <p class="muted">
+                Editors tune the semantic-core YAML, drop strategic annotations, and preview how each change
+                impacts downstream exports before committing.
+              </p>
+            </div>
+            <div class="feature-card">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.2"/><path d="M12 8v8" stroke="currentColor" stroke-width="1.2"/></svg>
+              <strong>Cluster annotations</strong>
+              <p class="muted">
+                Per-cluster notes capture label overrides, positioning thoughts, and custom keyword drafts so
+                product & content squads can stay aligned.
+              </p>
+            </div>
+            <div class="feature-card">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14v10H5z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M9 5v3m6-3v3" stroke="currentColor" stroke-width="1.3"/></svg>
+              <strong>Associated records</strong>
+              <p class="muted">
+                Recent crawl evidence—URLs, schema hints, excerpts—sits beside the notes so strategists always
+                know why the model recommended an expansion.
+              </p>
+            </div>
+            <div class="feature-card">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18h12M9 21h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><rect x="6" y="3" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
+              <strong>One-click saves</strong>
+              <p class="muted">
+                The workspace batches manual updates, persists them via Supabase, and surfaces toast messaging to
+                confirm every save or enlargement run.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Export cockpit</p>
+              <h2>Precision downloads</h2>
+            </div>
+            <span class="pill">Four artifacts</span>
+          </div>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <strong>Semantic core YAML</strong>
+              <p class="muted">
+                Limit clusters (1–25), set language overrides, and lock only the narratives you need for the
+                sprint. Perfect for taxonomy handoffs.
+              </p>
+              <ul class="bullet-list">
+                <li><span></span><p class="muted">Cluster limit selector</p></li>
+                <li><span></span><p class="muted">Language override</p></li>
+              </ul>
+            </div>
+            <div class="feature-card">
+              <strong>JSON-LD</strong>
+              <p class="muted">
+                Choose schema flavors per intent bucket, then render entity-rich JSON-LD in seconds so dev teams
+                can paste it into templates without edits.
+              </p>
+              <ul class="bullet-list">
+                <li><span></span><p class="muted">Intent-aware schema toggles</p></li>
+                <li><span></span><p class="muted">Localized language control</p></li>
+              </ul>
+            </div>
+            <div class="feature-card">
+              <strong>robots.txt</strong>
+              <p class="muted">
+                Configure crawl-delay windows, list sitemap URLs, and toggle every popular agent (Googlebot,
+                Bingbot, Yandex, more) without touching code.
+              </p>
+              <ul class="bullet-list">
+                <li><span></span><p class="muted">Agent checkbox grid</p></li>
+                <li><span></span><p class="muted">Forbidden path sanitizer</p></li>
+              </ul>
+            </div>
+            <div class="feature-card">
+              <strong>Geo playbooks</strong>
+              <p class="muted">
+                Ship localized question sets by choosing intent focus (local vs all), fallback locations, and
+                export limits for GEO improvements.
+              </p>
+              <ul class="bullet-list">
+                <li><span></span><p class="muted">Geo intent toggle</p></li>
+                <li><span></span><p class="muted">Auto-populated defaults</p></li>
+              </ul>
+            </div>
+          </div>
+          <p class="muted">
+            Attribute preview drawers summarize overrides before download, and aria-expanded states make the
+            cockpit keyboard-native.
+          </p>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Live telemetry</p>
+              <h2>Status-aware storytelling</h2>
+            </div>
+            <span class="pill">Always-on</span>
+          </div>
+          <div class="callout-grid">
+            <div class="callout-card">
+              <strong>Hero lens</strong>
+              <p class="muted">
+                The hero surface mimics the main app's animated lens, exposing the guru mark only when users move
+                the cursor—subtle delight that signals premium craft.
+              </p>
+            </div>
+            <div class="callout-card">
+              <strong>Real-time status pills</strong>
+              <p class="muted">
+                Ingestion, clustering, downloads, and project fetches each pipe status into glowing pills so ops
+                teams instantly know what is running.
+              </p>
+            </div>
+            <div class="callout-card">
+              <strong>Associated records view</strong>
+              <p class="muted">
+                Source URLs, excerpts, and schema recommendations appear as soon as core expansion completes to
+                make QA effortless.
+              </p>
+            </div>
+            <div class="callout-card">
+              <strong>Dock navigation</strong>
+              <p class="muted">
+                Quick actions (ingest, cluster, exports, workspace, auth) sit in a radial dock so strategists can
+                jump between surfaces without scrolling.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Technology stack</p>
+              <h2>Built for scale & experimentation</h2>
+            </div>
+            <span class="pill">Future-proof</span>
+          </div>
+          <div class="tech-grid">
+            <div class="tech-card">
+              <strong>Next.js 14</strong>
+              <p class="muted">Hybrid rendering, streaming UI, and app-router layouts.</p>
+            </div>
+            <div class="tech-card">
+              <strong>React 18</strong>
+              <p class="muted">Client-side interactions drive the dock, cockpit, and workspace.</p>
+            </div>
+            <div class="tech-card">
+              <strong>Supabase</strong>
+              <p class="muted">Auth, project storage, and workspace persistence.</p>
+            </div>
+            <div class="tech-card">
+              <strong>Qdrant</strong>
+              <p class="muted">Vector search + clustering for crawl embeddings.</p>
+            </div>
+            <div class="tech-card">
+              <strong>Gemini AI</strong>
+              <p class="muted">Reasoning + embeddings powering clusters & exports.</p>
+            </div>
+            <div class="tech-card">
+              <strong>Vercel</strong>
+              <p class="muted">Edge-ready deployment + asset optimization.</p>
+            </div>
+            <div class="tech-card">
+              <strong>Tailwind / custom CSS</strong>
+              <p class="muted">Shared design tokens (Space Grotesk, obsidian palette, pills).</p>
+            </div>
+            <div class="tech-card">
+              <strong>Node + APIs</strong>
+              <p class="muted">Next API routes orchestrate ingestion, clustering, and exports.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Adoption moments</p>
+              <h2>Unlock revenue & trust</h2>
+            </div>
+            <span class="pill">Next steps</span>
+          </div>
+          <div class="callout-grid">
+            <div class="callout-card">
+              <strong>SEO & Content leads</strong>
+              <p class="muted">Use the semantic workspace to brief writers, ship FAQ blocks, and monitor AI
+              Overview coverage weekly.</p>
+            </div>
+            <div class="callout-card">
+              <strong>Product marketing</strong>
+              <p class="muted">Coordinate launches with geo playbooks that highlight local questions and
+              schema requirements.</p>
+            </div>
+            <div class="callout-card">
+              <strong>Engineering</strong>
+              <p class="muted">Consume JSON-LD + robots configs straight from the cockpit with zero manual
+              reformatting.</p>
+            </div>
+            <div class="callout-card">
+              <strong>Exec dashboards</strong>
+              <p class="muted">Pipeline metrics from status pills and exports highlight how quickly AEO
+              responses can be shipped.</p>
+            </div>
+          </div>
+          <div class="cta-row">
+            <div>
+              <p class="muted">Ready to operationalize answer engine dominance?</p>
+              <h3>Spin up AEO Guru and connect your crawl today.</h3>
+            </div>
+            <button class="primary-button">Schedule a run</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
