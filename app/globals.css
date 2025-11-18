@@ -1451,35 +1451,73 @@ main {
   gap: 0.5rem;
 }
 
-.hero-score-card {
-  margin-top: 1rem;
-  border-radius: 22px;
-  padding: 1.2rem 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.35);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+.seek-widget {
+  margin-top: 1.5rem;
+  border-radius: 26px;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(5, 6, 15, 0.7));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
 }
 
-.hero-score-head {
+.seek-widget-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.seek-widget-head h3 {
+  margin: 0.2rem 0 0;
+}
+
+.seek-widget-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.9rem;
+}
+
+.seek-metric {
+  border-radius: 18px;
+  padding: 0.95rem 1rem;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.seek-metric strong {
+  font-size: 1.5rem;
+}
+
+.seek-score-card {
+  border-radius: 18px;
+  padding: 1rem 1.2rem;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.hero-score-value {
+.seek-score-value {
   display: flex;
   align-items: baseline;
   gap: 0.35rem;
-  font-size: 2.5rem;
+  font-size: 2.3rem;
   font-weight: 600;
 }
 
-.hero-score-value span {
+.seek-score-value span {
   font-size: 1rem;
   color: var(--silver-400);
 }
 
-.hero-score-breakdown {
+.seek-score-breakdown {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;

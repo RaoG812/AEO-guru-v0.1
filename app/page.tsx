@@ -1922,10 +1922,11 @@ export default function HomePage() {
               {selectedProject && <span className="pill">{selectedProject.id}</span>}
             </div>
             {selectedProject ? (
-              <form className="stacked-form" onSubmit={handleIngest}>
-                <label className="field-label">
-                  Root URL
-                  <input
+              <>
+                <form className="stacked-form" onSubmit={handleIngest}>
+                  <label className="field-label">
+                    Root URL
+                    <input
                     className="text-input"
                     value={ingestForm.rootUrl}
                     onChange={(e) => setIngestForm((prev) => ({ ...prev, rootUrl: e.target.value }))}
@@ -1970,8 +1971,60 @@ export default function HomePage() {
                     </button>
                   )}
                 </div>
-                {ingestMessage && <p className="muted">{ingestMessage}</p>}
-              </form>
+                  {ingestMessage && <p className="muted">{ingestMessage}</p>}
+                </form>
+                {hasExistingIngestion && vectorSummary && (
+                  <section className="seek-widget" aria-live="polite">
+                    <div className="seek-widget-head">
+                      <div>
+                        <p className="eyebrow">Seek widget</p>
+                        <h3>Ingestion results</h3>
+                        <p className="muted small">Latest crawl coverage synced from Qdrant.</p>
+                      </div>
+                      <span className="pill">
+                        {vectorSummary.totalPoints.toLocaleString()} vectors
+                      </span>
+                    </div>
+                    <div className="seek-widget-grid">
+                      <div className="seek-metric">
+                        <p className="muted small">Languages detected</p>
+                        <strong>{vectorSummary.languages.length}</strong>
+                      </div>
+                      <div className="seek-metric">
+                        <p className="muted small">Intent families</p>
+                        <strong>{vectorSummary.intents.length}</strong>
+                      </div>
+                      <div className="seek-metric">
+                        <p className="muted small">Source inputs</p>
+                        <strong>{vectorSummary.sources.length}</strong>
+                      </div>
+                    </div>
+                    <div className="seek-score-card">
+                      <p className="eyebrow">AEO/GEO optimization score</p>
+                      {overallOptimizationScore ? (
+                        <>
+                          <div className="seek-score-value">
+                            <strong>{overallOptimizationScore.value}</strong>
+                            <span>/100</span>
+                          </div>
+                          <p className="muted">{overallOptimizationScore.summary}</p>
+                          <div className="seek-score-breakdown">
+                            <span>Semantic avg {overallOptimizationScore.base}</span>
+                            <span>
+                              {overallOptimizationScore.geoBonus > 0
+                                ? `GEO boost +${overallOptimizationScore.geoBonus}`
+                                : "GEO boost +0"}
+                            </span>
+                            <span>{overallOptimizationScore.geoNote}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="muted">Run clustering to unlock your combined score.</p>
+                      )}
+                    </div>
+                  </section>
+                )}
+              </>
             ) : (
               <p className="muted">Select a project to unlock ingestion.</p>
             )}
@@ -2623,31 +2676,6 @@ export default function HomePage() {
                 <span className={`status-pill ${status.clusters ? "active" : ""}`}>
                   Clusters {status.clusters ? "building" : "ready"}
                 </span>
-              </div>
-              <div className="hero-score-card" aria-live="polite">
-                <div className="hero-score-head">
-                  <p className="eyebrow">AEO/GEO optimization score</p>
-                  {overallOptimizationScore ? (
-                    <>
-                      <div className="hero-score-value">
-                        <strong>{overallOptimizationScore.value}</strong>
-                        <span>/100</span>
-                      </div>
-                      <p className="muted">{overallOptimizationScore.summary}</p>
-                      <div className="hero-score-breakdown">
-                        <span>Semantic avg {overallOptimizationScore.base}</span>
-                        <span>
-                          {overallOptimizationScore.geoBonus > 0
-                            ? `GEO boost +${overallOptimizationScore.geoBonus}`
-                            : "GEO boost +0"}
-                        </span>
-                        <span>{overallOptimizationScore.geoNote}</span>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="muted">Ingest a crawl to unlock your optimization score.</p>
-                  )}
-                </div>
               </div>
             </div>
           </div>
