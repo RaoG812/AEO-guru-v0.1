@@ -605,37 +605,42 @@
             </div>
           </div>
           <p class="muted">
-            We intentionally assemble the stack from public, well-documented providers so judges know exactly how we
-            scale. Every logo below links to a service with transparent usage limits and status pages.
+            Only the tools we actively ship with are highlighted here—each logo represents production usage with
+            transparent limits, docs, and uptime so judges can validate our claims instantly.
           </p>
           <div class="provider-logos">
             <div class="provider-logo">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI logo" />
-              <span>OpenAI</span>
-              <p>GPT-4o + embeddings power clustering + copy.</p>
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_DeepMind_logo.svg"
+                alt="Google DeepMind logo"
+              />
+              <span>Google Gemini</span>
+              <p>Gemini 1.5 Pro + Flash handle reasoning, summarization, and export copy.</p>
             </div>
             <div class="provider-logo">
-              <img
-                src="https://assets-global.website-files.com/5f7f92e72071db893acdc2bd/640f26acb3e7f91c87de1c97_Pinecone_logo.svg"
-                alt="Pinecone logo"
-              />
-              <span>Pinecone</span>
-              <p>Dedicated pods handle semantic search + recall.</p>
+              <img src="https://lablab.ai/_nuxt/img/logo.82c407f.svg" alt="lablab.ai logo" />
+              <span>lablab.ai Arena</span>
+              <p>AI Genesis infrastructure hosts the live demo track + judging arena.</p>
             </div>
             <div class="provider-logo">
               <img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Supabase_logo.svg" alt="Supabase logo" />
               <span>Supabase</span>
-              <p>Postgres edge functions gate tokens + auth.</p>
+              <p>Auth + Postgres persistence secure users, workspaces, and audit trails.</p>
             </div>
             <div class="provider-logo">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Cloudflare_logo.svg" alt="Cloudflare logo" />
-              <span>Cloudflare R2</span>
-              <p>Low-cost storage + generous egress caps.</p>
+              <img src="https://assets.website-files.com/61f9e74b7672a614f55b1ec0/63ee5bc382eaa60ee0f86882_Qdrant.svg" alt="Qdrant logo" />
+              <span>Qdrant</span>
+              <p>Holds semantic fingerprints + retrieval indexes for every artifact.</p>
             </div>
             <div class="provider-logo">
               <img src="https://assets.vercel.com/image/upload/v1588805858/repositories/vercel/logo.svg" alt="Vercel logo" />
               <span>Vercel</span>
-              <p>Edge functions host the ingest + export UI.</p>
+              <p>Deploys the Next.js experience + background jobs on the edge.</p>
+            </div>
+            <div class="provider-logo">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub logo" />
+              <span>GitHub</span>
+              <p>Source of truth for the repo, Actions CI, and community issue tracking.</p>
             </div>
           </div>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
@@ -655,19 +660,19 @@
             </div>
           </div>
           <p class="muted">
-            Pricing stays approachable for hackathon judges while still covering GPT-4o tokens, vector storage, and
-            egress-heavy exports. Every plan is modeled against actual usage from the ingest → cluster → export loop.
+            Pricing stays approachable for hackathon judges while still covering Gemini tokens, Qdrant vectors, and
+            Supabase/Vercel egress. Every plan is modeled against actual usage from the ingest → cluster → export loop.
           </p>
           <div class="projection-grid">
             <div class="projection-card">
               <h3>Per run @ $5</h3>
-              <strong>$3.05 cost</strong>
-              <p class="muted">39% gross margin with transparent pass-through inputs.</p>
+              <strong>$3.00 cost</strong>
+              <p class="muted">40% gross margin with transparent pass-through inputs.</p>
               <ul>
-                <li>450k input tokens · $1.35 (OpenAI GPT-4o mini)</li>
-                <li>150k output tokens · $0.45 (narrative + exports)</li>
-                <li>Embeddings + vector writes · $0.55 (Pinecone/Supabase)</li>
-                <li>File egress + Vercel compute · $0.70</li>
+                <li>450k input tokens · $1.10 (Gemini 1.5 Flash)</li>
+                <li>150k output tokens · $0.40 (Gemini 1.5 Flash streaming)</li>
+                <li>Embeddings + vector writes · $0.60 (Qdrant + Supabase)</li>
+                <li>File egress + Vercel compute · $0.90</li>
               </ul>
             </div>
             <div class="projection-card">
@@ -675,8 +680,8 @@
               <strong>$31 avg margin</strong>
               <p class="muted">Assumes 12 heavy runs + 8 light runs per workspace.</p>
               <ul>
-                <li>Light runs reuse embeddings (50% cheaper)</li>
-                <li>Shared storage amortizes R2 costs to $0.20/run</li>
+                <li>Light runs reuse Qdrant vectors (50% cheaper)</li>
+                <li>Shared Supabase + Vercel resources trim infra to $0.25/run</li>
                 <li>Seat-based telemetry upsells add $9 ARPU</li>
                 <li>Support + infra stay under $3 per seat</li>
               </ul>
@@ -693,8 +698,8 @@
               </ul>
             </div>
           </div>
-          <p class="projection-note">Assumptions include OpenAI rate card (June 2024), Pinecone pod pricing, Supabase
-            storage tiers, and Cloudflare R2 egress caps.</p>
+          <p class="projection-note">Assumptions include Google Gemini rate cards (July 2024), Qdrant Dedicated tier,
+            Supabase storage tiers, and Vercel Pro plan bandwidth.</p>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
         </div>
       </section>
