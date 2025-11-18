@@ -1451,6 +1451,42 @@ main {
   gap: 0.5rem;
 }
 
+.hero-score-card {
+  margin-top: 1rem;
+  border-radius: 22px;
+  padding: 1.2rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.hero-score-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hero-score-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.hero-score-value span {
+  font-size: 1rem;
+  color: var(--silver-400);
+}
+
+.hero-score-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  font-size: 0.85rem;
+  color: var(--silver-400);
+}
+
 .ops-metrics {
   border-radius: 28px;
   padding: 1.5rem 2rem 2rem;
