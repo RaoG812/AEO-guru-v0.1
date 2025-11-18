@@ -165,6 +165,8 @@ const POPULAR_USER_AGENTS = [
 
 type PopularAgent = (typeof POPULAR_USER_AGENTS)[number];
 
+type GeoIntentFocus = "local" | "all";
+
 type ExportCockpitState = {
   semanticCore: {
     limit: string;
@@ -183,9 +185,15 @@ type ExportCockpitState = {
     agents: Record<PopularAgent, boolean>;
     forbiddenPaths: string;
   };
+  geo: {
+    lang: string;
+    limit: string;
+    intentFocus: GeoIntentFocus;
+    fallbackLocation: string;
+  };
 };
 
-type ExportArtifactKey = "semantic" | "jsonld" | "robots";
+type ExportArtifactKey = "semantic" | "jsonld" | "robots" | "geo";
 
 const emptyWorkspace: SemanticCoreWorkspace = {
   semanticCoreYaml: "",
@@ -261,7 +269,8 @@ type ExportAttributesMap = Record<
 const ARTIFACT_TITLES: Record<ExportArtifactKey, string> = {
   semantic: "Semantic core YAML",
   jsonld: "JSON-LD bundle",
-  robots: "robots.txt"
+  robots: "robots.txt",
+  geo: "GEO improvements"
 };
 
 const HERO_LENS_BASE_RADIUS = 140;
@@ -331,6 +340,12 @@ export default function HomePage() {
       additionalAgents: "",
       agents: buildDefaultAgentSelection(),
       forbiddenPaths: ""
+    },
+    geo: {
+      lang: "",
+      limit: "5",
+      intentFocus: "local",
+      fallbackLocation: "Local market"
     }
   }));
   const [activeExportKey, setActiveExportKey] = useState<ExportArtifactKey | null>(null);
@@ -1162,6 +1177,19 @@ export default function HomePage() {
 
   const canGenerateRobots = Boolean(robotsOverrides?.rootUrl);
 
+  const geoOverrides = useMemo(() => {
+    const payload: Record<string, unknown> = {};
+    const lang = exportCockpit.geo.lang || clusterLang;
+    const limit = parseNumberInRange(exportCockpit.geo.limit, 1, 12);
+    const fallback = exportCockpit.geo.fallbackLocation?.trim();
+    const focus: GeoIntentFocus = exportCockpit.geo.intentFocus === "all" ? "all" : "local";
+    if (lang) payload.lang = lang;
+    if (limit) payload.limit = limit;
+    if (fallback) payload.fallbackLocation = fallback;
+    payload.intentFocus = focus;
+    return payload;
+  }, [exportCockpit.geo, clusterLang]);
+
   const exportAttributes = useMemo<ExportAttributesMap>(() => {
     const semanticLimitValue = parseNumberInRange(exportCockpit.semanticCore.limit, 1, 25);
     const jsonldLimitValue = parseNumberInRange(exportCockpit.jsonld.limit, 1, 10);
@@ -1176,6 +1204,11 @@ export default function HomePage() {
     const jsonldLangLabel = exportCockpit.jsonld.lang || clusterLang || "Project default";
     const robotsLangLabel = exportCockpit.robots.lang || clusterLang || "Project default";
     const rootUrlLabel = exportCockpit.robots.rootUrl || selectedProject?.rootUrl || "Set a root URL";
+    const geoLimitValue = parseNumberInRange(exportCockpit.geo.limit, 1, 12);
+    const geoLangLabel = exportCockpit.geo.lang || clusterLang || "Project default";
+    const geoFallbackLabel = exportCockpit.geo.fallbackLocation?.trim() || "Local market";
+    const geoFocusLabel =
+      exportCockpit.geo.intentFocus === "all" ? "All intents" : "Local-first";
     return {
       semantic: {
         title: ARTIFACT_TITLES.semantic,
@@ -1217,6 +1250,18 @@ export default function HomePage() {
             label: "Forbidden pages",
             value: forbiddenList.length ? forbiddenList.join(", ") : "None specified"
           }
+        ]
+      },
+      geo: {
+        title: ARTIFACT_TITLES.geo,
+        attributes: [
+          { label: "Language", value: geoLangLabel ?? "Project default" },
+          { label: "Intent focus", value: geoFocusLabel },
+          {
+            label: "Location limit",
+            value: geoLimitValue ? `${geoLimitValue}` : "5 (default)"
+          },
+          { label: "Fallback location", value: geoFallbackLabel }
         ]
       }
     };
@@ -1528,7 +1573,8 @@ export default function HomePage() {
                       <h3>Precisely configure each artifact</h3>
                     </div>
                     <p className="muted">
-                      Override language, scope, or crawler targets before downloading YAML, JSON-LD, or robots.txt.
+                      Override language, scope, crawler rules, or geo playbooks before downloading YAML, JSON-LD,
+                      robots.txt, or GEO improvements.
                     </p>
                   </div>
                   <div className="export-cockpit-grid">
@@ -1642,6 +1688,98 @@ export default function HomePage() {
                               setExportCockpit((prev) => ({
                                 ...prev,
                                 jsonld: { ...prev.jsonld, limit: e.target.value }
+                              }))
+                            }
+                          />
+                        </label>
+                      </div>
+                    </section>
+                    <section
+                      className="export-cockpit-card"
+                      aria-label="GEO improvement options"
+                      data-active={activeCockpitCard === "geo" ? "true" : undefined}
+                    >
+                      <div
+                        className="cockpit-card-toggle"
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={activeCockpitCard === "geo"}
+                        aria-controls="cockpit-geo-panel"
+                        onClick={() => toggleCockpitCard("geo")}
+                        onKeyDown={(event) => handleCockpitKeyDown(event, "geo")}
+                      >
+                        <div>
+                          <h4>GEO improvements</h4>
+                          <p className="muted cockpit-helper">
+                            Shape the blueprint for static, cite-ready geo landing pages.
+                          </p>
+                        </div>
+                        {renderCockpitSummary("geo", 3)}
+                      </div>
+                      <div
+                        id="cockpit-geo-panel"
+                        className="cockpit-card-body"
+                        aria-hidden={activeCockpitCard !== "geo"}
+                      >
+                        <label className="field-label">
+                          Language override
+                          <input
+                            className="text-input"
+                            placeholder={clusterLang ?? "en"}
+                            value={exportCockpit.geo.lang}
+                            onChange={(e) =>
+                              setExportCockpit((prev) => ({
+                                ...prev,
+                                geo: { ...prev.geo, lang: e.target.value }
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className="field-label">
+                          Location limit (1-12)
+                          <input
+                            className="text-input"
+                            type="number"
+                            min={1}
+                            max={12}
+                            value={exportCockpit.geo.limit}
+                            onChange={(e) =>
+                              setExportCockpit((prev) => ({
+                                ...prev,
+                                geo: { ...prev.geo, limit: e.target.value }
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className="field-label">
+                          Intent focus
+                          <select
+                            className="text-input"
+                            value={exportCockpit.geo.intentFocus}
+                            onChange={(e) =>
+                              setExportCockpit((prev) => ({
+                                ...prev,
+                                geo: {
+                                  ...prev.geo,
+                                  intentFocus: e.target.value as GeoIntentFocus
+                                }
+                              }))
+                            }
+                          >
+                            <option value="local">Local-first</option>
+                            <option value="all">All intents</option>
+                          </select>
+                        </label>
+                        <label className="field-label">
+                          Fallback location label
+                          <input
+                            className="text-input"
+                            placeholder="Local market"
+                            value={exportCockpit.geo.fallbackLocation}
+                            onChange={(e) =>
+                              setExportCockpit((prev) => ({
+                                ...prev,
+                                geo: { ...prev.geo, fallbackLocation: e.target.value }
                               }))
                             }
                           />
@@ -1823,6 +1961,21 @@ export default function HomePage() {
                   <button
                     type="button"
                     className="ghost-button"
+                    disabled={status.download || clusters.length === 0}
+                    onClick={() =>
+                      triggerExport(
+                        "geo",
+                        "/api/exports/geo-improvements",
+                        "geo-improvements.json",
+                        geoOverrides
+                      )
+                    }
+                  >
+                    GEO improvements
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost-button"
                     disabled={status.download || clusters.length === 0 || !canGenerateRobots}
                     onClick={() =>
                       robotsOverrides &&
@@ -1877,6 +2030,21 @@ export default function HomePage() {
                     }
                   >
                     JSON-LD
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    disabled={status.download}
+                    onClick={() =>
+                      triggerExport(
+                        "geo",
+                        "/api/exports/geo-improvements",
+                        "geo-improvements.json",
+                        geoOverrides
+                      )
+                    }
+                  >
+                    GEO improvements
                   </button>
                   <button
                     type="button"
