@@ -139,7 +139,8 @@ type GuidanceStep = {
   title: string;
   body: string;
   placement?: GuidancePlacement;
-  targetRef: MutableRefObject<HTMLElement | null>;
+  targetRef?: MutableRefObject<HTMLElement | null> | null;
+  spotlightMode?: "element" | "centered";
 };
 
 type SpotlightRect = {
@@ -481,6 +482,7 @@ function getFilenameFromDisposition(disposition: string | null) {
 }
 
 export default function HomePage() {
+  const dockNavRef = useRef<HTMLElement | null>(null);
   const heroRef = useRef<HTMLElement | null>(null);
   const lensBlinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRobotsProjectRef = useRef<string | null>(null);
@@ -591,6 +593,14 @@ export default function HomePage() {
   const guidanceSteps = useMemo<GuidanceStep[]>(
     () => [
       {
+        key: "overview",
+        title: "Start from the dock",
+        body: "Use the dock pinned to the bottom edge to jump between home, project controls, clusters, or auth before diving deeper.",
+        placement: "bottom",
+        targetRef: dockNavRef,
+        spotlightMode: "centered"
+      },
+      {
         key: "hero",
         title: "Get oriented",
         body: "Sign in, review live stats, and understand which stack is powering your current workspace.",
@@ -612,7 +622,7 @@ export default function HomePage() {
         targetRef: vectorLabRef
       }
     ],
-    [heroRef, workspaceSectionRef, vectorLabRef]
+    [dockNavRef, heroRef, workspaceSectionRef, vectorLabRef]
   );
   const totalGuideSteps = guidanceSteps.length;
   const activeGuide = guideOpen ? guidanceSteps[guideStepIndex] : null;
@@ -674,8 +684,19 @@ export default function HomePage() {
     }
     const step = guidanceSteps[guideStepIndex];
     if (!step) return;
-    const element = step.targetRef.current;
     const padding = 24;
+    if (step.spotlightMode === "centered") {
+      const centeredWidth = Math.min(520, Math.max(window.innerWidth - padding * 4, 320));
+      const centeredHeight = Math.min(320, Math.max(window.innerHeight - padding * 4, 220));
+      setGuideSpotlight({
+        top: Math.max((window.innerHeight - centeredHeight) / 2, padding),
+        left: Math.max((window.innerWidth - centeredWidth) / 2, padding),
+        width: centeredWidth,
+        height: centeredHeight
+      });
+      return;
+    }
+    const element = step.targetRef?.current;
     if (!element) {
       setGuideSpotlight({
         top: Math.max(window.innerHeight * 0.25 - padding, 24),
@@ -2746,7 +2767,12 @@ export default function HomePage() {
 
   return (
     <main className="app-shell">
-      <nav className="dock-nav" aria-label="Primary">
+      <nav
+        className="dock-nav"
+        aria-label="Primary"
+        ref={dockNavRef}
+        data-guide-active={activeGuideKey === "overview" ? "true" : undefined}
+      >
         {dockButtons.map((button) => (
           <button key={button.label} type="button" onClick={button.action} disabled={button.disabled}>
             <span className="dock-icon" aria-hidden="true">
