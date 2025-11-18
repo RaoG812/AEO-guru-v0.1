@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { load as parseYaml } from "js-yaml";
 import type { JSX, KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
@@ -466,6 +466,7 @@ export default function HomePage() {
   const [vectorSummaryLoading, setVectorSummaryLoading] = useState(false);
   const [vectorSummaryError, setVectorSummaryError] = useState<string | null>(null);
   const [activeClusterId, setActiveClusterId] = useState<string | null>(null);
+  const [vectorSourcesOpen, setVectorSourcesOpen] = useState(false);
   const [status, setStatus] = useState<StatusState>(initialStatus);
   const [ingestMessage, setIngestMessage] = useState<string>("");
   const [clusterMessage, setClusterMessage] = useState<string>("");
@@ -504,6 +505,10 @@ export default function HomePage() {
   const [exportPreviews, setExportPreviews] = useState<
     Partial<Record<ExportArtifactKey, string>>
   >({});
+  const [manualSummaryExpanded, setManualSummaryExpanded] = useState(true);
+  const [semanticYamlExpanded, setSemanticYamlExpanded] = useState(true);
+  const manualNotesFieldId = useId();
+  const semanticYamlFieldId = useId();
 
   const supabase = useMemo<SupabaseClient | null>(() => {
     try {
@@ -854,6 +859,12 @@ export default function HomePage() {
       setActiveExportKey(null);
     }
   }, [clusters.length]);
+
+  useEffect(() => {
+    if (!vectorSummary?.sources?.length) {
+      setVectorSourcesOpen(false);
+    }
+  }, [vectorSummary]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -2391,90 +2402,259 @@ export default function HomePage() {
                 <p className="muted">Bubble size reflects sections captured; higher on the chart equals stronger opportunity.</p>
               </div>
               <div className="core-workbench-grid">
-                <div className="cluster-map" aria-live="polite">
-                  <svg viewBox="0 0 520 300" role="img" aria-label="Cluster opportunity map">
-                    <rect x="0" y="0" width="520" height="300" fill="transparent" stroke="#2d2f38" />
-                    <line x1="40" y1="260" x2="500" y2="260" stroke="#2d2f38" strokeDasharray="4 4" />
-                    <line x1="40" y1="40" x2="40" y2="260" stroke="#2d2f38" strokeDasharray="4 4" />
-                    {clusters.map((cluster) => {
-                      const x = 40 + (cluster.size / maxClusterSize) * 440;
-                      const y = 260 - ((cluster.opportunityScore ?? 0) / maxClusterScore) * 220;
-                      const radius = 10 + (cluster.size / maxClusterSize) * 18;
-                      const isActive = cluster.id === activeClusterId;
-                      const fill = INTENT_COLOR_MAP[cluster.metadata.intent] ?? "#8891a5";
-                      return (
-                        <g
-                          key={cluster.id}
-                          className="cluster-map-node"
-                          transform={`translate(${x}, ${y})`}
-                          onClick={() => setActiveClusterId(cluster.id)}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter" || event.key === " ") {
-                              event.preventDefault();
-                              setActiveClusterId(cluster.id);
-                            }
-                          }}
-                          role="button"
-                          tabIndex={0}
-                          aria-pressed={isActive}
-                        >
-                          <circle r={radius} fill={fill} opacity={isActive ? 0.95 : 0.65} />
-                          <circle r={radius + 4} fill="none" stroke={isActive ? "#fff" : "transparent"} strokeWidth={2} />
-                          <title>{`${cluster.metadata.label} (${cluster.size} sections)`}</title>
-                          <text textAnchor="middle" y={radius + 16} className="cluster-map-label">
-                            {cluster.metadata.label}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </svg>
-                  <ul className="cluster-map-legend">
-                    <li>
-                      <span className="legend-dot informational" /> Informational
-                    </li>
-                    <li>
-                      <span className="legend-dot transactional" /> Transactional
-                    </li>
-                    <li>
-                      <span className="legend-dot navigational" /> Navigational
-                    </li>
-                    <li>
-                      <span className="legend-dot local" /> Local
-                    </li>
-                    <li>
-                      <span className="legend-dot mixed" /> Mixed
-                    </li>
-                  </ul>
+                <div className="cluster-left-column">
+                  <div className="cluster-map" aria-live="polite">
+                    <svg viewBox="0 0 520 300" role="img" aria-label="Cluster opportunity map">
+                      <rect x="0" y="0" width="520" height="300" fill="transparent" stroke="#2d2f38" />
+                      <line x1="40" y1="260" x2="500" y2="260" stroke="#2d2f38" strokeDasharray="4 4" />
+                      <line x1="40" y1="40" x2="40" y2="260" stroke="#2d2f38" strokeDasharray="4 4" />
+                      {clusters.map((cluster) => {
+                        const x = 40 + (cluster.size / maxClusterSize) * 440;
+                        const y = 260 - ((cluster.opportunityScore ?? 0) / maxClusterScore) * 220;
+                        const radius = 10 + (cluster.size / maxClusterSize) * 18;
+                        const isActive = cluster.id === activeClusterId;
+                        const fill = INTENT_COLOR_MAP[cluster.metadata.intent] ?? "#8891a5";
+                        return (
+                          <g
+                            key={cluster.id}
+                            className="cluster-map-node"
+                            transform={`translate(${x}, ${y})`}
+                            onClick={() => setActiveClusterId(cluster.id)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setActiveClusterId(cluster.id);
+                              }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            aria-pressed={isActive}
+                          >
+                            <circle r={radius} fill={fill} opacity={isActive ? 0.95 : 0.65} />
+                            <circle r={radius + 4} fill="none" stroke={isActive ? "#fff" : "transparent"} strokeWidth={2} />
+                            <title>{`${cluster.metadata.label} (${cluster.size} sections)`}</title>
+                            <text textAnchor="middle" y={radius + 16} className="cluster-map-label">
+                              {cluster.metadata.label}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+                    <ul className="cluster-map-legend">
+                      <li>
+                        <span className="legend-dot informational" /> Informational
+                      </li>
+                      <li>
+                        <span className="legend-dot transactional" /> Transactional
+                      </li>
+                      <li>
+                        <span className="legend-dot navigational" /> Navigational
+                      </li>
+                      <li>
+                        <span className="legend-dot local" /> Local
+                      </li>
+                      <li>
+                        <span className="legend-dot mixed" /> Mixed
+                      </li>
+                    </ul>
+                  </div>
+                  <article className="semantic-panel semantic-digest-panel">
+                    <div className="core-header">
+                      <div>
+                        <p className="eyebrow">Semantic digest</p>
+                        <p className="muted">UX view of basic + enlarged core material.</p>
+                      </div>
+                      {semanticCoreDigests.length > 1 && (
+                        <span className="pill">{semanticCoreDigests.length} slices</span>
+                      )}
+                    </div>
+                    {semanticCoreDigests.length === 0 ? (
+                      <p className="muted">Paste semantic-core.yaml to unlock a structured digest.</p>
+                    ) : (
+                      <div className="semantic-digest-cards">
+                        {semanticCoreDigests.map((digest, index) => (
+                          <div key={`${digest.label}-${index}`} className="semantic-digest-card">
+                            <div className="semantic-digest-head">
+                              <strong>{digest.label}</strong>
+                              {digest.summary && <p className="muted">{digest.summary}</p>}
+                            </div>
+                            {digest.error ? (
+                              <p className="error-text small">{digest.error}</p>
+                            ) : (
+                              <div className="semantic-digest-groups">
+                                <div>
+                                  <p className="eyebrow">Focus topics</p>
+                                  {digest.focusTopics.length === 0 ? (
+                                    <p className="muted">No focus topics parsed.</p>
+                                  ) : (
+                                    <ul className="semantic-list">
+                                      {digest.focusTopics.map((topic, topicIndex) => (
+                                        <li key={`${topic.topic}-${topicIndex}`}>
+                                          <div className="semantic-topic-head">
+                                            <strong>{topic.topic}</strong>
+                                            {topic.intent && <span>{topic.intent}</span>}
+                                          </div>
+                                          <div className="semantic-topic-body">
+                                            {topic.queries.length > 0 && (
+                                              <span>Queries: {topic.queries.join(", ")}</span>
+                                            )}
+                                            {topic.actions.length > 0 && (
+                                              <span>Actions: {topic.actions.join(" · ")}</span>
+                                            )}
+                                          </div>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="eyebrow">Key pages</p>
+                                  {digest.keyPages.length === 0 ? (
+                                    <p className="muted">No key pages parsed.</p>
+                                  ) : (
+                                    <ul className="semantic-list">
+                                      {digest.keyPages.map((page, pageIndex) => (
+                                        <li key={`${page.url ?? page.title ?? pageIndex}-${pageIndex}`}>
+                                          <div className="semantic-topic-head">
+                                            <strong>{page.title ?? page.url ?? "Untitled"}</strong>
+                                            {page.intent && <span>{page.intent}</span>}
+                                          </div>
+                                          {page.url && <p className="muted semantic-url">{page.url}</p>}
+                                          <div className="semantic-topic-body">
+                                            {page.schema.length > 0 && (
+                                              <span>Schema: {page.schema.join(", ")}</span>
+                                            )}
+                                            {page.supporting.length > 0 && (
+                                              <span>Support: {page.supporting.join(" · ")}</span>
+                                            )}
+                                          </div>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </article>
+                  {activeCluster && activeClusterNote && (
+                    <div className="cluster-note-editor">
+                      <div className="cluster-note-header">
+                        <div>
+                          <p className="eyebrow">Focused cluster</p>
+                          <strong>{activeCluster.metadata.label}</strong>
+                        </div>
+                        <span className="pill">{activeCluster.metadata.intent}</span>
+                      </div>
+                      <label className="field-label">
+                        Label override
+                        <input
+                          type="text"
+                          className="text-input"
+                          value={activeClusterNote.labelOverride}
+                          onChange={(event) =>
+                            updateClusterNote(activeCluster.id, { labelOverride: event.target.value })
+                          }
+                          placeholder="Human-friendly label for exports"
+                        />
+                      </label>
+                      <label className="field-label">
+                        Enrichment notes
+                        <textarea
+                          className="text-input"
+                          rows={4}
+                          value={activeClusterNote.note}
+                          onChange={(event) =>
+                            updateClusterNote(activeCluster.id, { note: event.target.value })
+                          }
+                          placeholder="Add SME quotes, POV, or experiments to run."
+                        />
+                      </label>
+                      <label className="field-label">
+                        Priority keywords
+                        <input
+                          type="text"
+                          className="text-input"
+                          value={activeClusterNote.keywordsDraft}
+                          onChange={(event) =>
+                            updateClusterNote(activeCluster.id, { keywordsDraft: event.target.value })
+                          }
+                          placeholder="keyword a, keyword b, keyword c"
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
                 <div className="core-notes">
                   <div className="core-header">
                     <p className="eyebrow">Semantic core workspace</p>
                     <p className="muted">{coreLoading ? "Loading…" : `Last saved: ${lastSavedLabel}`}</p>
                   </div>
-                  <label className="field-label">
-                    Manual core summary
-                    <textarea
-                      className="text-input"
-                      rows={4}
-                      value={coreWorkspace.manualNotes}
-                      onChange={(event) =>
-                        setCoreWorkspace((prev) => ({ ...prev, manualNotes: event.target.value }))
-                      }
-                      placeholder="Capture POVs, blockers, and macro recommendations for this project."
-                    />
-                  </label>
-                  <label className="field-label">
-                    Semantic core YAML
-                    <textarea
-                      className="text-input code"
-                      rows={6}
-                      value={coreWorkspace.semanticCoreYaml}
-                      onChange={(event) =>
-                        setCoreWorkspace((prev) => ({ ...prev, semanticCoreYaml: event.target.value }))
-                      }
-                      placeholder="Paste or refine the semantic-core.yaml export to keep a living reference."
-                    />
-                  </label>
+                  <div className="collapsible-field">
+                    <div className="collapsible-head">
+                      <div>
+                        <label className="collapsible-title" htmlFor={manualNotesFieldId}>
+                          Manual core summary
+                        </label>
+                        <p className="muted small">Capture POVs, blockers, and macro recommendations.</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="collapsible-toggle"
+                        aria-expanded={manualSummaryExpanded}
+                        aria-controls={manualNotesFieldId}
+                        onClick={() => setManualSummaryExpanded((prev) => !prev)}
+                      >
+                        {manualSummaryExpanded ? "Collapse" : "Expand"}
+                      </button>
+                    </div>
+                    {manualSummaryExpanded && (
+                      <textarea
+                        id={manualNotesFieldId}
+                        className="text-input"
+                        rows={4}
+                        value={coreWorkspace.manualNotes}
+                        onChange={(event) =>
+                          setCoreWorkspace((prev) => ({ ...prev, manualNotes: event.target.value }))
+                        }
+                        placeholder="Capture POVs, blockers, and macro recommendations for this project."
+                      />
+                    )}
+                  </div>
+                  <div className="collapsible-field">
+                    <div className="collapsible-head">
+                      <div>
+                        <label className="collapsible-title" htmlFor={semanticYamlFieldId}>
+                          Semantic core YAML
+                        </label>
+                        <p className="muted small">Keep a living reference of semantic-core.yaml.</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="collapsible-toggle"
+                        aria-expanded={semanticYamlExpanded}
+                        aria-controls={semanticYamlFieldId}
+                        onClick={() => setSemanticYamlExpanded((prev) => !prev)}
+                      >
+                        {semanticYamlExpanded ? "Collapse" : "Expand"}
+                      </button>
+                    </div>
+                    {semanticYamlExpanded && (
+                      <textarea
+                        id={semanticYamlFieldId}
+                        className="text-input code"
+                        rows={6}
+                        value={coreWorkspace.semanticCoreYaml}
+                        onChange={(event) =>
+                          setCoreWorkspace((prev) => ({ ...prev, semanticCoreYaml: event.target.value }))
+                        }
+                        placeholder="Paste or refine the semantic-core.yaml export to keep a living reference."
+                      />
+                    )}
+                  </div>
                   <div className="semantic-core-visualizer" aria-live="polite">
                     <article className="semantic-panel">
                       <div className="core-header">
@@ -2536,9 +2716,13 @@ export default function HomePage() {
                           </div>
                           {vectorSummary.sources.length > 0 && (
                             <div className="vector-sources">
-                              <p className="muted">
-                                Sources: {vectorSummary.sources.map((source) => `${source.label} (${source.count})`).join(", ")}
-                              </p>
+                              <button
+                                type="button"
+                                className="link-button small"
+                                onClick={() => setVectorSourcesOpen(true)}
+                              >
+                                View {vectorSummary.sources.length} sources
+                              </button>
                             </div>
                           )}
                           {vectorSummary.samples.length > 0 ? (
@@ -2582,136 +2766,7 @@ export default function HomePage() {
                         <p className="muted">Vector embeddings not available. Ingest a crawl to get started.</p>
                       )}
                     </article>
-                    <article className="semantic-panel">
-                      <div className="core-header">
-                        <div>
-                          <p className="eyebrow">Semantic digest</p>
-                          <p className="muted">UX view of basic + enlarged core material.</p>
-                        </div>
-                        {semanticCoreDigests.length > 1 && (
-                          <span className="pill">{semanticCoreDigests.length} slices</span>
-                        )}
-                      </div>
-                      {semanticCoreDigests.length === 0 ? (
-                        <p className="muted">Paste semantic-core.yaml to unlock a structured digest.</p>
-                      ) : (
-                        <div className="semantic-digest-cards">
-                          {semanticCoreDigests.map((digest, index) => (
-                            <div key={`${digest.label}-${index}`} className="semantic-digest-card">
-                              <div className="semantic-digest-head">
-                                <strong>{digest.label}</strong>
-                                {digest.summary && <p className="muted">{digest.summary}</p>}
-                              </div>
-                              {digest.error ? (
-                                <p className="error-text small">{digest.error}</p>
-                              ) : (
-                                <div className="semantic-digest-groups">
-                                  <div>
-                                    <p className="eyebrow">Focus topics</p>
-                                    {digest.focusTopics.length === 0 ? (
-                                      <p className="muted">No focus topics parsed.</p>
-                                    ) : (
-                                      <ul className="semantic-list">
-                                        {digest.focusTopics.map((topic, topicIndex) => (
-                                          <li key={`${topic.topic}-${topicIndex}`}>
-                                            <div className="semantic-topic-head">
-                                              <strong>{topic.topic}</strong>
-                                              {topic.intent && <span>{topic.intent}</span>}
-                                            </div>
-                                            <div className="semantic-topic-body">
-                                              {topic.queries.length > 0 && (
-                                                <span>Queries: {topic.queries.join(", ")}</span>
-                                              )}
-                                              {topic.actions.length > 0 && (
-                                                <span>Actions: {topic.actions.join(" · ")}</span>
-                                              )}
-                                            </div>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    )}
-                                  </div>
-                                  <div>
-                                    <p className="eyebrow">Key pages</p>
-                                    {digest.keyPages.length === 0 ? (
-                                      <p className="muted">No key pages parsed.</p>
-                                    ) : (
-                                      <ul className="semantic-list">
-                                        {digest.keyPages.map((page, pageIndex) => (
-                                          <li key={`${page.url ?? page.title ?? pageIndex}-${pageIndex}`}>
-                                            <div className="semantic-topic-head">
-                                              <strong>{page.title ?? page.url ?? "Untitled"}</strong>
-                                              {page.intent && <span>{page.intent}</span>}
-                                            </div>
-                                            {page.url && <p className="muted semantic-url">{page.url}</p>}
-                                            <div className="semantic-topic-body">
-                                              {page.schema.length > 0 && (
-                                                <span>Schema: {page.schema.join(", ")}</span>
-                                              )}
-                                              {page.supporting.length > 0 && (
-                                                <span>Support: {page.supporting.join(" · ")}</span>
-                                              )}
-                                            </div>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </article>
                   </div>
-                  {activeCluster && activeClusterNote && (
-                    <div className="cluster-note-editor">
-                      <div className="cluster-note-header">
-                        <div>
-                          <p className="eyebrow">Focused cluster</p>
-                          <strong>{activeCluster.metadata.label}</strong>
-                        </div>
-                        <span className="pill">{activeCluster.metadata.intent}</span>
-                      </div>
-                      <label className="field-label">
-                        Label override
-                        <input
-                          type="text"
-                          className="text-input"
-                          value={activeClusterNote.labelOverride}
-                          onChange={(event) =>
-                            updateClusterNote(activeCluster.id, { labelOverride: event.target.value })
-                          }
-                          placeholder="Human-friendly label for exports"
-                        />
-                      </label>
-                      <label className="field-label">
-                        Enrichment notes
-                        <textarea
-                          className="text-input"
-                          rows={4}
-                          value={activeClusterNote.note}
-                          onChange={(event) =>
-                            updateClusterNote(activeCluster.id, { note: event.target.value })
-                          }
-                          placeholder="Add SME quotes, POV, or experiments to run."
-                        />
-                      </label>
-                      <label className="field-label">
-                        Priority keywords
-                        <input
-                          type="text"
-                          className="text-input"
-                          value={activeClusterNote.keywordsDraft}
-                          onChange={(event) =>
-                            updateClusterNote(activeCluster.id, { keywordsDraft: event.target.value })
-                          }
-                          placeholder="keyword a, keyword b, keyword c"
-                        />
-                      </label>
-                    </div>
-                  )}
                   <div className="core-actions">
                     <button
                       type="button"
@@ -2820,6 +2875,36 @@ export default function HomePage() {
           </section>
         )}
       </div>
+      {vectorSourcesOpen && vectorSummary?.sources.length ? (
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="vector-sources-title"
+          onClick={() => setVectorSourcesOpen(false)}
+        >
+          <div className="modal-panel vector-sources-panel" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">Vector lab</p>
+                <h2 id="vector-sources-title">Source breakdown</h2>
+              </div>
+              <button type="button" className="ghost-button small" onClick={() => setVectorSourcesOpen(false)}>
+                Close
+              </button>
+            </div>
+            <p className="muted small">Source annotations grouped by URL, sitemap, or manual uploads.</p>
+            <ul className="vector-source-list">
+              {vectorSummary.sources.map((source) => (
+                <li key={`source-${source.label}`} className="vector-source-item">
+                  <strong>{source.label}</strong>
+                  <span className="vector-source-count">{source.count.toLocaleString()} vectors</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : null}
       {loginModalOpen && (
         <div
           className="modal-backdrop"
