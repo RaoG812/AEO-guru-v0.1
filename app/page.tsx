@@ -497,6 +497,7 @@ export default function HomePage() {
   const [logs, setLogs] = useState<string[]>([]);
   const [vectorIndex, setVectorIndex] = useState(0);
   const [vectorDirection, setVectorDirection] = useState<"horizontal" | "vertical">("horizontal");
+  const [heroInView, setHeroInView] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [authForm, setAuthForm] = useState({ email: "", password: "" });
@@ -859,6 +860,21 @@ export default function HomePage() {
     const heroNode = heroRef.current;
     if (!heroNode) return;
 
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeroInView(entry.isIntersecting);
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(heroNode);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const heroNode = heroRef.current;
+    if (!heroNode || !heroInView) return;
+
     const setDefaultPosition = () => {
       const rect = heroNode.getBoundingClientRect();
       heroNode.style.setProperty("--cursor-x", `${rect.width / 2}px`);
@@ -913,7 +929,15 @@ export default function HomePage() {
       heroNode.removeEventListener("pointerleave", handlePointerLeave);
       window.removeEventListener("resize", setDefaultPosition);
     };
-  }, []);
+  }, [heroInView]);
+
+  useEffect(() => {
+    if (heroInView) return;
+    const heroNode = heroRef.current;
+    if (!heroNode) return;
+    heroNode.style.setProperty("--lens-opacity", "0.2");
+    heroNode.style.setProperty("--reveal-opacity", "0");
+  }, [heroInView]);
 
   useEffect(() => {
     if (!clusters.length) {
@@ -2486,7 +2510,7 @@ export default function HomePage() {
         ))}
       </nav>
       <div className="content-wrapper">
-        <section className="silver-hero" ref={heroRef}>
+        <section className={`silver-hero${heroInView ? "" : " is-paused"}`} ref={heroRef}>
           <div className="hero-logo-clear" aria-hidden="true" />
           <div className="hero-lens" aria-hidden="true" />
           <div className="hero-outline" aria-hidden="true" />
