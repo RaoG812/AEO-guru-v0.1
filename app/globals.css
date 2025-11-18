@@ -2189,31 +2189,10 @@ main {
   padding: 1.25rem;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
+  background: #04050a;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-}
-
-.export-cockpit::before {
-  content: "";
-  position: absolute;
-  inset: -15% -25%;
-  background: radial-gradient(circle at 25% 0%, rgba(126, 161, 255, 0.3), transparent 55%),
-    linear-gradient(135deg, rgba(5, 9, 24, 0.95), rgba(3, 4, 12, 0.98));
-  opacity: 0.85;
-  filter: blur(25px);
-  pointer-events: none;
-  z-index: 0;
-  transform: translateZ(0);
-}
-
-.export-cockpit > * {
-  position: relative;
-  z-index: 1;
 }
 
 .cockpit-header {
