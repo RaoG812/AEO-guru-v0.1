@@ -77,6 +77,13 @@ type WorkflowTile = {
   isComplete: boolean;
 };
 
+type DockButton = {
+  label: string;
+  icon: JSX.Element;
+  action: () => void;
+  disabled?: boolean;
+};
+
 const initialStatus: StatusState = {
   ingest: false,
   clusters: false,
@@ -353,6 +360,9 @@ export default function HomePage() {
   const [exportPreviews, setExportPreviews] = useState<
     Partial<Record<ExportArtifactKey, string>>
   >({});
+  const [insightsModalOpen, setInsightsModalOpen] = useState(false);
+  const [insightsUnlocked, setInsightsUnlocked] = useState(false);
+  const [insightsMessage, setInsightsMessage] = useState<string | null>(null);
 
   const supabase = useMemo<SupabaseClient | null>(() => {
     try {
@@ -504,6 +514,12 @@ export default function HomePage() {
 
   useEffect(() => {
     setAssociatedRecords([]);
+  }, [selectedProjectId]);
+
+  useEffect(() => {
+    setInsightsUnlocked(false);
+    setInsightsModalOpen(false);
+    setInsightsMessage(null);
   }, [selectedProjectId]);
 
   useEffect(() => {
@@ -767,7 +783,50 @@ export default function HomePage() {
     openLoginModal();
   }
 
-  const dockButtons = [
+  const openInsightsModal = useCallback(() => {
+    if (!insightsUnlocked) return;
+    setInsightsMessage(null);
+    setInsightsModalOpen(true);
+  }, [insightsUnlocked]);
+
+  const closeInsightsModal = useCallback(() => {
+    setInsightsModalOpen(false);
+  }, []);
+
+  const handleGenerateInsights = useCallback(() => {
+    if (!clusters.length) {
+      setInsightsMessage("Run ingestion and clustering to unlock fresh insights.");
+      return;
+    }
+    const sorted = [...clusters].sort(
+      (a, b) => (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0)
+    );
+    const primary = sorted[0];
+    const supporting = sorted.slice(1, 3);
+    const supportingLabels = supporting
+      .map((cluster) => `${cluster.metadata.label} (${cluster.metadata.intent})`)
+      .join(" and ");
+    const geoCluster = sorted.find((cluster) => cluster.metadata.intent === "local");
+    const improvement = primary.metadata.contentGaps[0] ?? "capture missing product proof";
+    const summaryParts = [
+      `Lead with ${primary.metadata.label} (${primary.metadata.intent}) and tighten how you ${improvement}.`
+    ];
+    if (supportingLabels) {
+      summaryParts.push(`Also reinforce ${supportingLabels} to balance the answer graph.`);
+    }
+    if (geoCluster) {
+      summaryParts.push(
+        `GEO spotlight: tailor snippets for ${
+          geoCluster.metadata.primaryKeyword || geoCluster.metadata.label
+        } searchers so assistants can cite localized proof.`
+      );
+    }
+    const narrative = summaryParts.join(" ");
+    setInsightsMessage(narrative);
+    pushLog("Prepared AEO/GEO insight preview");
+  }, [clusters]);
+
+  const dockButtons: DockButton[] = [
     {
       label: "Home",
       icon: (
@@ -823,6 +882,19 @@ export default function HomePage() {
         </svg>
       ),
       action: handleLogin
+    },
+    {
+      label: "Insights",
+      icon: (
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path
+            d="M12 3.5 13.6 9h5.4l-4.3 3.2 1.6 5.4L12 14.4 7.7 17.6l1.6-5.4L5 9h5.4z"
+            fill="currentColor"
+          />
+        </svg>
+      ),
+      action: openInsightsModal,
+      disabled: !insightsUnlocked
     }
   ];
 
@@ -939,6 +1011,15 @@ export default function HomePage() {
         setClusterMessage(`Generated ${json.clusters?.length ?? 0} clusters`);
         setClusterInventory({ checking: false, count: json.clusters?.length ?? 0 });
         pushLog(`Refreshed clusters for ${selectedProjectId}`);
+        const clusterCount = json.clusters?.length ?? 0;
+        const ready = clusterCount > 0;
+        setInsightsUnlocked(ready);
+        setInsightsMessage(null);
+        if (ready) {
+          setInsightsModalOpen(true);
+        } else {
+          setInsightsModalOpen(false);
+        }
       }
     } catch (error) {
       setClusterMessage((error as Error).message);
@@ -2081,7 +2162,7 @@ export default function HomePage() {
     <main className="app-shell">
       <nav className="dock-nav" aria-label="Primary">
         {dockButtons.map((button) => (
-          <button key={button.label} type="button" onClick={button.action}>
+          <button key={button.label} type="button" onClick={button.action} disabled={button.disabled}>
             <span className="dock-icon" aria-hidden="true">
               {button.icon}
             </span>
@@ -2592,6 +2673,34 @@ export default function HomePage() {
           </section>
         )}
       </div>
+      {insightsModalOpen && (
+        <div
+          className="insights-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="insights-modal-title"
+          onClick={closeInsightsModal}
+        >
+          <div className="insights-panel" onClick={(event) => event.stopPropagation()}>
+            <div className="insights-header">
+              <p className="eyebrow">Assistant</p>
+              <button type="button" className="ghost-button small" onClick={closeInsightsModal}>
+                Dismiss
+              </button>
+            </div>
+            <h3 id="insights-modal-title">AEO/GEO insights ready</h3>
+            <p className="muted">
+              Invite the assistant to interpret your clustered dataset and highlight what to improve next.
+            </p>
+            <button type="button" className="insights-cta" onClick={handleGenerateInsights}>
+              Get insights
+            </button>
+            <div className="insights-message" aria-live="polite">
+              {insightsMessage ?? "Waiting for your signal to brief the assistant."}
+            </div>
+          </div>
+        </div>
+      )}
       {loginModalOpen && (
         <div
           className="modal-backdrop"
