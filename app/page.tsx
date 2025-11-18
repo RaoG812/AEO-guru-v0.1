@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { load as parseYaml } from "js-yaml";
-import type { JSX, KeyboardEvent as ReactKeyboardEvent } from "react";
+import type {
+  JSX,
+  KeyboardEvent as ReactKeyboardEvent,
+  MutableRefObject,
+  CSSProperties
+} from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { FiFileText, FiShare2, FiUpload } from "react-icons/fi";
 
@@ -132,6 +137,29 @@ type DockButton = {
   disabled?: boolean;
 };
 
+type GuidancePlacement = "top" | "bottom" | "left" | "right";
+
+type GuidanceStep = {
+  key: string;
+  title: string;
+  body: string;
+  placement?: GuidancePlacement;
+  targetRef?: MutableRefObject<HTMLElement | null> | null;
+  workflowTarget?: WorkflowKey;
+};
+
+type SpotlightRect = {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+};
+
+type ScrollWorkspaceOptions = {
+  target?: HTMLElement | null;
+  offset?: number;
+};
+
 const initialStatus: StatusState = {
   ingest: false,
   clusters: false,
@@ -198,6 +226,8 @@ const vectorPhrases = [
   "AI Overview Hooks",
   "Conversation Seeds"
 ];
+
+const GUIDE_STORAGE_KEY = "aeo-guru-guide";
 
 const INTENT_COLOR_MAP: Record<string, string> = {
   informational: "#7C8CFF",
@@ -462,10 +492,16 @@ function getFilenameFromDisposition(disposition: string | null) {
 }
 
 export default function HomePage() {
+  const dockNavRef = useRef<HTMLElement | null>(null);
   const heroRef = useRef<HTMLElement | null>(null);
+  const projectRegistryRef = useRef<HTMLElement | null>(null);
   const lensBlinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRobotsProjectRef = useRef<string | null>(null);
   const workspaceSectionRef = useRef<HTMLElement | null>(null);
+  const vectorLabRef = useRef<HTMLElement | null>(null);
+  const ingestStageRef = useRef<HTMLDivElement | null>(null);
+  const clusterStageRef = useRef<HTMLDivElement | null>(null);
+  const outputsStageRef = useRef<HTMLDivElement | null>(null);
   const workspaceScrollPendingRef = useRef(false);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -527,18 +563,55 @@ export default function HomePage() {
   }));
   const [activeExportKey, setActiveExportKey] = useState<ExportArtifactKey | null>(null);
   const [activeCockpitCard, setActiveCockpitCard] = useState<ExportArtifactKey | null>(null);
-  const scrollWorkspaceIntoView = useCallback(() => {
-    const workspaceNode = workspaceSectionRef.current;
-    if (!workspaceNode) {
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideStepIndex, setGuideStepIndex] = useState(0);
+  const [guideHasSeen, setGuideHasSeen] = useState(false);
+  const [guideSpotlight, setGuideSpotlight] = useState<SpotlightRect>({
+    top: 160,
+    left: 160,
+    width: 360,
+    height: 220
+  });
+  const [viewportSize, setViewportSize] = useState({ width: 1200, height: 900 });
+  const guideTooltipRef = useRef<HTMLDivElement | null>(null);
+  const [guideTooltipSize, setGuideTooltipSize] = useState({ width: 0, height: 0 });
+  const [dockAnchorTop, setDockAnchorTop] = useState<number | null>(null);
+  const scrollWorkspaceIntoView = useCallback((options?: ScrollWorkspaceOptions) => {
+    const targetNode = options?.target ?? workspaceSectionRef.current;
+    if (!targetNode) {
+      return;
+    }
+
+    const runScroll = () => {
+      if (typeof window === "undefined") {
+        targetNode.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      const rect = targetNode.getBoundingClientRect();
+      const desiredOffset = Math.max(options?.offset ?? 48, 0);
+      const offsetTop = Math.max(rect.top + window.scrollY - desiredOffset, 0);
+      window.scrollTo({ top: offsetTop, behavior: "smooth" });
+    };
+
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(runScroll);
+    } else {
+      runScroll();
+    }
+  }, []);
+  const scrollHeroIntoView = useCallback(() => {
+    const heroNode = heroRef.current;
+    if (!heroNode) {
       return;
     }
 
     if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
       window.requestAnimationFrame(() => {
-        workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
+        heroNode.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     } else {
-      workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
+      heroNode.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, []);
   const [exportPreviews, setExportPreviews] = useState<
@@ -553,8 +626,101 @@ export default function HomePage() {
   const [semanticYamlExpanded, setSemanticYamlExpanded] = useState(true);
   const manualNotesFieldId = useId();
   const semanticYamlFieldId = useId();
+  const guideTitleId = useId();
+  const guideBodyId = useId();
   const projectPulseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [projectPulseId, setProjectPulseId] = useState<string | null>(null);
+  const guidanceSteps = useMemo<GuidanceStep[]>(() => {
+    const steps: GuidanceStep[] = [
+      {
+        key: "overview",
+        title: "Start from the dock",
+        body: "Use the dock pinned to the bottom edge to jump between home, project controls, clusters, or auth before diving deeper.",
+        placement: "right",
+        targetRef: dockNavRef
+      },
+      {
+        key: "hero",
+        title: "Get oriented",
+        body: session
+          ? "The hero shows your live stats and stack. Use the Sign out menu here whenever you swap accounts."
+          : "Sign in from the hero before continuing—your workspace controls stay locked until you authenticate.",
+        placement: "right",
+        targetRef: heroRef
+      },
+      {
+        key: "projects",
+        title: "Unlock a workspace",
+        body: session
+          ? "Pick an existing project or create a new one to load crawls, clusters, and exports into the cockpit."
+          : "Once you sign in, this registry lists your crawls so you can choose where to work or spin up a project.",
+        placement: "top",
+        targetRef: projectRegistryRef
+      },
+      {
+        key: "workflow-ingest",
+        title: "Kick off ingest",
+        body:
+          "Click Ingest to feed a crawl, embed its sections, and light up everything downstream. This tile keeps progress visible.",
+        placement: "bottom",
+        targetRef: ingestStageRef,
+        workflowTarget: "ingest"
+      },
+      {
+        key: "workflow-cluster",
+        title: "Shape semantic clusters",
+        body:
+          "Move into Cluster to inspect grouped intents, keyword overlaps, and the semantic-core form once embeddings finish.",
+        placement: "bottom",
+        targetRef: clusterStageRef,
+        workflowTarget: "cluster"
+      },
+      {
+        key: "workflow-outputs",
+        title: "Ship outputs",
+        body:
+          "End with Outputs to open the export cockpit, expand cards, and download schema, briefs, or robots guidance per project.",
+        placement: "bottom",
+        targetRef: outputsStageRef,
+        workflowTarget: "outputs"
+      },
+      {
+        key: "workflow",
+        title: "Review the flow",
+        body: "With each tile complete, keep following the ingest → cluster → outputs loop whenever you return.",
+        placement: "bottom",
+        targetRef: workspaceSectionRef
+      }
+    ];
+
+    if (clusters.length > 0) {
+      steps.push({
+        key: "vectors",
+        title: "Explain your clusters",
+        body: "Use the vector lab to inspect embeddings, magnitudes, and preview slices so insights stay grounded in data.",
+        placement: "left",
+        targetRef: vectorLabRef
+      });
+    }
+
+    return steps;
+  }, [
+    clusters.length,
+    clusterStageRef,
+    dockNavRef,
+    heroRef,
+    ingestStageRef,
+    outputsStageRef,
+    projectRegistryRef,
+    session,
+    vectorLabRef,
+    workspaceSectionRef
+  ]);
+  const totalGuideSteps = guidanceSteps.length;
+  const activeGuide = guideOpen ? guidanceSteps[guideStepIndex] : null;
+  const activeGuideKey = activeGuide?.key ?? null;
+  const isLastGuideStep = guideStepIndex === totalGuideSteps - 1;
+  const guideToggleLabel = guideOpen ? "Hide guidance" : guideHasSeen ? "Replay guide" : "Show guidance";
 
   const supabase = useMemo<SupabaseClient | null>(() => {
     try {
@@ -571,6 +737,65 @@ export default function HomePage() {
   );
 
   const accessToken = session?.access_token ?? null;
+
+  const markGuideSeen = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(GUIDE_STORAGE_KEY, "1");
+    setGuideHasSeen(true);
+  }, []);
+
+  const closeGuide = useCallback(() => {
+    setGuideOpen(false);
+    markGuideSeen();
+  }, [markGuideSeen]);
+
+  const handleGuideToggle = useCallback(() => {
+    if (guideOpen) {
+      closeGuide();
+      return;
+    }
+    setGuideStepIndex(0);
+    setGuideOpen(true);
+  }, [guideOpen, closeGuide]);
+
+  const handleGuideNext = useCallback(() => {
+    if (isLastGuideStep) {
+      scrollHeroIntoView();
+      closeGuide();
+      return;
+    }
+    setGuideStepIndex((prev) => Math.min(prev + 1, totalGuideSteps - 1));
+  }, [closeGuide, isLastGuideStep, scrollHeroIntoView, totalGuideSteps]);
+
+  const handleGuidePrev = useCallback(() => {
+    setGuideStepIndex((prev) => Math.max(prev - 1, 0));
+  }, []);
+
+  const updateGuideSpotlight = useCallback(() => {
+    if (typeof window === "undefined" || !guideOpen) {
+      return;
+    }
+    const step = guidanceSteps[guideStepIndex];
+    if (!step) return;
+    const padding = 24;
+    const element = step.targetRef?.current;
+    if (!element) {
+      setGuideSpotlight({
+        top: Math.max(window.innerHeight * 0.25 - padding, 24),
+        left: Math.max(window.innerWidth * 0.5 - 180, 16),
+        width: 360,
+        height: 220
+      });
+      return;
+    }
+    const rect = element.getBoundingClientRect();
+    setGuideSpotlight({
+      top: Math.max(rect.top - padding, 16),
+      left: Math.max(rect.left - padding, 16),
+      width: rect.width + padding * 2,
+      height: rect.height + padding * 2
+    });
+  }, [guideOpen, guidanceSteps, guideStepIndex]);
 
   useEffect(() => {
     if (!selectedProjectId) {
@@ -614,6 +839,127 @@ export default function HomePage() {
       subscription.unsubscribe();
     };
   }, [supabase]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hasSeenGuide = window.localStorage.getItem(GUIDE_STORAGE_KEY) === "1";
+    setGuideHasSeen(hasSeenGuide);
+    if (hasSeenGuide) {
+      return;
+    }
+
+    let triggered = false;
+    const handleFirstScroll = () => {
+      if (triggered) return;
+      if (window.localStorage.getItem(GUIDE_STORAGE_KEY) === "1") {
+        triggered = true;
+        return;
+      }
+      triggered = true;
+      setGuideStepIndex(0);
+      setGuideOpen(true);
+    };
+
+    window.addEventListener("scroll", handleFirstScroll, { once: true, passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleFirstScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleResize = () => {
+      setViewportSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!guideOpen) return;
+    const node = guideTooltipRef.current;
+    if (!node || typeof window === "undefined" || typeof ResizeObserver === "undefined") {
+      return;
+    }
+    const updateTooltipSize = () => {
+      const rect = node.getBoundingClientRect();
+      setGuideTooltipSize({ width: rect.width, height: rect.height });
+    };
+    updateTooltipSize();
+    const resizeObserver = new ResizeObserver(() => {
+      updateTooltipSize();
+    });
+    resizeObserver.observe(node);
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [guideOpen, guideStepIndex]);
+
+  useEffect(() => {
+    if (!guideOpen) return;
+    updateGuideSpotlight();
+    const handleRealign = () => updateGuideSpotlight();
+    window.addEventListener("resize", handleRealign);
+    window.addEventListener("scroll", handleRealign, true);
+    return () => {
+      window.removeEventListener("resize", handleRealign);
+      window.removeEventListener("scroll", handleRealign, true);
+    };
+  }, [guideOpen, guideStepIndex, updateGuideSpotlight]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const updateDockAnchor = () => {
+      if (window.innerWidth <= 900) {
+        setDockAnchorTop(null);
+        return;
+      }
+      const heroNode = heroRef.current;
+      if (!heroNode) return;
+      const rect = heroNode.getBoundingClientRect();
+      const heroAnchor = rect.top + rect.height * 0.65;
+      const viewportHeight = window.innerHeight;
+      const safeTop = Math.min(Math.max(heroAnchor, 120), viewportHeight - 120);
+      setDockAnchorTop(safeTop);
+    };
+    updateDockAnchor();
+    window.addEventListener("resize", updateDockAnchor);
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && heroRef.current) {
+      resizeObserver = new ResizeObserver(() => updateDockAnchor());
+      resizeObserver.observe(heroRef.current);
+    }
+    return () => {
+      window.removeEventListener("resize", updateDockAnchor);
+      resizeObserver?.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!guideOpen) return;
+    const step = guidanceSteps[guideStepIndex];
+    if (!step?.workflowTarget) return;
+    setActiveWorkflow(step.workflowTarget);
+    scrollWorkspaceIntoView({ target: step.targetRef?.current ?? null, offset: 120 });
+  }, [guideOpen, guidanceSteps, guideStepIndex, scrollWorkspaceIntoView]);
+
+  useEffect(() => {
+    if (!guideOpen) return;
+    const step = guidanceSteps[guideStepIndex];
+    if (!step?.targetRef?.current || step.workflowTarget) {
+      return;
+    }
+    const node = step.targetRef.current;
+    const runScroll = () => {
+      node.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+    };
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(runScroll);
+    } else {
+      runScroll();
+    }
+  }, [guideOpen, guidanceSteps, guideStepIndex]);
 
   useEffect(() => {
     if (!clusters.length) {
@@ -2579,9 +2925,144 @@ export default function HomePage() {
     }
   };
 
+  const showGuideOverlay = guideOpen && Boolean(activeGuide);
+  const normalizedSpotlight = {
+    top: Math.max(guideSpotlight.top, 16),
+    left: Math.max(guideSpotlight.left, 16),
+    width: Math.max(guideSpotlight.width, 160),
+    height: Math.max(guideSpotlight.height, 140)
+  };
+  const tooltipViewportPadding = 24;
+  const tooltipMaxWidth = Math.min(340, viewportSize.width - tooltipViewportPadding * 2);
+  const tooltipMeasuredWidth = guideTooltipSize.width || tooltipMaxWidth;
+  const tooltipMeasuredHeight = guideTooltipSize.height || 220;
+  let tooltipTop = normalizedSpotlight.top + normalizedSpotlight.height + 28;
+  let tooltipLeft = normalizedSpotlight.left + normalizedSpotlight.width / 2;
+  let tooltipTransform = "translate(-50%, 0)";
+  if (activeGuide?.placement === "top") {
+    tooltipTop = normalizedSpotlight.top - 24;
+    tooltipTransform = "translate(-50%, -100%)";
+  } else if (activeGuide?.placement === "left") {
+    tooltipLeft = normalizedSpotlight.left - 24;
+    tooltipTop = normalizedSpotlight.top + normalizedSpotlight.height / 2;
+    tooltipTransform = "translate(-100%, -50%)";
+  } else if (activeGuide?.placement === "right") {
+    tooltipLeft = normalizedSpotlight.left + normalizedSpotlight.width + 24;
+    tooltipTop = normalizedSpotlight.top + normalizedSpotlight.height / 2;
+    tooltipTransform = "translate(0, -50%)";
+  }
+  const clampValue = (value: number, min: number, max: number) => {
+    if (min > max) {
+      return (min + max) / 2;
+    }
+    return Math.min(Math.max(value, min), max);
+  };
+  const horizontalMin = tooltipViewportPadding;
+  const horizontalMax = viewportSize.width - tooltipViewportPadding;
+  const verticalMin = tooltipViewportPadding;
+  const verticalMax = viewportSize.height - tooltipViewportPadding;
+  if (activeGuide?.placement === "left") {
+    tooltipLeft = clampValue(
+      tooltipLeft,
+      horizontalMin + tooltipMeasuredWidth,
+      horizontalMax
+    );
+  } else if (activeGuide?.placement === "right") {
+    tooltipLeft = clampValue(
+      tooltipLeft,
+      horizontalMin,
+      horizontalMax - tooltipMeasuredWidth
+    );
+  } else {
+    const halfWidth = tooltipMeasuredWidth / 2;
+    tooltipLeft = clampValue(tooltipLeft, horizontalMin + halfWidth, horizontalMax - halfWidth);
+  }
+  if (activeGuide?.placement === "top") {
+    tooltipTop = clampValue(tooltipTop, verticalMin + tooltipMeasuredHeight, verticalMax);
+  } else if (activeGuide?.placement === "left" || activeGuide?.placement === "right") {
+    const halfHeight = tooltipMeasuredHeight / 2;
+    tooltipTop = clampValue(tooltipTop, verticalMin + halfHeight, verticalMax - halfHeight);
+  } else {
+    tooltipTop = clampValue(tooltipTop, verticalMin, verticalMax - tooltipMeasuredHeight);
+  }
+  const guideTooltipStyle = {
+    top: `${tooltipTop}px`,
+    left: `${tooltipLeft}px`,
+    transform: tooltipTransform,
+    maxWidth: `${tooltipMaxWidth}px`
+  };
+  const spotlightStyle = {
+    top: `${normalizedSpotlight.top}px`,
+    left: `${normalizedSpotlight.left}px`,
+    width: `${normalizedSpotlight.width}px`,
+    height: `${normalizedSpotlight.height}px`
+  };
+  const viewportWidth = viewportSize.width;
+  const viewportHeight = viewportSize.height;
+  const spotlightTop = Math.max(normalizedSpotlight.top, 0);
+  const spotlightLeft = Math.max(normalizedSpotlight.left, 0);
+  const spotlightBottom = Math.min(normalizedSpotlight.top + normalizedSpotlight.height, viewportHeight);
+  const spotlightRight = Math.min(normalizedSpotlight.left + normalizedSpotlight.width, viewportWidth);
+  const middleHeight = Math.max(spotlightBottom - spotlightTop, 0);
+  const scrimSlices: { key: string; style: CSSProperties }[] = [];
+  if (spotlightTop > 0) {
+    scrimSlices.push({
+      key: "top",
+      style: {
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: `${spotlightTop}px`
+      }
+    });
+  }
+  const bottomHeight = Math.max(viewportHeight - spotlightBottom, 0);
+  if (bottomHeight > 0) {
+    scrimSlices.push({
+      key: "bottom",
+      style: {
+        top: `${spotlightBottom}px`,
+        left: 0,
+        width: "100%",
+        height: `${bottomHeight}px`
+      }
+    });
+  }
+  if (spotlightLeft > 0 && middleHeight > 0) {
+    scrimSlices.push({
+      key: "left",
+      style: {
+        top: `${spotlightTop}px`,
+        left: 0,
+        width: `${spotlightLeft}px`,
+        height: `${middleHeight}px`
+      }
+    });
+  }
+  const rightWidth = Math.max(viewportWidth - spotlightRight, 0);
+  if (rightWidth > 0 && middleHeight > 0) {
+    scrimSlices.push({
+      key: "right",
+      style: {
+        top: `${spotlightTop}px`,
+        left: `${spotlightRight}px`,
+        width: `${rightWidth}px`,
+        height: `${middleHeight}px`
+      }
+    });
+  }
+  const guideTitleInstanceId = `${guideTitleId}-${guideStepIndex}`;
+  const guideBodyInstanceId = `${guideBodyId}-${guideStepIndex}`;
+
   return (
     <main className="app-shell">
-      <nav className="dock-nav" aria-label="Primary">
+      <nav
+        className="dock-nav"
+        aria-label="Primary"
+        ref={dockNavRef}
+        style={dockAnchorTop !== null ? { top: `${dockAnchorTop}px` } : undefined}
+        data-guide-active={activeGuideKey === "overview" ? "true" : undefined}
+      >
         {dockButtons.map((button) => (
           <button key={button.label} type="button" onClick={button.action} disabled={button.disabled}>
             <span className="dock-icon" aria-hidden="true">
@@ -2592,7 +3073,11 @@ export default function HomePage() {
         ))}
       </nav>
       <div className="content-wrapper">
-        <section className={`silver-hero${heroInView ? "" : " is-paused"}`} ref={heroRef}>
+        <section
+          className={`silver-hero${heroInView ? "" : " is-paused"}`}
+          ref={heroRef}
+          data-guide-active={activeGuideKey === "hero" ? "true" : undefined}
+        >
           <div className="hero-logo-clear" aria-hidden="true" />
           <div className="hero-lens" aria-hidden="true" />
           <div className="hero-outline" aria-hidden="true" />
@@ -2619,6 +3104,14 @@ export default function HomePage() {
                       Sign in
                     </button>
                   )}
+                  <button
+                    type="button"
+                    className={`ghost-button small guide-toggle-button${guideOpen ? " is-active" : ""}`}
+                    onClick={handleGuideToggle}
+                    aria-pressed={guideOpen}
+                  >
+                    {guideToggleLabel}
+                  </button>
                 </div>
                 <div className="hero-intro-copy">
                   <div className="vector-scroller" aria-live="polite">
@@ -2681,7 +3174,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="project-controls" aria-label="Project controls">
+        <section
+          className="project-controls"
+          aria-label="Project controls"
+          ref={projectRegistryRef}
+          data-guide-active={activeGuideKey === "projects" ? "true" : undefined}
+        >
           <article className="panel-card wide-panel">
             <div className="panel-header">
               <div>
@@ -2802,23 +3300,33 @@ export default function HomePage() {
           className="workflow-section"
           aria-label="Workflow timeline"
           ref={workspaceSectionRef}
+          data-guide-active={activeGuideKey === "workflow" ? "true" : undefined}
         >
-          <div className="workflow-timeline">
-            <div className="workflow-timeline-flow">
-              {workflowTiles.map((tile, index) => {
-                const isActive = tile.key === activeWorkflow;
-                const showConnector = index < workflowTiles.length - 1;
-                return (
-                  <div
-                    key={tile.key}
-                    className={`workflow-stage ${tile.isComplete ? "is-complete" : ""} ${
-                      isActive ? "is-active" : ""
-                    } ${showConnector ? "has-connector" : "no-connector"}`}
-                  >
-                    <button
-                      type="button"
-                      className="workflow-stage-button"
-                      onClick={() => handleTileActivate(tile.key)}
+            <div className="workflow-timeline">
+              <div className="workflow-timeline-flow">
+                {workflowTiles.map((tile, index) => {
+                  const isActive = tile.key === activeWorkflow;
+                  const showConnector = index < workflowTiles.length - 1;
+                  const stageRef =
+                    tile.key === "ingest"
+                      ? ingestStageRef
+                      : tile.key === "cluster"
+                      ? clusterStageRef
+                      : tile.key === "outputs"
+                      ? outputsStageRef
+                      : null;
+                  return (
+                    <div
+                      key={tile.key}
+                      className={`workflow-stage ${tile.isComplete ? "is-complete" : ""} ${
+                        isActive ? "is-active" : ""
+                      } ${showConnector ? "has-connector" : "no-connector"}`}
+                      ref={stageRef ?? undefined}
+                    >
+                      <button
+                        type="button"
+                        className="workflow-stage-button"
+                        onClick={() => handleTileActivate(tile.key)}
                       aria-pressed={isActive}
                       aria-expanded={isActive}
                     >
@@ -3122,7 +3630,11 @@ export default function HomePage() {
                     )}
                   </div>
                   <div className="semantic-core-visualizer" aria-live="polite">
-                    <article className="semantic-panel">
+                    <article
+                      className="semantic-panel"
+                      ref={vectorLabRef}
+                      data-guide-active={activeGuideKey === "vectors" ? "true" : undefined}
+                    >
                       <div className="core-header">
                         <div>
                           <p className="eyebrow">Qdrant vector lab</p>
@@ -3142,12 +3654,32 @@ export default function HomePage() {
                         <>
                           <div className="vector-metrics">
                             <div className="vector-metric">
-                              <p className="eyebrow">Vectors</p>
+                              <p className="eyebrow">
+                                <span
+                                  className="tooltip-anchor"
+                                  data-tooltip="Total embeddings captured from the crawl. Higher coverage unlocks richer context downstream."
+                                >
+                                  Vectors
+                                  <span className="tooltip-icon" aria-hidden="true">
+                                    ?
+                                  </span>
+                                </span>
+                              </p>
                               <strong>{vectorSummary.totalPoints.toLocaleString()}</strong>
                               <span className="muted">records captured</span>
                             </div>
                             <div className="vector-metric">
-                              <p className="eyebrow">Avg magnitude</p>
+                              <p className="eyebrow">
+                                <span
+                                  className="tooltip-anchor"
+                                  data-tooltip="Magnitude is the length of the vector in embedding space. Stable values mean consistent normalization while spikes hint at noisy payloads."
+                                >
+                                  Avg magnitude
+                                  <span className="tooltip-icon" aria-hidden="true">
+                                    ?
+                                  </span>
+                                </span>
+                              </p>
                               <strong>{formatMagnitude(vectorSummary.avgMagnitude)}</strong>
                               <span className="muted">Peak {formatMagnitude(vectorSummary.maxMagnitude)}</span>
                             </div>
@@ -3222,8 +3754,31 @@ export default function HomePage() {
                                         </div>
                                       </div>
                                       <div className="vector-sample-meta">
-                                        <span>Magnitude: {formatMagnitude(sample.magnitude)}</span>
-                                        <span>Preview slice</span>
+                                        <span className="vector-hint">
+                                          <span
+                                            className="tooltip-anchor inline"
+                                            data-tooltip="Magnitude reflects the energy of the vector across dimensions so you can weigh its contribution."
+                                            data-tooltip-pos="below"
+                                          >
+                                            Magnitude
+                                            <span className="tooltip-icon" aria-hidden="true">
+                                              ?
+                                            </span>
+                                          </span>
+                                          : {formatMagnitude(sample.magnitude)}
+                                        </span>
+                                        <span className="vector-hint">
+                                          <span
+                                            className="tooltip-anchor inline"
+                                            data-tooltip="Preview slice exposes the opening dimensions of the embedding for a quick normalization check."
+                                            data-tooltip-pos="below"
+                                          >
+                                            Preview slice
+                                            <span className="tooltip-icon" aria-hidden="true">
+                                              ?
+                                            </span>
+                                          </span>
+                                        </span>
                                       </div>
                                       <div className="vector-preview" aria-label="Vector preview values">
                                         {sample.preview.length > 0 ? (
@@ -3362,6 +3917,53 @@ export default function HomePage() {
           </section>
         )}
       </div>
+      {showGuideOverlay && activeGuide && (
+        <div
+          className="guide-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={guideTitleInstanceId}
+          aria-describedby={guideBodyInstanceId}
+        >
+          {scrimSlices.map((slice) => (
+            <div
+              key={slice.key}
+              className="guide-scrim-slice"
+              aria-hidden="true"
+              onClick={closeGuide}
+              style={slice.style}
+            />
+          ))}
+          <div className="guide-spotlight" style={spotlightStyle} aria-hidden="true" />
+          <div
+            className="guide-tooltip"
+            style={guideTooltipStyle}
+            role="document"
+            ref={guideTooltipRef}
+          >
+            <p className="eyebrow">Step {guideStepIndex + 1} / {totalGuideSteps}</p>
+            <h3 id={guideTitleInstanceId}>{activeGuide.title}</h3>
+            <p className="muted" id={guideBodyInstanceId}>
+              {activeGuide.body}
+            </p>
+            <div className="guide-controls">
+              <button type="button" className="ghost-button small" onClick={closeGuide}>
+                Skip tour
+              </button>
+              <div className="guide-step-actions">
+                {guideStepIndex > 0 && (
+                  <button type="button" className="ghost-button small" onClick={handleGuidePrev}>
+                    Back
+                  </button>
+                )}
+                <button type="button" className="primary-button" onClick={handleGuideNext}>
+                  {isLastGuideStep ? "Finish" : "Next"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {insightsModalOpen && (
         <div
           className={`insights-backdrop${insightsFullscreen ? " fullscreen" : ""}`}

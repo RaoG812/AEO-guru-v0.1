@@ -2011,6 +2011,142 @@ main {
   color: var(--silver-400);
 }
 
+.guide-toggle-button {
+  border-color: rgba(139, 179, 255, 0.45);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.guide-toggle-button.is-active {
+  background: rgba(139, 179, 255, 0.2);
+  color: var(--silver-50);
+}
+
+[data-guide-active="true"] {
+  box-shadow: 0 0 0 2px rgba(139, 179, 255, 0.5), 0 25px 70px rgba(3, 6, 18, 0.45);
+}
+
+.guide-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+}
+
+.guide-scrim-slice {
+  position: absolute;
+  background: rgba(2, 4, 14, 0.78);
+  backdrop-filter: blur(14px) saturate(120%);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.guide-spotlight {
+  position: absolute;
+  border-radius: 28px;
+  border: 1px solid rgba(139, 179, 255, 0.7);
+  box-shadow: 0 0 0 1px rgba(139, 179, 255, 0.55), 0 25px 65px rgba(7, 12, 24, 0.5),
+    0 0 65px rgba(139, 179, 255, 0.25);
+  background: transparent;
+  pointer-events: none;
+}
+
+.guide-tooltip {
+  position: absolute;
+  background: rgba(5, 7, 20, 0.95);
+  border-radius: 20px;
+  padding: 1.1rem 1.3rem;
+  border: 1px solid rgba(139, 179, 255, 0.35);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+  width: min(340px, calc(100vw - 48px));
+  pointer-events: auto;
+  color: var(--silver-50);
+}
+
+.guide-tooltip h3 {
+  margin: 0.25rem 0;
+  font-size: 1.1rem;
+}
+
+.guide-tooltip p {
+  margin: 0;
+}
+
+.guide-controls {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.guide-step-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tooltip-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: help;
+  color: inherit;
+}
+
+.tooltip-anchor::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  background: rgba(5, 7, 20, 0.95);
+  border: 1px solid rgba(139, 179, 255, 0.35);
+  border-radius: 12px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  min-width: 180px;
+  max-width: 240px;
+  color: var(--silver-50);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
+  z-index: 10;
+}
+
+.tooltip-anchor.inline::after,
+.tooltip-anchor[data-tooltip-pos="below"]::after {
+  top: calc(100% + 10px);
+  bottom: auto;
+}
+
+.tooltip-anchor:focus-visible::after,
+.tooltip-anchor:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tooltip-icon {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(139, 179, 255, 0.5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: var(--silver-50);
+}
+
+.vector-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--silver-200);
+}
+
 @keyframes projectCardSpin {
   to {
     transform: rotate(360deg);
@@ -2323,7 +2459,7 @@ main {
 
 .export-cockpit-card[data-active="true"] {
   border-color: rgba(255, 255, 255, 0.18);
-  background-color: #050505;
+  background-color: #000;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   --cockpit-body-max: 1000px;
   --cockpit-body-opacity: 1;
