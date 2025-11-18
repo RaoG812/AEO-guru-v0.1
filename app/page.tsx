@@ -555,6 +555,9 @@ export default function HomePage() {
     width: 360,
     height: 220
   });
+  const [viewportSize, setViewportSize] = useState({ width: 1200, height: 900 });
+  const guideTooltipRef = useRef<HTMLDivElement | null>(null);
+  const [guideTooltipSize, setGuideTooltipSize] = useState({ width: 0, height: 0 });
   const scrollWorkspaceIntoView = useCallback(() => {
     const workspaceNode = workspaceSectionRef.current;
     if (!workspaceNode) {
@@ -742,6 +745,36 @@ export default function HomePage() {
       setGuideOpen(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleResize = () => {
+      setViewportSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!guideOpen) return;
+    const node = guideTooltipRef.current;
+    if (!node || typeof window === "undefined" || typeof ResizeObserver === "undefined") {
+      return;
+    }
+    const updateTooltipSize = () => {
+      const rect = node.getBoundingClientRect();
+      setGuideTooltipSize({ width: rect.width, height: rect.height });
+    };
+    updateTooltipSize();
+    const resizeObserver = new ResizeObserver(() => {
+      updateTooltipSize();
+    });
+    resizeObserver.observe(node);
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [guideOpen, guideStepIndex]);
 
   useEffect(() => {
     if (!guideOpen) return;
@@ -2621,6 +2654,10 @@ export default function HomePage() {
     width: Math.max(guideSpotlight.width, 160),
     height: Math.max(guideSpotlight.height, 140)
   };
+  const tooltipViewportPadding = 24;
+  const tooltipMaxWidth = Math.min(340, viewportSize.width - tooltipViewportPadding * 2);
+  const tooltipMeasuredWidth = guideTooltipSize.width || tooltipMaxWidth;
+  const tooltipMeasuredHeight = guideTooltipSize.height || 220;
   let tooltipTop = normalizedSpotlight.top + normalizedSpotlight.height + 28;
   let tooltipLeft = normalizedSpotlight.left + normalizedSpotlight.width / 2;
   let tooltipTransform = "translate(-50%, 0)";
@@ -2636,10 +2673,45 @@ export default function HomePage() {
     tooltipTop = normalizedSpotlight.top + normalizedSpotlight.height / 2;
     tooltipTransform = "translate(0, -50%)";
   }
+  const clampValue = (value: number, min: number, max: number) => {
+    if (min > max) {
+      return (min + max) / 2;
+    }
+    return Math.min(Math.max(value, min), max);
+  };
+  const horizontalMin = tooltipViewportPadding;
+  const horizontalMax = viewportSize.width - tooltipViewportPadding;
+  const verticalMin = tooltipViewportPadding;
+  const verticalMax = viewportSize.height - tooltipViewportPadding;
+  if (activeGuide?.placement === "left") {
+    tooltipLeft = clampValue(
+      tooltipLeft,
+      horizontalMin + tooltipMeasuredWidth,
+      horizontalMax
+    );
+  } else if (activeGuide?.placement === "right") {
+    tooltipLeft = clampValue(
+      tooltipLeft,
+      horizontalMin,
+      horizontalMax - tooltipMeasuredWidth
+    );
+  } else {
+    const halfWidth = tooltipMeasuredWidth / 2;
+    tooltipLeft = clampValue(tooltipLeft, horizontalMin + halfWidth, horizontalMax - halfWidth);
+  }
+  if (activeGuide?.placement === "top") {
+    tooltipTop = clampValue(tooltipTop, verticalMin + tooltipMeasuredHeight, verticalMax);
+  } else if (activeGuide?.placement === "left" || activeGuide?.placement === "right") {
+    const halfHeight = tooltipMeasuredHeight / 2;
+    tooltipTop = clampValue(tooltipTop, verticalMin + halfHeight, verticalMax - halfHeight);
+  } else {
+    tooltipTop = clampValue(tooltipTop, verticalMin, verticalMax - tooltipMeasuredHeight);
+  }
   const guideTooltipStyle = {
-    top: `${Math.max(tooltipTop, 24)}px`,
-    left: `${Math.max(tooltipLeft, 24)}px`,
-    transform: tooltipTransform
+    top: `${tooltipTop}px`,
+    left: `${tooltipLeft}px`,
+    transform: tooltipTransform,
+    maxWidth: `${tooltipMaxWidth}px`
   };
   const spotlightStyle = {
     top: `${normalizedSpotlight.top}px`,
@@ -3503,7 +3575,12 @@ export default function HomePage() {
         >
           <div className="guide-scrim" aria-hidden="true" onClick={closeGuide} />
           <div className="guide-spotlight" style={spotlightStyle} aria-hidden="true" />
-          <div className="guide-tooltip" style={guideTooltipStyle} role="document">
+          <div
+            className="guide-tooltip"
+            style={guideTooltipStyle}
+            role="document"
+            ref={guideTooltipRef}
+          >
             <p className="eyebrow">Step {guideStepIndex + 1} / {totalGuideSteps}</p>
             <h3 id={guideTitleInstanceId}>{activeGuide.title}</h3>
             <p className="muted" id={guideBodyInstanceId}>
