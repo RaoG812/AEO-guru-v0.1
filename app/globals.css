@@ -463,9 +463,9 @@ main {
 .workflow-stage-button {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 1.1rem;
   border-radius: 26px;
-  padding: 0.75rem 1.35rem 0.75rem 0.6rem;
+  padding: 0.85rem 1.45rem 0.85rem 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: linear-gradient(145deg, rgba(6, 8, 18, 0.9), rgba(12, 16, 32, 0.75));
   color: var(--silver-50);
@@ -902,6 +902,11 @@ main {
   mask-image: radial-gradient(circle at center, transparent 0 34%, rgba(0, 0, 0, 0.9) 38% 100%);
 }
 
+.workflow-grid:not(.is-condensed) .workflow-vector.workflow-vector-cluster {
+  -webkit-mask-image: radial-gradient(circle at center, transparent 0 22%, rgba(0, 0, 0, 0.9) 30% 100%);
+  mask-image: radial-gradient(circle at center, transparent 0 22%, rgba(0, 0, 0, 0.9) 30% 100%);
+}
+
 .workflow-vector {
   position: absolute;
   inset: 0;
@@ -1227,7 +1232,7 @@ main {
   left: 50%;
   transform: translateX(-50%);
   box-shadow: 0 10px 32px rgba(7, 10, 22, 0.5);
-  animation: sheetPrint 3.6s steps(7, end) infinite;
+  animation: sheetPrint 4.6s cubic-bezier(0.55, 0, 0.25, 1) infinite;
   animation-play-state: paused;
   display: flex;
   flex-direction: column;
@@ -1243,7 +1248,7 @@ main {
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(70, 98, 169, 0.15), rgba(70, 98, 169, 0.45));
   opacity: 0;
-  animation: sheetLineBlink 3.6s steps(6, end) infinite;
+  animation: sheetLineBlink 4.6s cubic-bezier(0.55, 0, 0.25, 1) infinite;
   animation-play-state: paused;
 }
 
@@ -1338,27 +1343,24 @@ main {
 
 @keyframes sheetPrint {
   0% {
-    transform: translate(-50%, -120%);
-    opacity: 0.75;
+    transform: translate(-50%, -115%);
+    opacity: 0.85;
   }
-  15% {
+  10% {
     transform: translate(-50%, -95%);
   }
   30% {
-    transform: translate(-50%, -70%);
-    opacity: 0.9;
+    transform: translate(-50%, -60%);
+    opacity: 1;
   }
-  45% {
-    transform: translate(-50%, -45%);
+  50% {
+    transform: translate(-50%, -30%);
   }
-  60% {
-    transform: translate(-50%, -20%);
+  70% {
+    transform: translate(-50%, -5%);
   }
-  75% {
-    transform: translate(-50%, 0%);
-  }
-  85% {
-    transform: translate(-50%, 8%);
+  82% {
+    transform: translate(-50%, 5%);
   }
   100% {
     transform: translate(-50%, 125%);
@@ -1369,18 +1371,23 @@ main {
 @keyframes sheetLineBlink {
   0% {
     opacity: 0;
-    transform: translateX(-8%);
+    transform: translateX(-6%);
   }
-  35% {
+  20% {
+    opacity: 0.9;
+    transform: translateX(-2%);
+  }
+  55% {
     opacity: 1;
     transform: translateX(0);
   }
-  70% {
-    opacity: 1;
+  80% {
+    opacity: 0.8;
+    transform: translateX(4%);
   }
   100% {
     opacity: 0;
-    transform: translateX(6%);
+    transform: translateX(8%);
   }
 }
 
