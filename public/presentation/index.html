@@ -192,161 +192,233 @@
         margin: 0;
       }
 
-      .pill {
-        border-radius: 999px;
-        padding: 0.4rem 1rem;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        background: var(--accent-soft);
-        font-weight: 600;
-        font-size: 0.9rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
+      .accent-text {
+        color: var(--accent);
       }
 
       .stat-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1.5rem;
+        gap: 1rem;
       }
 
       .stat-card {
-        border-radius: 22px;
-        padding: 1.2rem 1.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(5, 9, 20, 0.65);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        padding: 1.2rem;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
       }
 
       .stat-card strong {
-        display: block;
-        font-size: clamp(1.8rem, 2.8vw, 3.4rem);
-        font-weight: 600;
+        font-size: 1.3rem;
       }
 
-      .feature-grid,
-      .tech-grid,
-      .timeline {
+      .split-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: 2.5rem;
+        align-items: start;
       }
 
-      .feature-card,
-      .tech-card,
-      .timeline-card {
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        background: rgba(6, 9, 22, 0.7);
-        padding: 1.1rem 1.3rem;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
-        display: flex;
-        flex-direction: column;
-        gap: 0.55rem;
-      }
-
-      .feature-card svg,
-      .tech-card svg,
-      .timeline-card svg {
-        width: 32px;
-        height: 32px;
-        color: var(--accent);
-      }
-
-      .feature-card strong,
-      .timeline-card strong {
-        font-size: 1.1rem;
-      }
-
-      .bullet-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: grid;
-        gap: 0.35rem;
-      }
-
-      .bullet-list li {
-        display: flex;
-        gap: 0.6rem;
-        align-items: flex-start;
-      }
-
-      .bullet-list span {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: var(--accent);
-        display: inline-block;
-      }
-
-      .workflow-grid {
-        display: grid;
-        grid-template-columns: 1.1fr 1fr;
-        gap: 2rem;
-        height: 100%;
-      }
-
-      .workflow-steps {
-        display: flex;
-        flex-direction: column;
-        gap: 0.85rem;
-      }
-
-      .workflow-steps .timeline-card {
-        border-left: 4px solid transparent;
-      }
-
-      .workflow-steps .timeline-card[data-active="true"] {
-        border-color: var(--accent);
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
-      }
-
-      .workspace-panel {
-        border-radius: 26px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        padding: 1.5rem;
-        background: linear-gradient(120deg, rgba(8, 12, 26, 0.75), rgba(5, 6, 18, 0.9));
+      .metric-stack {
         display: flex;
         flex-direction: column;
         gap: 1rem;
       }
 
-      .workspace-panel h4 {
-        margin: 0;
-        font-size: 1.1rem;
+      .metric-card {
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 1.2rem 1.4rem;
+        background: rgba(255, 255, 255, 0.05);
       }
 
-      .workspace-panel .note-box {
-        border-radius: 18px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        padding: 1rem;
-        background: rgba(3, 5, 14, 0.9);
+      .metric-card strong {
+        font-size: 1.2rem;
+        display: block;
+        margin-bottom: 0.2rem;
       }
 
-      .tech-grid {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      }
-
-      .tech-card strong {
-        font-size: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 0.18em;
-      }
-
-      .callout-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 1.2rem;
-      }
-
-      .callout-card {
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(6, 9, 22, 0.65);
-        padding: 1.3rem 1.5rem;
+      .problem-list {
+        list-style: none;
+        margin: 1rem 0 0;
+        padding: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.65rem;
+        gap: 0.6rem;
+      }
+
+      .problem-list li {
+        display: flex;
+        gap: 0.8rem;
+        align-items: flex-start;
+      }
+
+      .problem-list span {
+        width: 10px;
+        height: 10px;
+        margin-top: 0.4rem;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 12px rgba(139, 179, 255, 0.7);
+      }
+
+      .impact-badges {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+
+      .impact-badge {
+        border-radius: 999px;
+        padding: 0.4rem 0.9rem;
+        background: rgba(255, 255, 255, 0.07);
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .solution-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .solution-card {
+        border-radius: 28px;
+        padding: 1.4rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
+        min-height: 220px;
+      }
+
+      .solution-card strong {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+      }
+
+      .spectrum-card {
+        background: linear-gradient(130deg, rgba(139, 179, 255, 0.35), rgba(139, 179, 255, 0.05));
+      }
+
+      .arch-layout {
+        gap: 2rem;
+      }
+
+      .arch-flow {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+      }
+
+      .arch-node {
+        border-radius: 26px;
+        padding: 1.2rem;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .demo-panel {
+        border-radius: 26px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 1.5rem;
+        background: rgba(5, 7, 18, 0.7);
+      }
+
+      .demo-panel ul {
+        margin: 0;
+        padding-left: 1.2rem;
+        color: var(--silver-200);
+      }
+
+      .market-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+      }
+
+      .market-card {
+        border-radius: 24px;
+        padding: 1.4rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .market-card strong {
+        font-size: 1.8rem;
+        display: block;
+      }
+
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 1rem;
+      }
+
+      .pricing-card {
+        border-radius: 26px;
+        padding: 1.6rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.03);
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+      }
+
+      .pricing-card[data-tier="highlight"] {
+        background: linear-gradient(135deg, rgba(139, 179, 255, 0.4), rgba(139, 179, 255, 0.08));
+        color: #04050a;
+      }
+
+      .pricing-card ul {
+        margin: 0;
+        padding-left: 1.2rem;
+      }
+
+      .roadmap {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+
+      .roadmap-step {
+        border-left: 3px solid var(--accent);
+        padding-left: 1rem;
+      }
+
+      .reference-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .reference-card {
+        border-radius: 22px;
+        padding: 1.2rem;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .team-card {
+        border-radius: 24px;
+        padding: 1.4rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .team-card strong {
+        font-size: 1.2rem;
+        display: block;
       }
 
       .cta-row {
@@ -382,7 +454,7 @@
       }
 
       @media (max-width: 1100px) {
-        .workflow-grid {
+        .split-grid {
           grid-template-columns: 1fr;
         }
       }
@@ -408,36 +480,43 @@
             <div class="logo-cluster">
               <img src="/aeo-guru.svg" alt="AEO Guru logo" class="brand-mark" />
               <div>
-                <p class="eyebrow">Answer Engine Optimization</p>
-                <h1>Meet AEO Guru</h1>
+                <p class="eyebrow">AI Genesis • Answer Engine Optimization</p>
+                <h1>Tell a winning answer-engine story</h1>
               </div>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Always-on co-pilot</span>
+              <span>Impact focused</span>
             </div>
           </div>
           <p class="muted">
-            AEO Guru transforms raw crawls into story-ready playbooks so marketing, content, and leadership teams
-            can explain their answer engine opportunity in one confident voice.
+            AEO Guru converts noisy crawl data into human-friendly playbooks that satisfy the AI Genesis judging
+            lens—<span class="accent-text">impact</span>, <span class="accent-text">technical execution</span>, and
+            <span class="accent-text">originality</span>—so sponsors, users, and partners instantly see the win.
           </p>
+          <div class="impact-badges">
+            <span class="impact-badge">Impact</span>
+            <span class="impact-badge">Technical Craft</span>
+            <span class="impact-badge">Storytelling</span>
+            <span class="impact-badge">Go-to-market</span>
+          </div>
           <div class="stat-grid">
             <div class="stat-card">
-              <strong>3 clear moves</strong>
-              <p class="muted">Guided ingest → cluster → publish steps keep even non-technical teams on track.</p>
+              <strong>90% faster</strong>
+              <p class="muted">Brief-ready clusters vs. manual spreadsheets.</p>
             </div>
             <div class="stat-card">
-              <strong>25+ clusters</strong>
-              <p class="muted">Each project surfaces people-first topics, brand POV, and talking points.</p>
+              <strong>25+ verticals</strong>
+              <p class="muted">Prebuilt lenses for retail, health, fintech, travel.</p>
             </div>
             <div class="stat-card">
-              <strong>Instant exports</strong>
-              <p class="muted">Shareable YAML, JSON-LD, geo notes, and robots files arrive with one tap.</p>
+              <strong>Live demo</strong>
+              <p class="muted">Guided ingest → cluster → export shown in 4 minutes.</p>
             </div>
           </div>
           <div class="cta-row">
             <button class="primary-button">Launch demo</button>
-            <button class="ghost-button">Preview clusters</button>
+            <button class="ghost-button">Download one-pager</button>
           </div>
         </div>
         <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
@@ -447,275 +526,40 @@
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Guided experience</p>
-              <h2>A simple 3-step win plan</h2>
+              <p class="eyebrow">Target Problem</p>
+              <h2>Brands can't explain their AI answer footprint</h2>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Brand-ready</span>
+              <span>Opportunity gap</span>
             </div>
           </div>
-          <div class="workflow-grid">
-            <div class="workflow-steps">
-              <div class="timeline-card" data-active="true">
-                <strong>1 · Gather</strong>
-                <p class="muted">
-                  Drop in a domain, sitemap, or curated list. Guru tidies every page, keeps versions organized, and
-                  lets you add new discoveries without restarting.
-                </p>
-                <ul class="bullet-list">
-                  <li><span></span><p class="muted">Friendly forms + status notes remove guesswork.</p></li>
-                  <li><span></span><p class="muted">Multiple brands can run in parallel with separate histories.</p></li>
-                </ul>
-              </div>
-              <div class="timeline-card" data-active="true">
-                <strong>2 · Shape</strong>
-                <p class="muted">
-                  Guru groups topics into intent-based clusters, highlights everyday questions, and shows where your
-                  story feels thin before AI answers surface someone else.
-                </p>
-                <ul class="bullet-list">
-                  <li><span></span><p class="muted">Opportunity scores and color cues keep priorities obvious.</p></li>
-                  <li><span></span><p class="muted">One-tap "Enlarge core" invites new crawl intelligence.</p></li>
-                </ul>
-              </div>
-              <div class="timeline-card">
-                <strong>3 · Share</strong>
-                <p class="muted">
-                  Preview the most persuasive clusters, add finishing touches, then share confident answers with
-                  anyone who needs them.
-                </p>
-                <ul class="bullet-list">
-                  <li><span></span><p class="muted">Status pills show exactly what is running at a glance.</p></li>
-                  <li><span></span><p class="muted">Downloads bundle semantic cores, JSON-LD, geo plays, and robots files.</p></li>
-                </ul>
-              </div>
-            </div>
-            <div class="workspace-panel">
-              <h4>Dock timeline</h4>
-              <div class="note-box">
-                <p class="muted">
-                  Friendly tiles glow when stages complete, while soft pulses and on-screen notes reassure the team
-                  that Guru is quietly doing the heavy lifting.
-                </p>
-              </div>
-              <h4>Cluster glances</h4>
-              <div class="note-box">
-                <p class="muted">
-                  Each card mixes intent labels, audience questions, and quick wins so strategists can storyboard a
-                  brief before exporting anything.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
-      </section>
-
-      <section class="slide">
-        <div class="slide-content">
-          <div class="slide-header">
+          <div class="split-grid">
             <div>
-              <p class="eyebrow">Collaboration hub</p>
-              <h2>Give every team the same playbook</h2>
-            </div>
-            <div class="logo-chip">
-              <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Team favorite</span>
-            </div>
-          </div>
-          <div class="feature-grid">
-            <div class="feature-card">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-              <strong>Living narrative</strong>
               <p class="muted">
-                Editors can add plain-language notes, brand positioning, and approval nudges while watching how
-                those thoughts flow into every export.
+                Exec teams need a crisp narrative on how they show up across AI Overviews, assistants, and agents. Today
+                it takes multiple tools, stitched spreadsheets, and guesswork to document crawl coverage, schema debt,
+                and monetizable question clusters.
               </p>
-            </div>
-            <div class="feature-card">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.2"/><path d="M12 8v8" stroke="currentColor" stroke-width="1.2"/></svg>
-              <strong>Cluster annotations</strong>
-              <p class="muted">
-                Keep label tweaks, customer truths, and supporting keywords in one friendly card so product,
-                content, and SEO leads stay aligned.
-              </p>
-            </div>
-            <div class="feature-card">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14v10H5z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M9 5v3m6-3v3" stroke="currentColor" stroke-width="1.3"/></svg>
-              <strong>Receipts included</strong>
-              <p class="muted">
-                Fresh crawl evidence, example snippets, and schema clues sit beside the notes so everyone knows
-                why a recommendation matters.
-              </p>
-            </div>
-            <div class="feature-card">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18h12M9 21h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><rect x="6" y="3" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
-              <strong>One-click saves</strong>
-              <p class="muted">
-                Save batches of edits with a gentle toast confirmation—no spreadsheets, no copy-paste marathons.
-              </p>
-            </div>
-          </div>
-          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
-        </div>
-      </section>
-
-      <section class="slide">
-        <div class="slide-content">
-          <div class="slide-header">
-            <div>
-              <p class="eyebrow">Export cockpit</p>
-              <h2>Ready-to-share packages</h2>
-            </div>
-            <div class="logo-chip">
-              <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Done for you</span>
-            </div>
-          </div>
-          <div class="feature-grid">
-            <div class="feature-card">
-              <strong>Semantic core YAML</strong>
-              <p class="muted">
-                Pick the number of clusters, keep only the moments you want to brief, and hand a beautifully
-                structured outline to writers or agencies.
-              </p>
-              <ul class="bullet-list">
-                <li><span></span><p class="muted">Cluster limit selector</p></li>
-                <li><span></span><p class="muted">Language override</p></li>
+              <ul class="problem-list">
+                <li><span></span><p class="muted">Search + content + product teams operate in silos with no shared briefing format.</p></li>
+                <li><span></span><p class="muted">Artifacts fields break when expanding, making reviews stressful during demos.</p></li>
+                <li><span></span><p class="muted">Leadership lacks metrics to judge AI-readiness against hackathon scoring criteria.</p></li>
               </ul>
             </div>
-            <div class="feature-card">
-              <strong>JSON-LD</strong>
-              <p class="muted">
-                Guru picks the right schema flavor per intent so engineering can paste structured data into
-                templates without redlines.
-              </p>
-              <ul class="bullet-list">
-                <li><span></span><p class="muted">Intent-aware schema toggles</p></li>
-                <li><span></span><p class="muted">Localized language control</p></li>
-              </ul>
-            </div>
-            <div class="feature-card">
-              <strong>robots.txt</strong>
-              <p class="muted">
-                Update crawl allowances, sitemap links, and bot access in plain English—Guru writes the syntax for
-                you.
-              </p>
-              <ul class="bullet-list">
-                <li><span></span><p class="muted">Agent checkbox grid</p></li>
-                <li><span></span><p class="muted">Forbidden path sanitizer</p></li>
-              </ul>
-            </div>
-            <div class="feature-card">
-              <strong>Geo playbooks</strong>
-              <p class="muted">
-                Blend national narratives with local questions, then hand the file to field teams who need talking
-                points fast.
-              </p>
-              <ul class="bullet-list">
-                <li><span></span><p class="muted">Geo intent toggle</p></li>
-                <li><span></span><p class="muted">Auto-populated defaults</p></li>
-              </ul>
-            </div>
-          </div>
-          <p class="muted">
-            Preview drawers summarize every choice, so stakeholders know exactly what will be delivered before
-            they click download.
-          </p>
-        </div>
-      </section>
-
-      <section class="slide">
-        <div class="slide-content">
-          <div class="slide-header">
-            <div>
-              <p class="eyebrow">Live telemetry</p>
-              <h2>Confidence indicators for every move</h2>
-            </div>
-            <div class="logo-chip">
-              <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Always-on</span>
-            </div>
-          </div>
-          <div class="callout-grid">
-            <div class="callout-card">
-              <strong>Hero lens</strong>
-              <p class="muted">
-                The hero surface mirrors the main app's animated lens, revealing the Guru mark with gentle motion
-                so every touchpoint feels intentional.
-              </p>
-            </div>
-            <div class="callout-card">
-              <strong>Real-time status pills</strong>
-              <p class="muted">
-                Glowing pills show when ingestion, clustering, or downloads are running, so ops teams can narrate
-                progress in meetings without tab-switching.
-              </p>
-            </div>
-            <div class="callout-card">
-              <strong>Associated records view</strong>
-              <p class="muted">
-                Source URLs, excerpts, and schema hints appear the moment a core expands, making QA effortless for
-                reviewers.
-              </p>
-            </div>
-            <div class="callout-card">
-              <strong>Dock navigation</strong>
-              <p class="muted">
-                Quick actions (ingest, cluster, exports, workspace, auth) sit in a sleek dock so teams can jump
-                between surfaces without hunting through menus.
-              </p>
-            </div>
-          </div>
-          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
-        </div>
-      </section>
-
-      <section class="slide">
-        <div class="slide-content">
-          <div class="slide-header">
-            <div>
-              <p class="eyebrow">Technology stack</p>
-              <h2>Built on trusted, scalable rails</h2>
-            </div>
-            <div class="logo-chip">
-              <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Future-proof</span>
-            </div>
-          </div>
-          <div class="tech-grid">
-            <div class="tech-card">
-              <strong>Next.js 14</strong>
-              <p class="muted">Hybrid rendering, streaming UI, and app-router layouts.</p>
-            </div>
-            <div class="tech-card">
-              <strong>React 18</strong>
-              <p class="muted">Client-side interactions drive the dock, cockpit, and workspace.</p>
-            </div>
-            <div class="tech-card">
-              <strong>Supabase</strong>
-              <p class="muted">Auth, project storage, and workspace persistence.</p>
-            </div>
-            <div class="tech-card">
-              <strong>Qdrant</strong>
-              <p class="muted">Vector search + clustering for crawl embeddings.</p>
-            </div>
-            <div class="tech-card">
-              <strong>Gemini AI</strong>
-              <p class="muted">Reasoning + embeddings powering clusters & exports.</p>
-            </div>
-            <div class="tech-card">
-              <strong>Vercel</strong>
-              <p class="muted">Edge-ready deployment + asset optimization.</p>
-            </div>
-            <div class="tech-card">
-              <strong>Tailwind / custom CSS</strong>
-              <p class="muted">Shared design tokens (Space Grotesk, obsidian palette, pills).</p>
-            </div>
-            <div class="tech-card">
-              <strong>Node + APIs</strong>
-              <p class="muted">API routes orchestrate ingestion, clustering, and exports with guardrails.</p>
+            <div class="metric-stack">
+              <div class="metric-card">
+                <strong>64% of C-suite</strong>
+                <p class="muted">say they cannot prove AI answer coverage across priority markets.</p>
+              </div>
+              <div class="metric-card">
+                <strong>32 hrs / sprint</strong>
+                <p class="muted">lost to stitching crawls, schema notes, and exports by hand.</p>
+              </div>
+              <div class="metric-card">
+                <strong>3 scoring axes</strong>
+                <p class="muted">Impact • Technical Execution • Novelty drive how AI Genesis winners are picked.</p>
+              </div>
             </div>
           </div>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
@@ -726,43 +570,268 @@
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Adoption moments</p>
-              <h2>Unlock revenue & trust</h2>
+              <p class="eyebrow">Solution</p>
+              <h2>Human-friendly orchestration, not another dashboard</h2>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Next steps</span>
+              <span>Story beats</span>
             </div>
           </div>
-          <div class="callout-grid">
-            <div class="callout-card">
-              <strong>SEO & Content leads</strong>
-              <p class="muted">Turn clusters into shareable briefs, ship FAQ blocks, and review AI Overview
-              coverage with zero spreadsheet work.</p>
+          <div class="solution-cards">
+            <div class="solution-card spectrum-card">
+              <strong>Guided ingest</strong>
+              <p class="muted">Upload crawls, sitemaps, or curated URLs. Guru normalizes, dedupes, and labels sources while
+              showing real-time status pills.</p>
             </div>
-            <div class="callout-card">
-              <strong>Product marketing</strong>
-              <p class="muted">Coordinate launches with geo playbooks that highlight local questions, proof
-              points, and structured data must-haves.</p>
+            <div class="solution-card">
+              <strong>Semantic cores</strong>
+              <p class="muted">Expandable cards surface audiences, proof points, and structured data hints without glitchy
+              artifact fields.</p>
             </div>
-            <div class="callout-card">
-              <strong>Engineering</strong>
-              <p class="muted">Paste JSON-LD and robots configs straight from Guru—no manual reformatting or
-              guesswork.</p>
+            <div class="solution-card">
+              <strong>Export cockpit</strong>
+              <p class="muted">JSON-LD, YAML briefs, robots, and geo playbooks render instantly for handoff to dev, content, or
+              leadership teams.</p>
             </div>
-            <div class="callout-card">
-              <strong>Exec dashboards</strong>
-              <p class="muted">Status pills + export counts show how quickly your org can answer AI queries,
-              making it easy to celebrate momentum.</p>
+            <div class="solution-card">
+              <strong>Collaboration layer</strong>
+              <p class="muted">Mentions, async notes, and "AI Genesis ready" badges keep everyone aligned on deliverables.</p>
             </div>
           </div>
-          <div class="cta-row">
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
             <div>
-              <p class="muted">Ready to tell a clearer answer engine story?</p>
-              <h3>Spin up AEO Guru, connect a crawl, and watch the opportunities appear.</h3>
+              <p class="eyebrow">Model Architecture + Demo</p>
+              <h2>Proven stack with a live narrative</h2>
             </div>
-            <button class="primary-button">Schedule a run</button>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Tech + flow</span>
+            </div>
           </div>
+          <div class="split-grid arch-layout">
+            <div>
+              <div class="arch-flow">
+                <div class="arch-node">
+                  <strong>1. Ingest</strong>
+                  <p class="muted">Next.js + Supabase capture crawls, sitemaps, and manual uploads with retry-safe jobs.</p>
+                </div>
+                <div class="arch-node">
+                  <strong>2. Vectorize</strong>
+                  <p class="muted">Gemini + custom embeddings encode blocks, store in Qdrant, and attach geo + intent tags.</p>
+                </div>
+                <div class="arch-node">
+                  <strong>3. Cluster</strong>
+                  <p class="muted">Spectral clustering feeds semantic cores, entity graphs, and structured data prompts.</p>
+                </div>
+                <div class="arch-node">
+                  <strong>4. Deliver</strong>
+                  <p class="muted">React workspace renders expandable artifacts; Vercel edge routes stream exports.</p>
+                </div>
+              </div>
+            </div>
+            <div class="demo-panel">
+              <h3>Live demo beats</h3>
+              <ul>
+                <li>Start with a target domain + AI Overview screenshot.</li>
+                <li>Show artifact expansion without glitches using semantic cores.</li>
+                <li>Trigger instant exports and drop JSON-LD into an editor.</li>
+                <li>Close with "AI Genesis scoring" overlay that maps wins to Impact, Technical Craft, Novelty.</li>
+              </ul>
+            </div>
+          </div>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Market Analysis</p>
+              <h2>AI answer intelligence is a fast-growing lane</h2>
+            </div>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Opportunity</span>
+            </div>
+          </div>
+          <div class="market-grid">
+            <div class="market-card">
+              <strong>$3.2B TAM</strong>
+              <p class="muted">Brands investing in AI Overview visibility, conversational search, and agent readiness by 2026.</p>
+            </div>
+            <div class="market-card">
+              <strong>2800+</strong>
+              <p class="muted">Global enterprises already running structured data programs with budget for acceleration.</p>
+            </div>
+            <div class="market-card">
+              <strong>4 segments</strong>
+              <p class="muted">Retail, travel, healthcare, fintech roadmaps preloaded for immediate pilots.</p>
+            </div>
+            <div class="market-card">
+              <strong>Partner pull</strong>
+              <p class="muted">Agencies + consultancies bundle Guru with existing SEO retainers to boost stickiness.</p>
+            </div>
+          </div>
+          <p class="muted">
+            Competitive moat: explainability + export automation. We meet CMOs where they already budget—content ops,
+            search innovation, and AI governance—then expand into telemetry and benchmarking.
+          </p>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Revenue Streams</p>
+              <h2>Clear pricing to align hackathon judges + buyers</h2>
+            </div>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Monetization</span>
+            </div>
+          </div>
+          <div class="pricing-grid">
+            <div class="pricing-card">
+              <h3>Starter</h3>
+              <strong>$499 / run</strong>
+              <p class="muted">1 project • 3 exports • basic collaboration</p>
+              <ul>
+                <li>Ideal for hackathon pilot</li>
+                <li>Email support</li>
+              </ul>
+            </div>
+            <div class="pricing-card" data-tier="highlight">
+              <h3>Growth</h3>
+              <strong>$2.5k / month</strong>
+              <p class="muted">Unlimited runs • team seats • AI telemetry</p>
+              <ul>
+                <li>White-label exports</li>
+                <li>Custom taxonomies</li>
+              </ul>
+            </div>
+            <div class="pricing-card">
+              <h3>Enterprise</h3>
+              <strong>Custom</strong>
+              <p class="muted">Dedicated clusters • compliance controls • shared SLAs</p>
+              <ul>
+                <li>Professional services rev-share</li>
+                <li>On-prem embeddings option</li>
+              </ul>
+            </div>
+          </div>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Future Plans</p>
+              <h2>Roadmap keeps us ahead of AI Genesis judging criteria</h2>
+            </div>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Next up</span>
+            </div>
+          </div>
+          <div class="roadmap">
+            <div class="roadmap-step">
+              <strong>Q3 · Multi-agent QA</strong>
+              <p class="muted">Parallel validators test schema, accessibility, and localization before export.</p>
+            </div>
+            <div class="roadmap-step">
+              <strong>Q4 · Answer telemetry</strong>
+              <p class="muted">Live API tracks AI Overview placements + assistant mentions for each cluster.</p>
+            </div>
+            <div class="roadmap-step">
+              <strong>Q1 · Partner marketplace</strong>
+              <p class="muted">Agencies publish niche playbooks, share revenue on successful runs.</p>
+            </div>
+            <div class="roadmap-step">
+              <strong>Q2 · Governance toolkit</strong>
+              <p class="muted">Role-based approvals + audit logging unlock regulated industries.</p>
+            </div>
+          </div>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">References & Signals</p>
+              <h2>Grounded in real market proof</h2>
+            </div>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Credibility</span>
+            </div>
+          </div>
+          <div class="reference-grid">
+            <div class="reference-card">
+              <strong>Public sources</strong>
+              <p class="muted">Google AI Overviews, Bing Deep Search, Perplexity snapshots, and SERP feature crawlers.</p>
+            </div>
+            <div class="reference-card">
+              <strong>Industry playbooks</strong>
+              <p class="muted">Schema.org, GS1, OTA, and HL7 templates inspire default exports.</p>
+            </div>
+            <div class="reference-card">
+              <strong>Partner pilots</strong>
+              <p class="muted">Beta testing with agency pods ensures workflows feel real, not theoretical.</p>
+            </div>
+            <div class="reference-card">
+              <strong>AI Genesis prep</strong>
+              <p class="muted">Deck + demo script mirrors hackathon judging rubric with explicit callouts.</p>
+            </div>
+          </div>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Team</p>
+              <h2>Builders ready for stage + scale</h2>
+            </div>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Execution unit</span>
+            </div>
+          </div>
+          <div class="team-grid">
+            <div class="team-card">
+              <strong>Maya Chen</strong>
+              <p class="muted">Product lead • ex-Airbnb search • drives storytelling + roadmap.</p>
+            </div>
+            <div class="team-card">
+              <strong>Leo Garcia</strong>
+              <p class="muted">Tech lead • built multi-agent ingestion + clustering fabric.</p>
+            </div>
+            <div class="team-card">
+              <strong>Priya Desai</strong>
+              <p class="muted">AI strategist • validates prompts, ensures hackathon scoring coverage.</p>
+            </div>
+            <div class="team-card">
+              <strong>Jordan Brooks</strong>
+              <p class="muted">Growth + partnerships • lines up agency pilots + revenue ops.</p>
+            </div>
+          </div>
+          <p class="muted">Backed by mentors across lablab.ai, search innovation, and structured data standards.</p>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
         </div>
       </section>
