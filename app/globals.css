@@ -1484,6 +1484,13 @@ main {
   border-color: rgba(139, 179, 255, 0.8);
 }
 
+.dock-nav button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: none;
+}
+
 .dock-icon {
   width: 24px;
   height: 24px;
@@ -1761,6 +1768,95 @@ main {
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
+}
+
+.insights-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 2rem;
+  background: linear-gradient(180deg, rgba(4, 5, 12, 0) 40%, rgba(4, 5, 12, 0.75));
+  z-index: 40;
+}
+
+.insights-backdrop.fullscreen {
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 3, 8, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.insights-panel {
+  width: min(380px, 100%);
+  border-radius: 24px;
+  padding: 1.5rem;
+  background: rgba(8, 9, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.insights-panel.fullscreen {
+  width: min(920px, 90%);
+  min-height: 60vh;
+  gap: 1.25rem;
+  padding: 2rem;
+}
+
+.insights-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.insights-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.insights-cta {
+  width: 100%;
+  border-radius: 999px;
+  padding: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  color: var(--silver-50);
+  background: linear-gradient(120deg, #5f6bff, #7dd3fc);
+  box-shadow: 0 18px 35px rgba(53, 98, 255, 0.35);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.insights-cta:hover,
+.insights-cta:focus-visible {
+  transform: translateY(-2px);
+}
+
+.insights-message {
+  border-radius: 18px;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.9rem;
+  color: var(--silver-100);
+  min-height: 78px;
+  max-height: 12rem;
+  overflow-y: auto;
+  line-height: 1.4;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.insights-panel.fullscreen .insights-message {
+  min-height: 240px;
+  max-height: none;
+  font-size: 1rem;
 }
 
 .project-list-card {
