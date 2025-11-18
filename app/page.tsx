@@ -1996,39 +1996,41 @@ export default function HomePage() {
                       </div>
                       <div
                         id="cockpit-semantic-panel"
-                        className="cockpit-card-body"
+                        className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "semantic"}
                       >
-                        <label className="field-label">
-                          Language override
-                          <input
-                            className="text-input"
-                            placeholder={clusterLang ?? "en"}
-                            value={exportCockpit.semanticCore.lang}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                semanticCore: { ...prev.semanticCore, lang: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
-                        <label className="field-label">
-                          Cluster limit (1-25)
-                          <input
-                            className="text-input"
-                            type="number"
-                            min={1}
-                            max={25}
-                            value={exportCockpit.semanticCore.limit}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                semanticCore: { ...prev.semanticCore, limit: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
+                        <div className="cockpit-card-body">
+                          <label className="field-label">
+                            Language override
+                            <input
+                              className="text-input"
+                              placeholder={clusterLang ?? "en"}
+                              value={exportCockpit.semanticCore.lang}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  semanticCore: { ...prev.semanticCore, lang: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="field-label">
+                            Cluster limit (1-25)
+                            <input
+                              className="text-input"
+                              type="number"
+                              min={1}
+                              max={25}
+                              value={exportCockpit.semanticCore.limit}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  semanticCore: { ...prev.semanticCore, limit: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                        </div>
                       </div>
                     </section>
                     <section
@@ -2055,39 +2057,41 @@ export default function HomePage() {
                       </div>
                       <div
                         id="cockpit-jsonld-panel"
-                        className="cockpit-card-body"
+                        className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "jsonld"}
                       >
-                        <label className="field-label">
-                          Language override
-                          <input
-                            className="text-input"
-                            placeholder={clusterLang ?? "en"}
-                            value={exportCockpit.jsonld.lang}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                jsonld: { ...prev.jsonld, lang: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
-                        <label className="field-label">
-                          Page limit (1-10)
-                          <input
-                            className="text-input"
-                            type="number"
-                            min={1}
-                            max={10}
-                            value={exportCockpit.jsonld.limit}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                jsonld: { ...prev.jsonld, limit: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
+                        <div className="cockpit-card-body">
+                          <label className="field-label">
+                            Language override
+                            <input
+                              className="text-input"
+                              placeholder={clusterLang ?? "en"}
+                              value={exportCockpit.jsonld.lang}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  jsonld: { ...prev.jsonld, lang: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="field-label">
+                            Page limit (1-10)
+                            <input
+                              className="text-input"
+                              type="number"
+                              min={1}
+                              max={10}
+                              value={exportCockpit.jsonld.limit}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  jsonld: { ...prev.jsonld, limit: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                        </div>
                       </div>
                     </section>
                     <section
@@ -2114,72 +2118,74 @@ export default function HomePage() {
                       </div>
                       <div
                         id="cockpit-geo-panel"
-                        className="cockpit-card-body"
+                        className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "geo"}
                       >
-                        <label className="field-label">
-                          Language override
-                          <input
-                            className="text-input"
-                            placeholder={clusterLang ?? "en"}
-                            value={exportCockpit.geo.lang}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                geo: { ...prev.geo, lang: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
-                        <label className="field-label">
-                          Location limit (1-12)
-                          <input
-                            className="text-input"
-                            type="number"
-                            min={1}
-                            max={12}
-                            value={exportCockpit.geo.limit}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                geo: { ...prev.geo, limit: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
-                        <label className="field-label">
-                          Intent focus
-                          <select
-                            className="text-input"
-                            value={exportCockpit.geo.intentFocus}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                geo: {
-                                  ...prev.geo,
-                                  intentFocus: e.target.value as GeoIntentFocus
-                                }
-                              }))
-                            }
-                          >
-                            <option value="local">Local-first</option>
-                            <option value="all">All intents</option>
-                          </select>
-                        </label>
-                        <label className="field-label">
-                          Fallback location label
-                          <input
-                            className="text-input"
-                            placeholder="Local market"
-                            value={exportCockpit.geo.fallbackLocation}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                geo: { ...prev.geo, fallbackLocation: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
+                        <div className="cockpit-card-body">
+                          <label className="field-label">
+                            Language override
+                            <input
+                              className="text-input"
+                              placeholder={clusterLang ?? "en"}
+                              value={exportCockpit.geo.lang}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  geo: { ...prev.geo, lang: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="field-label">
+                            Location limit (1-12)
+                            <input
+                              className="text-input"
+                              type="number"
+                              min={1}
+                              max={12}
+                              value={exportCockpit.geo.limit}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  geo: { ...prev.geo, limit: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="field-label">
+                            Intent focus
+                            <select
+                              className="text-input"
+                              value={exportCockpit.geo.intentFocus}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  geo: {
+                                    ...prev.geo,
+                                    intentFocus: e.target.value as GeoIntentFocus
+                                  }
+                                }))
+                              }
+                            >
+                              <option value="local">Local-first</option>
+                              <option value="all">All intents</option>
+                            </select>
+                          </label>
+                          <label className="field-label">
+                            Fallback location label
+                            <input
+                              className="text-input"
+                              placeholder="Local market"
+                              value={exportCockpit.geo.fallbackLocation}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  geo: { ...prev.geo, fallbackLocation: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                        </div>
                       </div>
                     </section>
                     <section
@@ -2206,124 +2212,126 @@ export default function HomePage() {
                       </div>
                       <div
                         id="cockpit-robots-panel"
-                        className="cockpit-card-body"
+                        className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "robots"}
                       >
-                        <label className="field-label">
-                          Root URL
-                          <input
-                            className="text-input"
-                            value={exportCockpit.robots.rootUrl}
-                            placeholder={selectedProject?.rootUrl ?? "https://example.com"}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                robots: { ...prev.robots, rootUrl: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
-                        <label className="field-label">
-                          Language preference
-                          <input
-                            className="text-input"
-                            placeholder={clusterLang ?? "en"}
-                            value={exportCockpit.robots.lang}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                robots: { ...prev.robots, lang: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
-                        <label className="field-label">
-                          Crawl-delay seconds (1-60)
-                          <input
-                            className="text-input"
-                            type="number"
-                            min={1}
-                            max={60}
-                            value={exportCockpit.robots.crawlDelay}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                robots: { ...prev.robots, crawlDelay: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
-                        <label className="field-label">
-                          Sitemap URLs (one per line)
-                          <textarea
-                            className="text-area"
-                            rows={3}
-                            placeholder={selectedProject?.sitemapUrl ?? "https://example.com/sitemap.xml"}
-                            value={exportCockpit.robots.sitemapUrls}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                robots: { ...prev.robots, sitemapUrls: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
-                        <div className="field-label">
-                          <span>Popular user-agents</span>
-                          <div className="checkbox-grid">
-                            {POPULAR_USER_AGENTS.map((agent) => (
-                              <label key={agent} className="cockpit-checkbox">
-                                <input
-                                  type="checkbox"
-                                  checked={exportCockpit.robots.agents[agent]}
-                                  onChange={() =>
-                                    setExportCockpit((prev) => ({
-                                      ...prev,
-                                      robots: {
-                                        ...prev.robots,
-                                        agents: {
-                                          ...prev.robots.agents,
-                                          [agent]: !prev.robots.agents[agent]
+                        <div className="cockpit-card-body">
+                          <label className="field-label">
+                            Root URL
+                            <input
+                              className="text-input"
+                              value={exportCockpit.robots.rootUrl}
+                              placeholder={selectedProject?.rootUrl ?? "https://example.com"}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  robots: { ...prev.robots, rootUrl: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="field-label">
+                            Language preference
+                            <input
+                              className="text-input"
+                              placeholder={clusterLang ?? "en"}
+                              value={exportCockpit.robots.lang}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  robots: { ...prev.robots, lang: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="field-label">
+                            Crawl-delay seconds (1-60)
+                            <input
+                              className="text-input"
+                              type="number"
+                              min={1}
+                              max={60}
+                              value={exportCockpit.robots.crawlDelay}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  robots: { ...prev.robots, crawlDelay: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="field-label">
+                            Sitemap URLs (one per line)
+                            <textarea
+                              className="text-area"
+                              rows={3}
+                              placeholder={selectedProject?.sitemapUrl ?? "https://example.com/sitemap.xml"}
+                              value={exportCockpit.robots.sitemapUrls}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  robots: { ...prev.robots, sitemapUrls: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                          <div className="field-label">
+                            <span>Popular user-agents</span>
+                            <div className="checkbox-grid">
+                              {POPULAR_USER_AGENTS.map((agent) => (
+                                <label key={agent} className="cockpit-checkbox">
+                                  <input
+                                    type="checkbox"
+                                    checked={exportCockpit.robots.agents[agent]}
+                                    onChange={() =>
+                                      setExportCockpit((prev) => ({
+                                        ...prev,
+                                        robots: {
+                                          ...prev.robots,
+                                          agents: {
+                                            ...prev.robots.agents,
+                                            [agent]: !prev.robots.agents[agent]
+                                          }
                                         }
-                                      }
-                                    }))
-                                  }
-                                />
-                                <span>{agent}</span>
-                              </label>
-                            ))}
+                                      }))
+                                    }
+                                  />
+                                  <span>{agent}</span>
+                                </label>
+                              ))}
+                            </div>
                           </div>
+                          <label className="field-label">
+                            Additional user-agents (comma or newline separated)
+                            <textarea
+                              className="text-area"
+                              rows={2}
+                              placeholder="GPTBot, MegaIndex"
+                              value={exportCockpit.robots.additionalAgents}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  robots: { ...prev.robots, additionalAgents: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="field-label">
+                            Forbidden pages (paths or URLs)
+                            <textarea
+                              className="text-area"
+                              rows={3}
+                              placeholder={"/checkout\n/private/report"}
+                              value={exportCockpit.robots.forbiddenPaths}
+                              onChange={(e) =>
+                                setExportCockpit((prev) => ({
+                                  ...prev,
+                                  robots: { ...prev.robots, forbiddenPaths: e.target.value }
+                                }))
+                              }
+                            />
+                          </label>
                         </div>
-                        <label className="field-label">
-                          Additional user-agents (comma or newline separated)
-                          <textarea
-                            className="text-area"
-                            rows={2}
-                            placeholder="GPTBot, MegaIndex"
-                            value={exportCockpit.robots.additionalAgents}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                robots: { ...prev.robots, additionalAgents: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
-                        <label className="field-label">
-                          Forbidden pages (paths or URLs)
-                          <textarea
-                            className="text-area"
-                            rows={3}
-                            placeholder={"/checkout\n/private/report"}
-                            value={exportCockpit.robots.forbiddenPaths}
-                            onChange={(e) =>
-                              setExportCockpit((prev) => ({
-                                ...prev,
-                                robots: { ...prev.robots, forbiddenPaths: e.target.value }
-                              }))
-                            }
-                          />
-                        </label>
                       </div>
                     </section>
                   </div>
