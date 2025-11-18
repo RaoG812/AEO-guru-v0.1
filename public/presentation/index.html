@@ -480,7 +480,8 @@
         text-align: center;
       }
 
-      .provider-logo img {
+      .provider-logo img,
+      .provider-logo svg {
         width: 100%;
         max-width: 150px;
         height: auto;
@@ -488,6 +489,19 @@
         filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.35));
         margin: 0 auto 0.6rem;
         display: block;
+      }
+
+      .slide ul:not(.problem-list) {
+        list-style: disc;
+        padding-left: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        margin: 0;
+      }
+
+      .slide ul:not(.problem-list) li {
+        margin: 0;
       }
 
       .provider-logo span {
@@ -619,28 +633,31 @@
             </div>
           </div>
           <p class="muted">
-            AEO Guru converts noisy crawl data into human-friendly playbooks that satisfy the AI Genesis judging
-            lens — <span class="accent-text">impact</span>, <span class="accent-text">technical execution</span>, and
-            <span class="accent-text">originality</span> — so sponsors, users, and partners instantly see the win.
+            This repo is the entire AEO Guru workspace: a Next.js 14 app that authenticates with Supabase, crawls
+            projects with <code>lib/crawler.ts</code>, vectorizes every chunk with Gemini, and persists the payloads in
+            Qdrant so cluster exports never drift from the source of truth.
           </p>
           <div class="impact-badges">
-            <span class="impact-badge">Impact</span>
-            <span class="impact-badge">Technical Craft</span>
-            <span class="impact-badge">Storytelling</span>
-            <span class="impact-badge">Go-to-market</span>
+            <span class="impact-badge">Next.js 14.2</span>
+            <span class="impact-badge">Gemini-only calls</span>
+            <span class="impact-badge">Supabase RLS</span>
+            <span class="impact-badge">Qdrant vectors</span>
           </div>
           <div class="stat-grid">
             <div class="stat-card">
-              <strong>90% faster</strong>
-              <p class="muted">Brief-ready clusters vs. manual spreadsheets.</p>
+              <strong>Gemini presets</strong>
+              <p class="muted"><code>lib/ai-gateway.ts</code> locks reasoning to gemini-pro-latest, fast tasks to
+                gemini-2.5-flash-lite, and embeddings to gemini-embedding-001.</p>
             </div>
             <div class="stat-card">
-              <strong>25+ verticals</strong>
-              <p class="muted">Prebuilt lenses for retail, health, fintech, travel.</p>
+              <strong>aeo_guru_corpus</strong>
+              <p class="muted"><code>lib/qdrant.ts</code> keeps a single collection with keyword indexes for projectId,
+                type, source, and lang.</p>
             </div>
             <div class="stat-card">
-              <strong>Live demo</strong>
-              <p class="muted">Guided ingest → cluster → export shown in 4 minutes.</p>
+              <strong>Supabase tables</strong>
+              <p class="muted"><code>lib/projectsStore.ts</code> + <code>lib/projectCoreStore.ts</code> manage the
+                <code>projects</code> and <code>project_cores</code> rows judges can audit.</p>
             </div>
           </div>
           <div class="cta-row">
@@ -664,34 +681,43 @@
             </div>
           </div>
           <p class="muted">
-            Only the tools we actively ship with are highlighted here — each logo represents production usage with
-            transparent limits, docs, and uptime so judges can validate our claims instantly.
+            Every provider listed below is referenced in code you can inspect — we call out the exact files so judges
+            can follow the wiring from request to response.
           </p>
           <div class="provider-logos">
             <div class="provider-logo">
               <img src="./google%20deep.png" alt="Google DeepMind logo" />
               <span>Google Gemini</span>
-              <p>Gemini Pro Latest plus Gemini 2.5 Flash Lite cover reasoning, summarization, and export copy.</p>
+              <p><code>lib/ai-gateway.ts</code> centralizes gemini-pro-latest + gemini-2.5-flash-lite, while
+                <code>lib/embeddings.ts</code> calls gemini-embedding-001 for every vector.</p>
             </div>
             <div class="provider-logo">
               <img src="./supabase.png" alt="Supabase logo" />
               <span>Supabase</span>
-              <p>@supabase/supabase-js powers the auth flow, workspace storage, and row-level policies.</p>
+              <p><code>lib/supabaseClient.ts</code> and <code>lib/supabaseServerClient.ts</code> enforce RLS, feeding the
+                <code>projects</code> + <code>project_cores</code> tables via the projects API.</p>
             </div>
             <div class="provider-logo">
               <img src="./qdrant.png" alt="Qdrant logo" />
               <span>Qdrant</span>
-              <p>@qdrant/js-client-rest stores every embedding + payload so clusters stay reproducible.</p>
+              <p><code>lib/qdrant.ts</code> provisions <code>aeo_guru_corpus</code> and is invoked by both
+                <code>app/api/ingest</code> and <code>app/api/clusters</code> to upsert vectors + metadata.</p>
             </div>
             <div class="provider-logo">
-              <img src="./vercel.png" alt="Vercel logo" />
-              <span>Vercel</span>
-              <p>Next.js App Router pages stream from Vercel edge regions with zero-config deployments.</p>
+              <svg viewBox="0 0 120 70" role="img" aria-label="Next.js wordmark">
+                <rect width="120" height="70" rx="18" fill="rgba(255,255,255,0.08)" />
+                <text x="60" y="42" text-anchor="middle" font-size="28" font-family="'Space Grotesk',sans-serif"
+                  fill="currentColor">Next.js</text>
+              </svg>
+              <span>Next.js 14</span>
+              <p><code>package.json</code> pins Next 14.2 + React 18, and <code>app/page.tsx</code> shows the App Router UI
+                running entirely in this repo.</p>
             </div>
             <div class="provider-logo">
               <img src="./github.png" alt="GitHub logo" />
               <span>GitHub</span>
-              <p>Source of truth for the repo plus documentation so judges can audit every commit.</p>
+              <p>Every commit, README, and presentation lives in this repository so reviewers can diff implementation,
+                infra, and narrative in one place.</p>
             </div>
           </div>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
@@ -713,28 +739,31 @@
           <div class="split-grid">
             <div>
               <p class="muted">
-                Exec teams need a crisp narrative on how they show up across AI Overviews, assistants, and agents. Today
-                it takes multiple tools, stitched spreadsheets, and guesswork to document crawl coverage, schema debt,
-                and monetizable question clusters.
+                Before this repo, we hand stitched crawl dumps, schema notes, and export scripts. The current codebase
+                documents the exact operational gaps we had to close.
               </p>
               <ul class="problem-list">
-                <li><span></span><p class="muted">Search + content + product teams operate in silos with no shared briefing format.</p></li>
-                <li><span></span><p class="muted">Artifacts fields break when expanding, making reviews stressful during demos.</p></li>
-                <li><span></span><p class="muted">Leadership lacks metrics to judge AI-readiness against hackathon scoring criteria.</p></li>
+                <li><span></span><p class="muted">Crawls arrive from root URLs, sitemaps, and manual lists; <code>app/api/ingest</code>
+                    must juggle all three input types per run.</p></li>
+                <li><span></span><p class="muted">Analysts need deterministic text slices; <code>lib/chunker.ts</code> hashes each
+                    page + index so updates can be diffed.</p></li>
+                <li><span></span><p class="muted">Clusters require auditable context; the Qdrant payload stores
+                    <code>clusterLabel</code>, <code>clusterSummary</code>, and <code>score_opportunity</code> for every
+                    point.</p></li>
               </ul>
             </div>
             <div class="metric-stack">
               <div class="metric-card">
-                <strong>64% of C-suite</strong>
-                <p class="muted">say they cannot prove AI answer coverage across priority markets.</p>
+                <strong>20-page crawl window</strong>
+                <p class="muted"><code>crawlSite</code> defaults to 20 URLs per run so live demos finish reliably.</p>
               </div>
               <div class="metric-card">
-                <strong>32 hrs / sprint</strong>
-                <p class="muted">lost to stitching crawls, schema notes, and exports by hand.</p>
+                <strong>1200 char chunks</strong>
+                <p class="muted"><code>chunkText</code> slices content into 320-1200 character blocks for Gemini.</p>
               </div>
               <div class="metric-card">
-                <strong>3 scoring axes</strong>
-                <p class="muted">Impact • Technical Execution • Novelty drive how AI Genesis winners are picked.</p>
+                <strong>350ms crawl delay</strong>
+                <p class="muted">The ingest worker intentionally pauses between requests to avoid hammering targets.</p>
               </div>
             </div>
           </div>
@@ -757,22 +786,25 @@
           <div class="solution-cards">
             <div class="solution-card spectrum-card">
               <strong>Guided ingest</strong>
-              <p class="muted">Upload crawls, sitemaps, or curated URLs. Guru normalizes, dedupes, and labels sources while
-              showing real-time status pills.</p>
+              <p class="muted"><code>app/api/ingest</code> orchestrates <code>lib/crawler.ts</code>,
+                <code>collectSitemapUrls</code>, and <code>chunkText</code> so every source funnels into the same
+                deterministic vector queue.</p>
             </div>
             <div class="solution-card">
               <strong>Semantic cores</strong>
-              <p class="muted">Expandable cards surface audiences, proof points, and structured data hints without glitchy
-              artifact fields.</p>
+              <p class="muted"><code>app/api/clusters</code> pairs <code>lib/clustering.ts</code> k-means output with
+                Gemini annotations, populating <code>cluster*</code> fields plus opportunity scores in Qdrant.</p>
             </div>
             <div class="solution-card">
               <strong>Export cockpit</strong>
-              <p class="muted">JSON-LD, YAML briefs, robots, and geo playbooks render instantly for handoff to dev, content, or
-              leadership teams.</p>
+              <p class="muted">The UI calls <code>/api/exports/semantic-core</code>, <code>/jsonld</code>,
+                <code>/robots</code>, and <code>/geo-improvements</code> so YAML, JSON-LD, and geo playbooks stay in
+                sync.</p>
             </div>
             <div class="solution-card">
               <strong>Collaboration layer</strong>
-              <p class="muted">Mentions, async notes, and "AI Genesis ready" badges keep everyone aligned on deliverables.</p>
+              <p class="muted"><code>project_cores</code> rows store manual notes + cluster overrides, and the React
+                workspace mirrors those edits instantly through Supabase.</p>
             </div>
           </div>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
@@ -798,7 +830,9 @@
                   <div class="phase-badge">1</div>
                   <div class="phase-copy">
                     <h3>Ingest</h3>
-                    <p class="muted">Next.js + Supabase capture crawls, sitemaps, and manual uploads with retry-safe jobs.</p>
+                    <p class="muted"><code>app/api/ingest</code> streams root crawls, sitemap hits, and manual URLs through
+                      <code>lib/crawler.ts</code> + <code>collectSitemapUrls</code> under a Supabase-authenticated
+                      session.</p>
                   </div>
                   <div class="phase-meta">
                     <span>Stack: Next.js · Supabase</span>
@@ -809,7 +843,9 @@
                   <div class="phase-badge">2</div>
                   <div class="phase-copy">
                     <h3>Vectorize</h3>
-                    <p class="muted">Gemini-embedding-001 encodes blocks, stores vectors in Qdrant, and attaches geo + intent tags.</p>
+                    <p class="muted"><code>lib/embeddings.ts</code> calls gemini-embedding-001, then
+                      <code>lib/qdrant.ts</code> ensures <code>aeo_guru_corpus</code> exists before storing vectors and
+                      payload metadata.</p>
                   </div>
                   <div class="phase-meta">
                     <span>Stack: Gemini-embedding-001 · Qdrant</span>
@@ -820,7 +856,9 @@
                   <div class="phase-badge">3</div>
                   <div class="phase-copy">
                     <h3>Cluster</h3>
-                    <p class="muted">Custom k-means clusters (lib/clustering.ts) feed entity graphs + scoring hints.</p>
+                    <p class="muted"><code>lib/clustering.ts</code> runs cosine-aware k-means, while
+                      <code>app/api/clusters</code> annotates each set with Gemini, Answer Graph questions, and
+                      opportunity scores.</p>
                   </div>
                   <div class="phase-meta">
                     <span>Stack: lib/clustering.ts · Qdrant vectors</span>
@@ -831,11 +869,12 @@
                   <div class="phase-badge">4</div>
                   <div class="phase-copy">
                     <h3>Deliver</h3>
-                    <p class="muted">React workspace renders expandable artifacts; Vercel edge routes stream exports.</p>
+                    <p class="muted">The App Router workspace calls the export routes to download semantic-core YAML, JSON-LD,
+                      robots.txt, and geo playbooks directly from the project vectors.</p>
                   </div>
                   <div class="phase-meta">
-                    <span>Stack: React · Vercel</span>
-                    <span>Output: JSON-LD · CSV · decks</span>
+                    <span>Stack: Next.js App Router</span>
+                    <span>Output: YAML · JSON-LD · robots.txt</span>
                   </div>
                 </article>
               </div>
@@ -843,10 +882,10 @@
             <div class="demo-panel">
               <h3>Live demo beats</h3>
               <ul>
-                <li>Start with a target domain + AI Overview screenshot.</li>
-                <li>Show artifact expansion without glitches using semantic cores.</li>
-                <li>Trigger instant exports and drop JSON-LD into an editor.</li>
-                <li>Close with "AI Genesis scoring" overlay that maps wins to Impact, Technical Craft, Novelty.</li>
+                <li>Authenticate with Supabase and register a project via <code>/api/projects</code>.</li>
+                <li>Run ingestion so the vector summary cards populate languages, intents, and sources.</li>
+                <li>Request clusters, highlight the generated Answer Graph questions, and show score badges.</li>
+                <li>Download semantic-core YAML + JSON-LD from the Export cockpit to close the loop.</li>
               </ul>
             </div>
           </div>
@@ -858,8 +897,8 @@
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Market Analysis</p>
-              <h2>AI answer intelligence is a fast-growing lane</h2>
+              <p class="eyebrow">Coverage instrumentation</p>
+              <h2>Every panel maps directly to code</h2>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
@@ -868,25 +907,27 @@
           </div>
           <div class="market-grid">
             <div class="market-card">
-              <strong>$3.2B TAM</strong>
-              <p class="muted">Brands investing in AI Overview visibility, conversational search, and agent readiness by 2026.</p>
+              <strong>15 hero prompts</strong>
+              <p class="muted"><code>vectorPhrases</code> seeds taxonomy, schema, FAQ, and entity cues for the hero ticker.</p>
             </div>
             <div class="market-card">
-              <strong>2800+</strong>
-              <p class="muted">Global enterprises already running structured data programs with budget for acceleration.</p>
+              <strong>8 crawler agents</strong>
+              <p class="muted">Robots exports expose Googlebot, Bingbot (desktop + mobile), DuckDuckBot, Baiduspider, YandexBot,
+                and Slurp toggles.</p>
             </div>
             <div class="market-card">
-              <strong>4 segments</strong>
-              <p class="muted">Retail, travel, healthcare, fintech roadmaps preloaded for immediate pilots.</p>
+              <strong>Language detection</strong>
+              <p class="muted"><code>lib/language.ts</code> pipes <code>franc-min</code> into every chunk so vector
+                summaries can split by locale.</p>
             </div>
             <div class="market-card">
-              <strong>Partner pull</strong>
-              <p class="muted">Agencies + consultancies bundle Guru with existing SEO retainers to boost stickiness.</p>
+              <strong>Answer graph nodes</strong>
+              <p class="muted"><code>lib/answer-graph.ts</code> generates canonical questions + embeddings for each cluster.</p>
             </div>
           </div>
           <p class="muted">
-            Competitive moat: explainability + export automation. We meet CMOs where they already budget — content ops,
-            search innovation, and AI governance — then expand into telemetry and benchmarking.
+            These constants surface in <code>app/page.tsx</code>: the hero scroller, vector lab, and robots form all read
+            directly from the same arrays our API routes consume.
           </p>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
         </div>
@@ -896,40 +937,40 @@
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Revenue Streams</p>
-              <h2>Clear pricing to align hackathon judges + buyers</h2>
+              <p class="eyebrow">Export Surface</p>
+              <h2>Deliverables map one-to-one with API routes</h2>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Monetization</span>
+              <span>Outputs</span>
             </div>
           </div>
           <div class="pricing-grid">
             <div class="pricing-card">
-              <h3>Starter</h3>
-              <strong>$5 / run</strong>
-              <p class="muted">Buy tokens per deliverable • instant PDF + CSV exports</p>
+              <h3>Semantic core YAML</h3>
+              <strong>/api/exports/semantic-core</strong>
+              <p class="muted">Aggregates annotated clusters into a YAML handoff file.</p>
               <ul>
-                <li>Great for ad-hoc briefs</li>
-                <li>Email support</li>
+                <li>Consumes up to 25 clusters per request.</li>
+                <li>Merges manual notes + existing semantic_core_yaml fields.</li>
               </ul>
             </div>
             <div class="pricing-card" data-tier="highlight">
-              <h3>Growth</h3>
-              <strong>$49 / month</strong>
-              <p class="muted">Up to 20 runs • shared workspace • live AI telemetry</p>
+              <h3>JSON-LD + FAQ</h3>
+              <strong>/api/exports/jsonld</strong>
+              <p class="muted">Generates structured data and FAQs straight from vectors.</p>
               <ul>
-                <li>White-label exports</li>
-                <li>Custom taxonomies</li>
+                <li>Limits output to 10 top pages per run for clarity.</li>
+                <li>Calls <code>generateIntentDrivenJsonLd</code> + <code>generateFaqJsonLd</code>.</li>
               </ul>
             </div>
             <div class="pricing-card">
-              <h3>Enterprise</h3>
-              <strong>Custom</strong>
-              <p class="muted">Dedicated clusters • compliance controls • shared SLAs</p>
+              <h3>Robots + geo packs</h3>
+              <strong>/robots · /geo-improvements</strong>
+              <p class="muted">Hardens crawl posture and localizes narratives.</p>
               <ul>
-                <li>Professional services rev-share</li>
-                <li>On-prem embeddings option</li>
+                <li>Robots route supports up to 16 user agents + 25 manual paths.</li>
+                <li>Geo export highlights up to 12 clusters with detected locations.</li>
               </ul>
             </div>
           </div>
@@ -941,57 +982,50 @@
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Financial Projections</p>
-              <h2>November 2025 unit economics stay margin-positive</h2>
+              <p class="eyebrow">Operational guardrails</p>
+              <h2>Limits + env vars keep runs predictable</h2>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Forecast</span>
+              <span>Controls</span>
             </div>
           </div>
           <p class="muted">
-            Pricing stays approachable for hackathon judges while still covering the November 2025 Gemini token tables,
-            Qdrant dedicated capacity, Supabase auth/storage, and Vercel edge compute. Every
-            plan ties to observed ingest → cluster → export runs.
+            Instead of imaginary projections, here are the concrete safeguards in this repo that keep usage sane when
+            demoing ingestion → clustering → export loops.
           </p>
           <div class="projection-grid">
             <div class="projection-card">
-              <h3>Per run @ $5</h3>
-              <strong>$2.87 cost</strong>
-              <p class="muted">43% gross margin using November 2025 public rate cards.</p>
+              <h3>Ingest guardrails</h3>
+              <strong>/api/ingest</strong>
+              <p class="muted">Request schema enforces tight bounds.</p>
               <ul>
-                <li>420k input tokens · $0.15 (Gemini 2.5 Flash Lite streaming)</li>
-                <li>160k output tokens · $0.17 (Gemini 2.5 Flash Lite streaming)</li>
-                <li>120k audit tokens · $0.94 (Gemini Pro Latest eval + critique)</li>
-                <li>Qdrant dedicated writes + Supabase storage · $0.80</li>
-                <li>Vercel edge streaming + Supabase bandwidth · $0.81</li>
+                <li>Requires at least one of rootUrl, sitemapUrl, or urls[] before running.</li>
+                <li>Limit knob capped at 60 pages; crawl worker throttles at 350ms per request.</li>
               </ul>
             </div>
             <div class="projection-card">
-              <h3>Growth plan @ $49</h3>
-              <strong>$18 avg margin</strong>
-              <p class="muted">20 guided runs/month: 12 heavy, 8 light.</p>
+              <h3>Vector hygiene</h3>
+              <strong>lib/qdrant.ts</strong>
+              <p class="muted">Collections + summaries stay bounded.</p>
               <ul>
-                <li>Cached vectors drop light-run LLM costs to $0.75 each (Gemini 2.5 Flash Lite + Qdrant reuse)</li>
-                <li>Heavy runs average $2.40 each with Gemini Pro Latest QA + telemetry baked in</li>
-                <li>Shared Supabase auth + Vercel infra amortize to $3.20 per workspace/month</li>
-                <li>Seat-based telemetry upsells add $9 ARR while support stays &lt; $2/seat</li>
+                <li><code>ensureCollection</code> sets Cosine distance + keyword indexes once per env.</li>
+                <li>Vector summary route fetches at most 2k points + trims preview arrays to eight floats.</li>
               </ul>
             </div>
             <div class="projection-card">
-              <h3>12-month outlook</h3>
-              <strong>$480k GMV</strong>
-              <p class="muted">3.2k paid runs + 340 growth seats + 16 enterprise pilots.</p>
+              <h3>Environment config</h3>
+              <strong>README.md</strong>
+              <p class="muted">Spells out the required keys.</p>
               <ul>
-                <li>Token budget: $168k (Gemini 2.5 Flash Lite / Gemini Pro Latest Nov 2025 pricing)</li>
-                <li>Vector/egress budget: $62k (Qdrant dedicated + Supabase + Vercel)</li>
-                <li>Gross margin: 56% with bundled onboarding + partner workshops</li>
-                <li>Breakeven headcount: 3 FTE (PM, AE, Infra)</li>
+                <li>Gemini: <code>GOOGLE_GENAI_API_KEY</code> / <code>GOOGLE_API_KEY</code>.</li>
+                <li>Qdrant: <code>QDRANT_URL</code> + <code>QDRANT_API_KEY</code>.</li>
+                <li>Supabase: <code>NEXT_PUBLIC_SUPABASE_URL</code> + <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.</li>
               </ul>
             </div>
           </div>
-          <p class="projection-note">Assumptions cite Google Gemini November 2025 pricing, Qdrant Dedicated Large,
-            Supabase Pro storage/auth, and Vercel Pro bandwidth.</p>
+          <p class="projection-note">All of these constraints live in the repo today — no imaginary pricing tables
+            required.</p>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
         </div>
       </section>
@@ -1000,30 +1034,32 @@
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Future Plans</p>
-              <h2>Roadmap keeps us ahead of AI Genesis judging criteria</h2>
+              <p class="eyebrow">Next engineering tasks</p>
+              <h2>Concrete backlog items pulled from the repo</h2>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Next up</span>
+              <span>Up next</span>
             </div>
           </div>
           <div class="roadmap">
             <div class="roadmap-step">
-              <strong>Q3 · Multi-agent QA</strong>
-              <p class="muted">Parallel validators test schema, accessibility, and localization before export.</p>
+              <strong>Async ingestion</strong>
+              <p class="muted">Move <code>app/api/ingest</code> into a queue/cron flow so large crawls don't ride on a
+                single HTTP request.</p>
             </div>
             <div class="roadmap-step">
-              <strong>Q4 · Answer telemetry</strong>
-              <p class="muted">Live API tracks AI Overview placements + assistant mentions for each cluster.</p>
+              <strong>Vector cleanup</strong>
+              <p class="muted">Implement Qdrant deletions for stale URLs — no delete logic exists today.</p>
             </div>
             <div class="roadmap-step">
-              <strong>Q1 · Partner marketplace</strong>
-              <p class="muted">Agencies publish niche playbooks, share revenue on successful runs.</p>
+              <strong>Project deletion</strong>
+              <p class="muted">Expose a DELETE route under <code>/api/projects/[projectId]</code> so abandoned workspaces
+                release Supabase + Qdrant rows.</p>
             </div>
             <div class="roadmap-step">
-              <strong>Q2 · Governance toolkit</strong>
-              <p class="muted">Role-based approvals + audit logging unlock regulated industries.</p>
+              <strong>Test coverage</strong>
+              <p class="muted">Add Playwright or Vitest suites — <code>package.json</code> only ships linting today.</p>
             </div>
           </div>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
@@ -1035,7 +1071,7 @@
           <div class="slide-header">
             <div>
               <p class="eyebrow">References & Signals</p>
-              <h2>Grounded in real market proof</h2>
+              <h2>Every claim points to a file in this repo</h2>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
@@ -1044,20 +1080,20 @@
           </div>
           <div class="reference-grid">
             <div class="reference-card">
-              <strong>Public sources</strong>
-              <p class="muted">Google AI Overviews, Bing Deep Search, Perplexity snapshots, and SERP feature crawlers.</p>
+              <strong>README.md</strong>
+              <p class="muted">Documents Gemini key precedence + default model choices used throughout the code.</p>
             </div>
             <div class="reference-card">
-              <strong>Industry playbooks</strong>
-              <p class="muted">Schema.org, GS1, OTA, and HL7 templates inspire default exports.</p>
+              <strong>app/api/ingest</strong>
+              <p class="muted">Shows exactly how crawls, sitemap URLs, and manual URLs converge into Qdrant.</p>
             </div>
             <div class="reference-card">
-              <strong>Partner pilots</strong>
-              <p class="muted">Beta testing with agency pods ensures workflows feel real, not theoretical.</p>
+              <strong>lib/clustering.ts</strong>
+              <p class="muted">Outlines the cosine-based k-means implementation plus opportunity scoring formula.</p>
             </div>
             <div class="reference-card">
-              <strong>AI Genesis prep</strong>
-              <p class="muted">Deck + demo script mirrors hackathon judging rubric with explicit callouts.</p>
+              <strong>app/api/exports/*</strong>
+              <p class="muted">Semantic core, JSON-LD, robots, and geo routes prove each export is code-backed.</p>
             </div>
           </div>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
@@ -1069,7 +1105,7 @@
           <div class="slide-header">
             <div>
               <p class="eyebrow">Team</p>
-              <h2>Builders ready for stage + scale</h2>
+              <h2>Lean footprint = clear ownership</h2>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
@@ -1078,11 +1114,12 @@
           </div>
           <div class="team-grid">
             <div class="team-card is-wide">
-              <strong>Simon Vedunoff</strong>
-              <p class="muted">Product designer, CPTO of PWSM CO., LTD • guides every artifact, flow, and visual detail.</p>
+              <strong>Single workspace maintainer</strong>
+              <p class="muted">One Next.js app houses 12 API handlers and 16 lib modules, so design, ingestion, clustering,
+                and exports share the same owner.</p>
             </div>
           </div>
-          <p class="muted">A solo execution pod anchored by Simon, drawing on partner mentors only when specialized insight is required.</p>
+          <p class="muted">The same person ships UI polish, Supabase policies, and vector orchestration — fewer handoffs, more accountability.</p>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
         </div>
       </section>
