@@ -481,6 +481,7 @@ export default function HomePage() {
   const [vectorSummary, setVectorSummary] = useState<ProjectVectorSummary | null>(null);
   const [vectorSummaryLoading, setVectorSummaryLoading] = useState(false);
   const [vectorSummaryError, setVectorSummaryError] = useState<string | null>(null);
+  const [vectorSummaryRefreshKey, setVectorSummaryRefreshKey] = useState(0);
   const [activeClusterId, setActiveClusterId] = useState<string | null>(null);
   const [vectorSourcesOpen, setVectorSourcesOpen] = useState(false);
   const [vectorSamplesExpanded, setVectorSamplesExpanded] = useState(false);
@@ -525,6 +526,20 @@ export default function HomePage() {
   }));
   const [activeExportKey, setActiveExportKey] = useState<ExportArtifactKey | null>(null);
   const [activeCockpitCard, setActiveCockpitCard] = useState<ExportArtifactKey | null>(null);
+  const scrollWorkspaceIntoView = useCallback(() => {
+    const workspaceNode = workspaceSectionRef.current;
+    if (!workspaceNode) {
+      return;
+    }
+
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(() => {
+        workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    } else {
+      workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
   const [exportPreviews, setExportPreviews] = useState<
     Partial<Record<ExportArtifactKey, string>>
   >({});
@@ -537,6 +552,8 @@ export default function HomePage() {
   const [semanticYamlExpanded, setSemanticYamlExpanded] = useState(true);
   const manualNotesFieldId = useId();
   const semanticYamlFieldId = useId();
+  const projectPulseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [projectPulseId, setProjectPulseId] = useState<string | null>(null);
 
   const supabase = useMemo<SupabaseClient | null>(() => {
     try {
@@ -610,6 +627,13 @@ export default function HomePage() {
     });
   }, [clusters]);
 
+  useEffect(() => () => {
+    if (projectPulseTimeoutRef.current) {
+      clearTimeout(projectPulseTimeoutRef.current);
+      projectPulseTimeoutRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     if (!selectedProjectId) {
@@ -643,7 +667,7 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedProjectId]);
+  }, [selectedProjectId, vectorSummaryRefreshKey]);
 
   useEffect(() => {
     if (coreLoading || !workspaceScrollPendingRef.current) {
@@ -651,19 +675,8 @@ export default function HomePage() {
     }
 
     workspaceScrollPendingRef.current = false;
-    const workspaceNode = workspaceSectionRef.current;
-    if (!workspaceNode) {
-      return;
-    }
-
-    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
-      window.requestAnimationFrame(() => {
-        workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
-      });
-    } else {
-      workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [coreLoading]);
+    scrollWorkspaceIntoView();
+  }, [coreLoading, scrollWorkspaceIntoView]);
 
   useEffect(() => {
     if (!selectedProjectId || !accessToken) {
@@ -726,6 +739,20 @@ export default function HomePage() {
   }, [selectedProjectId]);
 
   useEffect(() => {
+    if (!selectedProjectId) {
+      return;
+    }
+    const project = projects.find((item) => item.id === selectedProjectId);
+    if (project) {
+      setProjectForm({
+        id: project.id,
+        rootUrl: project.rootUrl,
+        sitemapUrl: project.sitemapUrl ?? ""
+      });
+    }
+  }, [projects, selectedProjectId]);
+ 
+  useEffect(() => {    
     setInsightsUnlocked(false);
     setInsightsModalOpen(false);
     setInsightsMessage(null);
@@ -1131,52 +1158,62 @@ export default function HomePage() {
     }
   ];
 
-  async function handleCreateProject(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSaveProject(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!projectForm.id || !projectForm.rootUrl) return;
     if (!accessToken) {
-      pushLog("Sign in to create a project first.");
+      pushLog("Sign in to save a project first.");
       openLoginModal();
       return;
     }
 
+    const trimmedId = projectForm.id.trim();
     const payload = {
-      id: projectForm.id.trim(),
       rootUrl: projectForm.rootUrl.trim(),
       sitemapUrl: projectForm.sitemapUrl.trim() || undefined
     };
-    const res = await fetch("/api/projects", {
-      method: "POST",
+    const projectExists = projects.some((project) => project.id === trimmedId);
+    const endpoint = projectExists ? `/api/projects/${trimmedId}` : "/api/projects";
+    const method = projectExists ? "PATCH" : "POST";
+    const body = projectExists ? payload : { id: trimmedId, ...payload };
+
+    const res = await fetch(endpoint, {
+      method,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(body)
     });
-    if (res.ok) {
-      pushLog(`Created project ${payload.id}`);
-      setProjectForm({ id: "", rootUrl: "", sitemapUrl: "" });
-      await refreshProjects();
-      setSelectedProjectId(payload.id);
-      setIngestForm({
-        rootUrl: payload.rootUrl,
-        sitemapUrl: payload.sitemapUrl ?? "",
-        urls: ""
-      });
-    } else {
-      const json = await res.json();
-      pushLog(json.error ?? "Unable to create project");
+    const json = await res.json();
+    if (!res.ok || json?.ok === false) {
+      pushLog(json?.error ?? "Unable to save project");
+      return;
     }
+
+    pushLog(`${projectExists ? "Updated" : "Created"} project ${trimmedId}`);
+    if (!projectExists) {
+      setProjectForm({ id: "", rootUrl: "", sitemapUrl: "" });
+    }
+    await refreshProjects();
+    setSelectedProjectId(trimmedId);
+    setIngestForm((prev) => ({
+      ...prev,
+      rootUrl: payload.rootUrl,
+      sitemapUrl: payload.sitemapUrl ?? "",
+      ...(projectExists ? {} : { urls: "" })
+    }));
   }
 
   function handleSelectProject(id: string) {
-    if (id !== selectedProjectId) {
-      workspaceScrollPendingRef.current = true;
-      if (accessToken) {
-        setCoreLoading(true);
-      }
+    if (projectPulseTimeoutRef.current) {
+      clearTimeout(projectPulseTimeoutRef.current);
     }
-    setSelectedProjectId(id);
+    setProjectPulseId(id);
+    projectPulseTimeoutRef.current = setTimeout(() => {
+      setProjectPulseId((current) => (current === id ? null : current));
+      projectPulseTimeoutRef.current = null;
+    }, 650);
     const project = projects.find((item) => item.id === id);
     if (project) {
       setIngestForm((prev) => ({
@@ -1184,7 +1221,26 @@ export default function HomePage() {
         rootUrl: project.rootUrl,
         sitemapUrl: project.sitemapUrl ?? ""
       }));
+      setProjectForm({
+        id: project.id,
+        rootUrl: project.rootUrl,
+        sitemapUrl: project.sitemapUrl ?? ""
+      });
     }
+
+    if (id === selectedProjectId) {
+      scrollWorkspaceIntoView();
+      return;
+    }
+
+    workspaceScrollPendingRef.current = true;
+    if (accessToken) {
+      setCoreLoading(true);
+    } else {
+      scrollWorkspaceIntoView();
+      workspaceScrollPendingRef.current = false;
+    }
+    setSelectedProjectId(id);
   }
 
   async function handleIngest(e: React.FormEvent<HTMLFormElement>) {
@@ -1216,6 +1272,7 @@ export default function HomePage() {
           `Embedded ${json.sectionsEmbedded} sections across ${json.pagesIngested} pages`
         );
         pushLog(`Ingested ${json.pagesIngested} pages for ${selectedProjectId}`);
+        setVectorSummaryRefreshKey((prev) => prev + 1);
       }
     } catch (error) {
       setIngestMessage((error as Error).message);
@@ -1421,6 +1478,7 @@ export default function HomePage() {
   }
 
   const clusterLang = clusters[0]?.lang;
+  const hasExistingIngestion = (vectorSummary?.totalPoints ?? 0) > 0;
   const hasExistingClusters = clusterInventory.count > 0 || clusters.length > 0;
 
   const lastSavedLabel = coreWorkspace.updatedAt
@@ -1838,9 +1896,27 @@ export default function HomePage() {
                     placeholder={"https://example.com/about\nhttps://example.com/blog/post"}
                   />
                 </label>
-                <button type="submit" className="primary-button" disabled={status.ingest}>
-                  {status.ingest ? "Embedding…" : "Start ingestion"}
-                </button>
+                <div className="ingest-actions">
+                  <button type="submit" className="primary-button" disabled={status.ingest}>
+                    {status.ingest
+                      ? "Embedding…"
+                      : hasExistingIngestion
+                      ? "Restart ingestion"
+                      : "Start ingestion"}
+                  </button>
+                  {hasExistingIngestion && (
+                    <button
+                      type="button"
+                      className="ghost-button compact"
+                      onClick={() => {
+                        setActiveWorkflow("cluster");
+                        scrollWorkspaceIntoView();
+                      }}
+                    >
+                      Proceed to clusters
+                    </button>
+                  )}
+                </div>
                 {ingestMessage && <p className="muted">{ingestMessage}</p>}
               </form>
             ) : (
@@ -2516,7 +2592,7 @@ export default function HomePage() {
               </button>
             </div>
             <div className="form-grid">
-              <form className="stacked-form" onSubmit={handleCreateProject}>
+              <form className="stacked-form" onSubmit={handleSaveProject}>
                 <label className="field-label">
                   Project ID
                   <input
@@ -2591,6 +2667,16 @@ export default function HomePage() {
                         key={project.id}
                         className={`project-item ${selectedProjectId === project.id ? "selected" : ""}`}
                         onClick={() => handleSelectProject(project.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            handleSelectProject(project.id);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-pressed={selectedProjectId === project.id}
+                        data-pulse={projectPulseId === project.id ? "true" : undefined}
                       >
                         <div>
                           <strong>{project.id}</strong>
@@ -2606,7 +2692,11 @@ export default function HomePage() {
           </article>
         </section>
 
-        <section className="workflow-section" aria-label="Workflow timeline">
+        <section
+          className="workflow-section"
+          aria-label="Workflow timeline"
+          ref={workspaceSectionRef}
+        >
           <div className="workflow-timeline">
             <div className="workflow-timeline-flow">
               {workflowTiles.map((tile, index) => {
