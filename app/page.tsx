@@ -116,6 +116,36 @@ type StatusState = {
 
 type WorkflowKey = "ingest" | "cluster" | "outputs";
 
+const COCKPIT_PANEL_KEYS: ExportArtifactKey[] = ["semantic", "jsonld", "geo", "robots"];
+
+type PanelAnimationState = {
+  rafId: number | null;
+  startTime: number | null;
+  currentHeight: number;
+};
+
+function createPanelAnimationState(): Record<ExportArtifactKey, PanelAnimationState> {
+  return COCKPIT_PANEL_KEYS.reduce((acc, key) => {
+    acc[key] = { rafId: null, startTime: null, currentHeight: 0 };
+    return acc;
+  }, {} as Record<ExportArtifactKey, PanelAnimationState>);
+}
+
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia === "undefined") return;
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  return prefersReducedMotion;
+}
+
 type WorkflowTile = {
   key: WorkflowKey;
   label: string;
@@ -471,12 +501,20 @@ export default function HomePage() {
   const jsonldPanelBodyRef = useRef<HTMLDivElement | null>(null);
   const geoPanelBodyRef = useRef<HTMLDivElement | null>(null);
   const robotsPanelBodyRef = useRef<HTMLDivElement | null>(null);
+  const cockpitPanelRefs = useRef<Record<ExportArtifactKey, HTMLDivElement | null>>({
+    semantic: null,
+    jsonld: null,
+    geo: null,
+    robots: null
+  });
+  const panelAnimationStateRef = useRef<Record<ExportArtifactKey, PanelAnimationState>>(createPanelAnimationState());
   const [panelHeights, setPanelHeights] = useState<Record<ExportArtifactKey, number>>({
     semantic: 0,
     jsonld: 0,
     robots: 0,
     geo: 0
   });
+  const prefersReducedMotion = usePrefersReducedMotion();
   const [heroInView, setHeroInView] = useState(true);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -939,6 +977,25 @@ export default function HomePage() {
 
     observer.observe(heroNode);
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    COCKPIT_PANEL_KEYS.forEach((key) => {
+      const targetHeight = activeCockpitCard === key ? panelHeights[key] ?? 0 : 0;
+      animatePanelHeight(key, targetHeight);
+    });
+  }, [activeCockpitCard, panelHeights, animatePanelHeight]);
+
+  useEffect(() => {
+    const animationState = panelAnimationStateRef.current;
+    return () => {
+      COCKPIT_PANEL_KEYS.forEach((key) => {
+        const state = animationState[key];
+        if (state?.rafId) {
+          cancelAnimationFrame(state.rafId);
+        }
+      });
+    };
   }, []);
 
   useEffect(() => {
@@ -1761,6 +1818,74 @@ export default function HomePage() {
     [exportAttributes]
   );
 
+  const registerCockpitPanel = useCallback((key: ExportArtifactKey, node: HTMLDivElement | null) => {
+    cockpitPanelRefs.current[key] = node;
+    if (!node) return;
+    if (!node.style.height) {
+      node.style.height = "0px";
+      panelAnimationStateRef.current[key].currentHeight = 0;
+    } else {
+      panelAnimationStateRef.current[key].currentHeight = node.getBoundingClientRect().height;
+    }
+  }, []);
+
+  const animatePanelHeight = useCallback(
+    (key: ExportArtifactKey, targetHeight: number) => {
+      const panel = cockpitPanelRefs.current[key];
+      if (!panel) return;
+      const state = panelAnimationStateRef.current[key];
+
+      if (state?.rafId) {
+        cancelAnimationFrame(state.rafId);
+        state.rafId = null;
+      }
+
+      if (prefersReducedMotion) {
+        panel.style.height = `${targetHeight}px`;
+        state.currentHeight = targetHeight;
+        state.startTime = null;
+        return;
+      }
+
+      const startHeight = panel.getBoundingClientRect().height;
+      state.currentHeight = startHeight;
+
+      if (Math.abs(startHeight - targetHeight) < 0.5) {
+        panel.style.height = `${targetHeight}px`;
+        state.currentHeight = targetHeight;
+        state.startTime = null;
+        return;
+      }
+
+      state.startTime = null;
+      const duration = 420;
+      const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+      const step = (timestamp: number) => {
+        if (state.startTime === null) {
+          state.startTime = timestamp;
+        }
+        const progress = Math.min(1, (timestamp - state.startTime) / duration);
+        const eased = easeInOut(progress);
+        const nextHeight = startHeight + (targetHeight - startHeight) * eased;
+        panel.style.height = `${nextHeight}px`;
+        state.currentHeight = nextHeight;
+
+        if (progress < 1) {
+          state.rafId = requestAnimationFrame(step);
+        } else {
+          panel.style.height = `${targetHeight}px`;
+          state.currentHeight = targetHeight;
+          state.startTime = null;
+          state.rafId = null;
+        }
+      };
+
+      state.rafId = requestAnimationFrame(step);
+    },
+    [prefersReducedMotion]
+  );
+
   const toggleCockpitCard = useCallback((key: ExportArtifactKey) => {
     setActiveCockpitCard((prev) => (prev === key ? null : key));
   }, []);
@@ -2061,10 +2186,10 @@ export default function HomePage() {
                         {renderCockpitSummary("semantic")}
                       </div>
                       <div
+                        ref={(node) => registerCockpitPanel("semantic", node)}
                         id="cockpit-semantic-panel"
                         className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "semantic"}
-                        style={{ height: activeCockpitCard === "semantic" ? panelHeights.semantic || 0 : 0 }}
                       >
                         <div ref={semanticPanelBodyRef} className="cockpit-card-body">
                           <label className="field-label">
@@ -2123,10 +2248,10 @@ export default function HomePage() {
                         {renderCockpitSummary("jsonld")}
                       </div>
                       <div
+                        ref={(node) => registerCockpitPanel("jsonld", node)}
                         id="cockpit-jsonld-panel"
                         className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "jsonld"}
-                        style={{ height: activeCockpitCard === "jsonld" ? panelHeights.jsonld || 0 : 0 }}
                       >
                         <div ref={jsonldPanelBodyRef} className="cockpit-card-body">
                           <label className="field-label">
@@ -2185,10 +2310,10 @@ export default function HomePage() {
                         {renderCockpitSummary("geo", 3)}
                       </div>
                       <div
+                        ref={(node) => registerCockpitPanel("geo", node)}
                         id="cockpit-geo-panel"
                         className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "geo"}
-                        style={{ height: activeCockpitCard === "geo" ? panelHeights.geo || 0 : 0 }}
                       >
                         <div ref={geoPanelBodyRef} className="cockpit-card-body">
                           <label className="field-label">
@@ -2280,10 +2405,10 @@ export default function HomePage() {
                         {renderCockpitSummary("robots", 3)}
                       </div>
                       <div
+                        ref={(node) => registerCockpitPanel("robots", node)}
                         id="cockpit-robots-panel"
                         className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "robots"}
-                        style={{ height: activeCockpitCard === "robots" ? panelHeights.robots || 0 : 0 }}
                       >
                         <div ref={robotsPanelBodyRef} className="cockpit-card-body">
                           <label className="field-label">
