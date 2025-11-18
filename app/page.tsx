@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { load as parseYaml } from "js-yaml";
-import type { JSX, KeyboardEvent as ReactKeyboardEvent, MutableRefObject } from "react";
+import type {
+  JSX,
+  KeyboardEvent as ReactKeyboardEvent,
+  MutableRefObject,
+  CSSProperties
+} from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { FiFileText, FiShare2, FiUpload } from "react-icons/fi";
 
@@ -140,7 +145,6 @@ type GuidanceStep = {
   body: string;
   placement?: GuidancePlacement;
   targetRef?: MutableRefObject<HTMLElement | null> | null;
-  spotlightMode?: "element" | "centered";
 };
 
 type SpotlightRect = {
@@ -597,9 +601,8 @@ export default function HomePage() {
         key: "overview",
         title: "Start from the dock",
         body: "Use the dock pinned to the bottom edge to jump between home, project controls, clusters, or auth before diving deeper.",
-        placement: "bottom",
-        targetRef: dockNavRef,
-        spotlightMode: "centered"
+        placement: "right",
+        targetRef: dockNavRef
       },
       {
         key: "hero",
@@ -709,17 +712,6 @@ export default function HomePage() {
     const step = guidanceSteps[guideStepIndex];
     if (!step) return;
     const padding = 24;
-    if (step.spotlightMode === "centered") {
-      const centeredWidth = Math.min(520, Math.max(window.innerWidth - padding * 4, 320));
-      const centeredHeight = Math.min(320, Math.max(window.innerHeight - padding * 4, 220));
-      setGuideSpotlight({
-        top: Math.max((window.innerHeight - centeredHeight) / 2, padding),
-        left: Math.max((window.innerWidth - centeredWidth) / 2, padding),
-        width: centeredWidth,
-        height: centeredHeight
-      });
-      return;
-    }
     const element = step.targetRef?.current;
     if (!element) {
       setGuideSpotlight({
@@ -2781,11 +2773,60 @@ export default function HomePage() {
     width: `${normalizedSpotlight.width}px`,
     height: `${normalizedSpotlight.height}px`
   };
-  const scrimClipPath = `path(evenodd, "M0 0H${viewportSize.width}pxV${viewportSize.height}pxH0Z M${normalizedSpotlight.left}px ${normalizedSpotlight.top}pxH${normalizedSpotlight.left + normalizedSpotlight.width}pxV${normalizedSpotlight.top + normalizedSpotlight.height}pxH${normalizedSpotlight.left}pxZ")`;
-  const guideScrimStyle = {
-    clipPath: scrimClipPath,
-    WebkitClipPath: scrimClipPath
-  } as const;
+  const viewportWidth = viewportSize.width;
+  const viewportHeight = viewportSize.height;
+  const spotlightTop = Math.max(normalizedSpotlight.top, 0);
+  const spotlightLeft = Math.max(normalizedSpotlight.left, 0);
+  const spotlightBottom = Math.min(normalizedSpotlight.top + normalizedSpotlight.height, viewportHeight);
+  const spotlightRight = Math.min(normalizedSpotlight.left + normalizedSpotlight.width, viewportWidth);
+  const middleHeight = Math.max(spotlightBottom - spotlightTop, 0);
+  const scrimSlices: { key: string; style: CSSProperties }[] = [];
+  if (spotlightTop > 0) {
+    scrimSlices.push({
+      key: "top",
+      style: {
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: `${spotlightTop}px`
+      }
+    });
+  }
+  const bottomHeight = Math.max(viewportHeight - spotlightBottom, 0);
+  if (bottomHeight > 0) {
+    scrimSlices.push({
+      key: "bottom",
+      style: {
+        top: `${spotlightBottom}px`,
+        left: 0,
+        width: "100%",
+        height: `${bottomHeight}px`
+      }
+    });
+  }
+  if (spotlightLeft > 0 && middleHeight > 0) {
+    scrimSlices.push({
+      key: "left",
+      style: {
+        top: `${spotlightTop}px`,
+        left: 0,
+        width: `${spotlightLeft}px`,
+        height: `${middleHeight}px`
+      }
+    });
+  }
+  const rightWidth = Math.max(viewportWidth - spotlightRight, 0);
+  if (rightWidth > 0 && middleHeight > 0) {
+    scrimSlices.push({
+      key: "right",
+      style: {
+        top: `${spotlightTop}px`,
+        left: `${spotlightRight}px`,
+        width: `${rightWidth}px`,
+        height: `${middleHeight}px`
+      }
+    });
+  }
   const guideTitleInstanceId = `${guideTitleId}-${guideStepIndex}`;
   const guideBodyInstanceId = `${guideBodyId}-${guideStepIndex}`;
 
@@ -3650,12 +3691,15 @@ export default function HomePage() {
           aria-labelledby={guideTitleInstanceId}
           aria-describedby={guideBodyInstanceId}
         >
-          <div
-            className="guide-scrim"
-            aria-hidden="true"
-            onClick={closeGuide}
-            style={guideScrimStyle}
-          />
+          {scrimSlices.map((slice) => (
+            <div
+              key={slice.key}
+              className="guide-scrim-slice"
+              aria-hidden="true"
+              onClick={closeGuide}
+              style={slice.style}
+            />
+          ))}
           <div className="guide-spotlight" style={spotlightStyle} aria-hidden="true" />
           <div
             className="guide-tooltip"

@@ -1946,12 +1946,12 @@ main {
   z-index: 1200;
 }
 
-.guide-scrim {
+.guide-scrim-slice {
   position: absolute;
-  inset: 0;
-  background: rgba(2, 4, 14, 0.75);
-  backdrop-filter: blur(4px);
+  background: rgba(2, 4, 14, 0.78);
+  backdrop-filter: blur(14px) saturate(120%);
   pointer-events: auto;
+  cursor: pointer;
 }
 
 .guide-spotlight {
