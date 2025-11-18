@@ -1936,7 +1936,6 @@ main {
 }
 
 [data-guide-active="true"] {
-  position: relative;
   box-shadow: 0 0 0 2px rgba(139, 179, 255, 0.5), 0 25px 70px rgba(3, 6, 18, 0.45);
 }
 
