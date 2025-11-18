@@ -131,12 +131,12 @@ function extractLocationsFromText(text: string | undefined | null): GeoCandidate
     addLocationCandidate(counts, match[0], 1);
   }
 
-  for (const [token, label] of GEO_ABBREVIATIONS.entries()) {
+  GEO_ABBREVIATIONS.forEach((label, token) => {
     const tokenRegex = new RegExp(`\\b${token.replace(/\./g, "\\.")}\\b`, "i");
     if (tokenRegex.test(text)) {
       addLocationCandidate(counts, label, 1.1);
     }
-  }
+  });
 
   if (/\bglobal\b/i.test(text) || /\bworldwide\b/i.test(text)) {
     addLocationCandidate(counts, "Global", 0.8);
@@ -305,8 +305,9 @@ export async function POST(req: NextRequest) {
 
   const improvements: GeoImprovement[] = [];
   const focus = intentFocus ?? "local";
+  const clusterRecords = Array.from(clusterMap.values());
 
-  for (const record of clusterMap.values()) {
+  for (const record of clusterRecords) {
     const canonicalQuestions = queriesByCluster.get(record.id) ?? [];
     const textSources = [
       record.primaryKeyword ?? "",
