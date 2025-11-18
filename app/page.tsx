@@ -979,6 +979,63 @@ export default function HomePage() {
     return () => observer.disconnect();
   }, []);
 
+  const animatePanelHeight = useCallback(
+    (key: ExportArtifactKey, targetHeight: number) => {
+      const panel = cockpitPanelRefs.current[key];
+      if (!panel) return;
+      const state = panelAnimationStateRef.current[key];
+
+      if (state?.rafId) {
+        cancelAnimationFrame(state.rafId);
+        state.rafId = null;
+      }
+
+      if (prefersReducedMotion) {
+        panel.style.height = `${targetHeight}px`;
+        state.currentHeight = targetHeight;
+        state.startTime = null;
+        return;
+      }
+
+      const startHeight = panel.getBoundingClientRect().height;
+      state.currentHeight = startHeight;
+
+      if (Math.abs(startHeight - targetHeight) < 0.5) {
+        panel.style.height = `${targetHeight}px`;
+        state.currentHeight = targetHeight;
+        state.startTime = null;
+        return;
+      }
+
+      state.startTime = null;
+      const duration = 420;
+      const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+      const step = (timestamp: number) => {
+        if (state.startTime === null) {
+          state.startTime = timestamp;
+        }
+        const progress = Math.min(1, (timestamp - state.startTime) / duration);
+        const eased = easeInOut(progress);
+        const nextHeight = startHeight + (targetHeight - startHeight) * eased;
+        panel.style.height = `${nextHeight}px`;
+        state.currentHeight = nextHeight;
+
+        if (progress < 1) {
+          state.rafId = requestAnimationFrame(step);
+        } else {
+          panel.style.height = `${targetHeight}px`;
+          state.currentHeight = targetHeight;
+          state.startTime = null;
+          state.rafId = null;
+        }
+      };
+
+      state.rafId = requestAnimationFrame(step);
+    },
+    [prefersReducedMotion]
+  );
+
   useEffect(() => {
     COCKPIT_PANEL_KEYS.forEach((key) => {
       const targetHeight = activeCockpitCard === key ? panelHeights[key] ?? 0 : 0;
@@ -1828,63 +1885,6 @@ export default function HomePage() {
       panelAnimationStateRef.current[key].currentHeight = node.getBoundingClientRect().height;
     }
   }, []);
-
-  const animatePanelHeight = useCallback(
-    (key: ExportArtifactKey, targetHeight: number) => {
-      const panel = cockpitPanelRefs.current[key];
-      if (!panel) return;
-      const state = panelAnimationStateRef.current[key];
-
-      if (state?.rafId) {
-        cancelAnimationFrame(state.rafId);
-        state.rafId = null;
-      }
-
-      if (prefersReducedMotion) {
-        panel.style.height = `${targetHeight}px`;
-        state.currentHeight = targetHeight;
-        state.startTime = null;
-        return;
-      }
-
-      const startHeight = panel.getBoundingClientRect().height;
-      state.currentHeight = startHeight;
-
-      if (Math.abs(startHeight - targetHeight) < 0.5) {
-        panel.style.height = `${targetHeight}px`;
-        state.currentHeight = targetHeight;
-        state.startTime = null;
-        return;
-      }
-
-      state.startTime = null;
-      const duration = 420;
-      const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
-
-      const step = (timestamp: number) => {
-        if (state.startTime === null) {
-          state.startTime = timestamp;
-        }
-        const progress = Math.min(1, (timestamp - state.startTime) / duration);
-        const eased = easeInOut(progress);
-        const nextHeight = startHeight + (targetHeight - startHeight) * eased;
-        panel.style.height = `${nextHeight}px`;
-        state.currentHeight = nextHeight;
-
-        if (progress < 1) {
-          state.rafId = requestAnimationFrame(step);
-        } else {
-          panel.style.height = `${targetHeight}px`;
-          state.currentHeight = targetHeight;
-          state.startTime = null;
-          state.rafId = null;
-        }
-      };
-
-      state.rafId = requestAnimationFrame(step);
-    },
-    [prefersReducedMotion]
-  );
 
   const toggleCockpitCard = useCallback((key: ExportArtifactKey) => {
     setActiveCockpitCard((prev) => (prev === key ? null : key));
