@@ -1958,8 +1958,9 @@ main {
   position: absolute;
   border-radius: 28px;
   border: 1px solid rgba(139, 179, 255, 0.7);
-  box-shadow: 0 20px 60px rgba(7, 12, 24, 0.4), 0 0 55px rgba(139, 179, 255, 0.35);
-  background: radial-gradient(circle at 30% 20%, rgba(139, 179, 255, 0.18), transparent 60%);
+  box-shadow: 0 0 0 1px rgba(139, 179, 255, 0.55), 0 25px 65px rgba(7, 12, 24, 0.5),
+    0 0 65px rgba(139, 179, 255, 0.25);
+  background: transparent;
   pointer-events: none;
 }
 

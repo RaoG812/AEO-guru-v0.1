@@ -592,22 +592,22 @@ export default function HomePage() {
     () => [
       {
         key: "hero",
-        title: "Mission briefing",
-        body: "The hero lens frames the stack you are connected to and exposes auth plus quick-start context.",
+        title: "Get oriented",
+        body: "Sign in, review live stats, and understand which stack is powering your current workspace.",
         placement: "right",
         targetRef: heroRef
       },
       {
         key: "workflow",
-        title: "Workflow timeline",
-        body: "Each tile unlocks ingest, clustering and output controls. Click a stage to reveal its workspace tools.",
+        title: "Work through each stage",
+        body: "Progress from ingesting URLs to clustering and finally exporting outputs. Selecting a tile reveals its tools.",
         placement: "bottom",
         targetRef: workspaceSectionRef
       },
       {
         key: "vectors",
-        title: "Vector lab",
-        body: "Peek at live embeddings, magnitudes and preview slices to explain why clusters behave the way they do.",
+        title: "Explain your clusters",
+        body: "Use the vector lab to inspect embeddings, magnitudes, and preview slices so insights stay grounded in data.",
         placement: "left",
         targetRef: vectorLabRef
       }
@@ -741,9 +741,26 @@ export default function HomePage() {
     if (typeof window === "undefined") return;
     const hasSeenGuide = window.localStorage.getItem(GUIDE_STORAGE_KEY) === "1";
     setGuideHasSeen(hasSeenGuide);
-    if (!hasSeenGuide) {
-      setGuideOpen(true);
+    if (hasSeenGuide) {
+      return;
     }
+
+    let triggered = false;
+    const handleFirstScroll = () => {
+      if (triggered) return;
+      if (window.localStorage.getItem(GUIDE_STORAGE_KEY) === "1") {
+        triggered = true;
+        return;
+      }
+      triggered = true;
+      setGuideStepIndex(0);
+      setGuideOpen(true);
+    };
+
+    window.addEventListener("scroll", handleFirstScroll, { once: true, passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleFirstScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -2719,6 +2736,11 @@ export default function HomePage() {
     width: `${normalizedSpotlight.width}px`,
     height: `${normalizedSpotlight.height}px`
   };
+  const scrimClipPath = `path(evenodd, "M0 0H${viewportSize.width}pxV${viewportSize.height}pxH0Z M${normalizedSpotlight.left}px ${normalizedSpotlight.top}pxH${normalizedSpotlight.left + normalizedSpotlight.width}pxV${normalizedSpotlight.top + normalizedSpotlight.height}pxH${normalizedSpotlight.left}pxZ")`;
+  const guideScrimStyle = {
+    clipPath: scrimClipPath,
+    WebkitClipPath: scrimClipPath
+  } as const;
   const guideTitleInstanceId = `${guideTitleId}-${guideStepIndex}`;
   const guideBodyInstanceId = `${guideBodyId}-${guideStepIndex}`;
 
@@ -3573,7 +3595,12 @@ export default function HomePage() {
           aria-labelledby={guideTitleInstanceId}
           aria-describedby={guideBodyInstanceId}
         >
-          <div className="guide-scrim" aria-hidden="true" onClick={closeGuide} />
+          <div
+            className="guide-scrim"
+            aria-hidden="true"
+            onClick={closeGuide}
+            style={guideScrimStyle}
+          />
           <div className="guide-spotlight" style={spotlightStyle} aria-hidden="true" />
           <div
             className="guide-tooltip"
