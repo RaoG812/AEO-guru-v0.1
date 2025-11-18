@@ -1781,6 +1781,13 @@ main {
   z-index: 40;
 }
 
+.insights-backdrop.fullscreen {
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 3, 8, 0.82);
+  backdrop-filter: blur(6px);
+}
+
 .insights-panel {
   width: min(380px, 100%);
   border-radius: 24px;
@@ -1793,10 +1800,22 @@ main {
   gap: 1rem;
 }
 
+.insights-panel.fullscreen {
+  width: min(920px, 90%);
+  min-height: 60vh;
+  gap: 1.25rem;
+  padding: 2rem;
+}
+
 .insights-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
+}
+
+.insights-actions {
+  display: flex;
   gap: 0.5rem;
 }
 
@@ -1832,6 +1851,12 @@ main {
   line-height: 1.4;
   white-space: normal;
   word-break: break-word;
+}
+
+.insights-panel.fullscreen .insights-message {
+  min-height: 240px;
+  max-height: none;
+  font-size: 1rem;
 }
 
 .project-list-card {

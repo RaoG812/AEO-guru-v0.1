@@ -364,6 +364,7 @@ export default function HomePage() {
   const [insightsUnlocked, setInsightsUnlocked] = useState(false);
   const [insightsRequested, setInsightsRequested] = useState(false);
   const [insightsMessage, setInsightsMessage] = useState<string | null>(null);
+  const [insightsFullscreen, setInsightsFullscreen] = useState(false);
 
   const supabase = useMemo<SupabaseClient | null>(() => {
     try {
@@ -788,13 +789,19 @@ export default function HomePage() {
     if (!insightsUnlocked) return;
     setInsightsRequested(false);
     setInsightsMessage(null);
+    setInsightsFullscreen(false);
     setInsightsModalOpen(true);
   }, [insightsUnlocked]);
 
   const closeInsightsModal = useCallback(() => {
     setInsightsRequested(false);
     setInsightsMessage(null);
+    setInsightsFullscreen(false);
     setInsightsModalOpen(false);
+  }, []);
+
+  const toggleInsightsFullscreen = useCallback(() => {
+    setInsightsFullscreen((prev) => !prev);
   }, []);
 
   const handleGenerateInsights = useCallback(() => {
@@ -2681,18 +2688,33 @@ export default function HomePage() {
       </div>
       {insightsModalOpen && (
         <div
-          className="insights-backdrop"
+          className={`insights-backdrop${insightsFullscreen ? " fullscreen" : ""}`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="insights-modal-title"
           onClick={closeInsightsModal}
         >
-          <div className="insights-panel" onClick={(event) => event.stopPropagation()}>
+          <div
+            className={`insights-panel${insightsFullscreen ? " fullscreen" : ""}`}
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="insights-header">
               <p className="eyebrow">Assistant</p>
-              <button type="button" className="ghost-button small" onClick={closeInsightsModal}>
-                Dismiss
-              </button>
+              <div className="insights-actions">
+                <button
+                  type="button"
+                  className="ghost-button small"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    toggleInsightsFullscreen();
+                  }}
+                >
+                  {insightsFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                </button>
+                <button type="button" className="ghost-button small" onClick={closeInsightsModal}>
+                  Dismiss
+                </button>
+              </div>
             </div>
             <h3 id="insights-modal-title">AEO/GEO insights ready</h3>
             <p className="muted">
