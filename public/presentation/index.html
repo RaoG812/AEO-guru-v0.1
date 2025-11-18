@@ -309,17 +309,73 @@
         gap: 2rem;
       }
 
-      .arch-flow {
+      .arch-map {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 1rem;
       }
 
-      .arch-node {
-        border-radius: 26px;
-        padding: 1.2rem;
+      .arch-phase {
+        border-radius: 28px;
+        padding: 1.4rem;
         border: 1px solid rgba(255, 255, 255, 0.18);
-        background: rgba(255, 255, 255, 0.04);
+        background: rgba(5, 7, 18, 0.8);
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .arch-phase::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(139, 179, 255, 0.18), transparent 55%);
+        opacity: 0.9;
+        pointer-events: none;
+      }
+
+      .phase-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, rgba(139, 179, 255, 0.6), rgba(139, 179, 255, 0.15));
+        font-weight: 600;
+        z-index: 1;
+      }
+
+      .phase-copy {
+        z-index: 1;
+      }
+
+      .phase-copy h3 {
+        margin: 0;
+        font-size: 1.3rem;
+      }
+
+      .phase-copy p {
+        margin: 0.4rem 0 0;
+      }
+
+      .phase-meta {
+        z-index: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--silver-400);
+      }
+
+      .phase-meta span {
+        padding: 0.4rem 0.8rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.03);
       }
 
       .demo-panel {
@@ -370,8 +426,8 @@
       }
 
       .pricing-card[data-tier="highlight"] {
-        background: linear-gradient(135deg, rgba(139, 179, 255, 0.4), rgba(139, 179, 255, 0.08));
-        color: #04050a;
+        background: linear-gradient(135deg, rgba(139, 179, 255, 0.45), rgba(139, 179, 255, 0.1));
+        color: var(--silver-50);
       }
 
       .pricing-card ul {
@@ -651,63 +707,6 @@
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Financial Projections</p>
-              <h2>Unit economics mapped to token + egress ceilings</h2>
-            </div>
-            <div class="logo-chip">
-              <img src="/aeo-guru.svg" alt="AEO Guru" />
-              <span>Forecast</span>
-            </div>
-          </div>
-          <p class="muted">
-            Pricing stays approachable for hackathon judges while still covering Gemini tokens, Qdrant vectors, and
-            Supabase/Vercel egress. Every plan is modeled against actual usage from the ingest → cluster → export loop.
-          </p>
-          <div class="projection-grid">
-            <div class="projection-card">
-              <h3>Per run @ $5</h3>
-              <strong>$3.00 cost</strong>
-              <p class="muted">40% gross margin with transparent pass-through inputs.</p>
-              <ul>
-                <li>450k input tokens · $1.10 (Gemini 1.5 Flash)</li>
-                <li>150k output tokens · $0.40 (Gemini 1.5 Flash streaming)</li>
-                <li>Embeddings + vector writes · $0.60 (Qdrant + Supabase)</li>
-                <li>File egress + Vercel compute · $0.90</li>
-              </ul>
-            </div>
-            <div class="projection-card">
-              <h3>Growth plan @ $49</h3>
-              <strong>$31 avg margin</strong>
-              <p class="muted">Assumes 12 heavy runs + 8 light runs per workspace.</p>
-              <ul>
-                <li>Light runs reuse Qdrant vectors (50% cheaper)</li>
-                <li>Shared Supabase + Vercel resources trim infra to $0.25/run</li>
-                <li>Seat-based telemetry upsells add $9 ARPU</li>
-                <li>Support + infra stay under $3 per seat</li>
-              </ul>
-            </div>
-            <div class="projection-card">
-              <h3>12-month outlook</h3>
-              <strong>$420k GMV</strong>
-              <p class="muted">2.5k paid runs + 300 growth seats + 12 enterprise pilots.</p>
-              <ul>
-                <li>Token budget: $140k</li>
-                <li>Vector/egress budget: $48k</li>
-                <li>Gross margin: 55% with partner services</li>
-                <li>Breakeven headcount: 3 FTE</li>
-              </ul>
-            </div>
-          </div>
-          <p class="projection-note">Assumptions include Google Gemini rate cards (July 2024), Qdrant Dedicated tier,
-            Supabase storage tiers, and Vercel Pro plan bandwidth.</p>
-          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
-        </div>
-      </section>
-
-      <section class="slide">
-        <div class="slide-content">
-          <div class="slide-header">
-            <div>
               <p class="eyebrow">Target Problem</p>
               <h2>Brands can't explain their AI answer footprint</h2>
             </div>
@@ -799,23 +798,51 @@
           </div>
           <div class="split-grid arch-layout">
             <div>
-              <div class="arch-flow">
-                <div class="arch-node">
-                  <strong>1. Ingest</strong>
-                  <p class="muted">Next.js + Supabase capture crawls, sitemaps, and manual uploads with retry-safe jobs.</p>
-                </div>
-                <div class="arch-node">
-                  <strong>2. Vectorize</strong>
-                  <p class="muted">Gemini + custom embeddings encode blocks, store in Qdrant, and attach geo + intent tags.</p>
-                </div>
-                <div class="arch-node">
-                  <strong>3. Cluster</strong>
-                  <p class="muted">Spectral clustering feeds semantic cores, entity graphs, and structured data prompts.</p>
-                </div>
-                <div class="arch-node">
-                  <strong>4. Deliver</strong>
-                  <p class="muted">React workspace renders expandable artifacts; Vercel edge routes stream exports.</p>
-                </div>
+              <div class="arch-map">
+                <article class="arch-phase">
+                  <div class="phase-badge">1</div>
+                  <div class="phase-copy">
+                    <h3>Ingest</h3>
+                    <p class="muted">Next.js + Supabase capture crawls, sitemaps, and manual uploads with retry-safe jobs.</p>
+                  </div>
+                  <div class="phase-meta">
+                    <span>Stack: Next.js · Supabase</span>
+                    <span>Output: Canonical crawl ledger</span>
+                  </div>
+                </article>
+                <article class="arch-phase">
+                  <div class="phase-badge">2</div>
+                  <div class="phase-copy">
+                    <h3>Vectorize</h3>
+                    <p class="muted">Gemini embeddings encode blocks, store in Qdrant, and attach geo + intent tags.</p>
+                  </div>
+                  <div class="phase-meta">
+                    <span>Stack: Gemini 1.5 · Qdrant</span>
+                    <span>Output: Ranked semantic cores</span>
+                  </div>
+                </article>
+                <article class="arch-phase">
+                  <div class="phase-badge">3</div>
+                  <div class="phase-copy">
+                    <h3>Cluster</h3>
+                    <p class="muted">Spectral clustering feeds entity graphs, structured prompts, and scoring hints.</p>
+                  </div>
+                  <div class="phase-meta">
+                    <span>Stack: Custom clustering</span>
+                    <span>Output: Brief-ready narratives</span>
+                  </div>
+                </article>
+                <article class="arch-phase">
+                  <div class="phase-badge">4</div>
+                  <div class="phase-copy">
+                    <h3>Deliver</h3>
+                    <p class="muted">React workspace renders expandable artifacts; Vercel edge routes stream exports.</p>
+                  </div>
+                  <div class="phase-meta">
+                    <span>Stack: React · Vercel</span>
+                    <span>Output: JSON-LD · CSV · decks</span>
+                  </div>
+                </article>
               </div>
             </div>
             <div class="demo-panel">
@@ -911,6 +938,63 @@
               </ul>
             </div>
           </div>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-content">
+          <div class="slide-header">
+            <div>
+              <p class="eyebrow">Financial Projections</p>
+              <h2>Unit economics mapped to token + egress ceilings</h2>
+            </div>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Forecast</span>
+            </div>
+          </div>
+          <p class="muted">
+            Pricing stays approachable for hackathon judges while still covering Gemini tokens, Qdrant vectors, and
+            Supabase/Vercel egress. Every plan is modeled against actual usage from the ingest → cluster → export loop.
+          </p>
+          <div class="projection-grid">
+            <div class="projection-card">
+              <h3>Per run @ $5</h3>
+              <strong>$3.00 cost</strong>
+              <p class="muted">40% gross margin with transparent pass-through inputs.</p>
+              <ul>
+                <li>450k input tokens · $1.10 (Gemini 1.5 Flash)</li>
+                <li>150k output tokens · $0.40 (Gemini 1.5 Flash streaming)</li>
+                <li>Embeddings + vector writes · $0.60 (Qdrant + Supabase)</li>
+                <li>File egress + Vercel compute · $0.90</li>
+              </ul>
+            </div>
+            <div class="projection-card">
+              <h3>Growth plan @ $49</h3>
+              <strong>$31 avg margin</strong>
+              <p class="muted">Assumes 12 heavy runs + 8 light runs per workspace.</p>
+              <ul>
+                <li>Light runs reuse Qdrant vectors (50% cheaper)</li>
+                <li>Shared Supabase + Vercel resources trim infra to $0.25/run</li>
+                <li>Seat-based telemetry upsells add $9 ARPU</li>
+                <li>Support + infra stay under $3 per seat</li>
+              </ul>
+            </div>
+            <div class="projection-card">
+              <h3>12-month outlook</h3>
+              <strong>$420k GMV</strong>
+              <p class="muted">2.5k paid runs + 300 growth seats + 12 enterprise pilots.</p>
+              <ul>
+                <li>Token budget: $140k</li>
+                <li>Vector/egress budget: $48k</li>
+                <li>Gross margin: 55% with partner services</li>
+                <li>Breakeven headcount: 3 FTE</li>
+              </ul>
+            </div>
+          </div>
+          <p class="projection-note">Assumptions include Google Gemini rate cards (July 2024), Qdrant Dedicated tier,
+            Supabase storage tiers, and Vercel Pro plan bandwidth.</p>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
         </div>
       </section>
