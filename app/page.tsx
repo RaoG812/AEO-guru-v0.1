@@ -467,6 +467,17 @@ export default function HomePage() {
   const lastRobotsProjectRef = useRef<string | null>(null);
   const workspaceSectionRef = useRef<HTMLElement | null>(null);
   const workspaceScrollPendingRef = useRef(false);
+  const semanticPanelBodyRef = useRef<HTMLDivElement | null>(null);
+  const jsonldPanelBodyRef = useRef<HTMLDivElement | null>(null);
+  const geoPanelBodyRef = useRef<HTMLDivElement | null>(null);
+  const robotsPanelBodyRef = useRef<HTMLDivElement | null>(null);
+  const [panelHeights, setPanelHeights] = useState<Record<ExportArtifactKey, number>>({
+    semantic: 0,
+    jsonld: 0,
+    robots: 0,
+    geo: 0
+  });
+  const [heroInView, setHeroInView] = useState(true);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [projectForm, setProjectForm] = useState({ id: "", rootUrl: "", sitemapUrl: "" });
@@ -916,6 +927,57 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const heroNode = heroRef.current;
+    if (!heroNode || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeroInView(entry?.isIntersecting ?? false);
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(heroNode);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (activeWorkflow !== "cluster" || !selectedProject) return;
+    if (typeof ResizeObserver === "undefined") return;
+
+    const entries: Array<[ExportArtifactKey, HTMLDivElement | null]> = [
+      ["semantic", semanticPanelBodyRef.current],
+      ["jsonld", jsonldPanelBodyRef.current],
+      ["geo", geoPanelBodyRef.current],
+      ["robots", robotsPanelBodyRef.current]
+    ];
+
+    const observers: Array<{ observer: ResizeObserver; node: HTMLDivElement }> = [];
+
+    entries.forEach(([key, node]) => {
+      if (!node) return;
+      const updateHeight = () => {
+        const nextHeight = node.scrollHeight;
+        setPanelHeights((prev) => {
+          if (Math.abs((prev[key] ?? 0) - nextHeight) <= 1) {
+            return prev;
+          }
+          return { ...prev, [key]: nextHeight };
+        });
+      };
+
+      updateHeight();
+      const observer = new ResizeObserver(() => updateHeight());
+      observer.observe(node);
+      observers.push({ observer, node });
+    });
+
+    return () => {
+      observers.forEach(({ observer, node }) => observer.unobserve(node));
+    };
+  }, [activeWorkflow, selectedProject, semanticPanelBodyRef, jsonldPanelBodyRef, geoPanelBodyRef, robotsPanelBodyRef]);
+
+  useEffect(() => {
     if (!clusters.length) {
       setActiveExportKey(null);
     }
@@ -932,7 +994,8 @@ export default function HomePage() {
   }, [vectorSummary?.totalPoints]);
 
   useEffect(() => {
-    const id = setInterval(() => {
+    if (!heroInView) return;
+    const id = window.setInterval(() => {
       setVectorIndex((prev) => {
         const next = (prev + 1) % vectorPhrases.length;
         if (next === 0) {
@@ -943,11 +1006,14 @@ export default function HomePage() {
         return next;
       });
     }, 2000);
-    return () => clearInterval(id);
-  }, []);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [heroInView]);
 
   const activeVectorPhrase = vectorPhrases[vectorIndex];
   const vectorPhraseKey = `${vectorIndex}-${vectorDirection}`;
+  const heroClassName = heroInView ? "silver-hero" : "silver-hero hero-paused";
   const userEmail = session?.user?.email ?? (session?.user?.user_metadata as { email?: string })?.email;
   const sourceVectorCount = useMemo(() => {
     if (!vectorSummary?.sources?.length) return 0;
@@ -1998,8 +2064,9 @@ export default function HomePage() {
                         id="cockpit-semantic-panel"
                         className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "semantic"}
+                        style={{ height: activeCockpitCard === "semantic" ? panelHeights.semantic || 0 : 0 }}
                       >
-                        <div className="cockpit-card-body">
+                        <div ref={semanticPanelBodyRef} className="cockpit-card-body">
                           <label className="field-label">
                             Language override
                             <input
@@ -2059,8 +2126,9 @@ export default function HomePage() {
                         id="cockpit-jsonld-panel"
                         className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "jsonld"}
+                        style={{ height: activeCockpitCard === "jsonld" ? panelHeights.jsonld || 0 : 0 }}
                       >
-                        <div className="cockpit-card-body">
+                        <div ref={jsonldPanelBodyRef} className="cockpit-card-body">
                           <label className="field-label">
                             Language override
                             <input
@@ -2120,8 +2188,9 @@ export default function HomePage() {
                         id="cockpit-geo-panel"
                         className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "geo"}
+                        style={{ height: activeCockpitCard === "geo" ? panelHeights.geo || 0 : 0 }}
                       >
-                        <div className="cockpit-card-body">
+                        <div ref={geoPanelBodyRef} className="cockpit-card-body">
                           <label className="field-label">
                             Language override
                             <input
@@ -2214,8 +2283,9 @@ export default function HomePage() {
                         id="cockpit-robots-panel"
                         className="cockpit-card-panel"
                         aria-hidden={activeCockpitCard !== "robots"}
+                        style={{ height: activeCockpitCard === "robots" ? panelHeights.robots || 0 : 0 }}
                       >
-                        <div className="cockpit-card-body">
+                        <div ref={robotsPanelBodyRef} className="cockpit-card-body">
                           <label className="field-label">
                             Root URL
                             <input
@@ -2494,7 +2564,7 @@ export default function HomePage() {
         ))}
       </nav>
       <div className="content-wrapper">
-        <section className="silver-hero" ref={heroRef}>
+        <section className={heroClassName} ref={heroRef}>
           <div className="hero-logo-clear" aria-hidden="true" />
           <div className="hero-lens" aria-hidden="true" />
           <div className="hero-outline" aria-hidden="true" />

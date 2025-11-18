@@ -89,6 +89,7 @@ main {
   --reveal-opacity: 0;
   --logo-size: 70%;
   --hero-logo-float-duration: 16s;
+  --hero-anim-state: running;
   border-radius: 32px;
   padding: 2.5rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03));
@@ -97,6 +98,10 @@ main {
   overflow: hidden;
   backdrop-filter: blur(24px) saturate(150%);
   box-shadow: 0 35px 80px rgba(0, 0, 0, 0.45);
+}
+
+.silver-hero.hero-paused {
+  --hero-anim-state: paused;
 }
 
 .silver-hero::before {
@@ -112,6 +117,7 @@ main {
   animation: guruFloat var(--hero-logo-float-duration) ease-in-out infinite;
   will-change: transform;
   z-index: 0;
+  animation-play-state: var(--hero-anim-state);
 }
 
 .silver-hero::after {
@@ -157,6 +163,7 @@ main {
   transition: opacity 0.35s ease, mask-position 0.1s ease, mask-size 0.3s ease, --lens-radius 0.2s ease-out;
   animation: guruFloat var(--hero-logo-float-duration) ease-in-out infinite;
   will-change: transform;
+  animation-play-state: var(--hero-anim-state);
 }
 
 .hero-lens {
@@ -2240,7 +2247,6 @@ main {
   position: relative;
   overflow: hidden;
   transition: border-color 0.3s ease, background-color 0.35s ease, transform 0.4s ease, box-shadow 0.4s ease;
-  --cockpit-panel-rows: 0fr;
   --cockpit-body-opacity: 0;
   --cockpit-body-translate: -6px;
   --cockpit-body-pointer: none;
@@ -2255,7 +2261,6 @@ main {
   background: #090b18;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   transform: translateY(-2px);
-  --cockpit-panel-rows: 1fr;
   --cockpit-body-opacity: 1;
   --cockpit-body-translate: 0px;
   --cockpit-body-pointer: auto;
@@ -2328,12 +2333,11 @@ main {
 }
 
 .cockpit-card-panel {
-  display: grid;
-  grid-template-rows: var(--cockpit-panel-rows);
   overflow: hidden;
   pointer-events: var(--cockpit-body-pointer);
-  transition: grid-template-rows 0.45s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: grid-template-rows;
+  height: 0;
+  transition: height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: height;
 }
 
 .cockpit-card-body {
