@@ -1,31 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { getUserContextFromRequest } from "@/lib/apiUserContext";
 import { addProject, listProjects } from "@/lib/projectsStore";
 import { createProjectSchema } from "@/lib/projectsSchema";
-import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
-
-async function getUserContext(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
-    return null;
-  }
-
-  const token = authHeader.slice(7);
-  const supabase = createSupabaseServerClient(token);
-  const { data, error } = await supabase.auth.getUser(token);
-
-  if (error || !data.user) {
-    return null;
-  }
-
-  return {
-    userId: data.user.id,
-    supabase
-  };
-}
 
 export async function GET(req: NextRequest) {
-  const context = await getUserContext(req);
+  const context = await getUserContextFromRequest(req);
   if (!context) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
@@ -40,7 +20,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const context = await getUserContext(req);
+  const context = await getUserContextFromRequest(req);
   if (!context) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }

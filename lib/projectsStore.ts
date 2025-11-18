@@ -1,6 +1,6 @@
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 
-import type { CreateProjectInput } from "./projectsSchema";
+import type { CreateProjectInput, UpdateProjectInput } from "./projectsSchema";
 
 export type ProjectRecord = {
   id: string;
@@ -82,6 +82,38 @@ export async function addProject(
 
   if (error) {
     handlePostgrestError(error);
+  }
+
+  return mapRowToRecord(data as ProjectRow);
+}
+
+export async function updateProject(
+  supabase: SupabaseClient,
+  ownerUserId: string,
+  projectId: string,
+  input: UpdateProjectInput
+): Promise<ProjectRecord> {
+  const normalizedRootUrl = normalizeUrl(input.rootUrl);
+  const normalizedSitemap = input.sitemapUrl ? normalizeUrl(input.sitemapUrl) : null;
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .update({
+      name: input.name ?? null,
+      root_url: normalizedRootUrl,
+      sitemap_url: normalizedSitemap
+    })
+    .eq("owner_user_id", ownerUserId)
+    .eq("project_id", projectId)
+    .select("project_id, name, root_url, sitemap_url, created_at")
+    .maybeSingle();
+
+  if (error) {
+    handlePostgrestError(error);
+  }
+
+  if (!data) {
+    throw new Error("PROJECT_NOT_FOUND");
   }
 
   return mapRowToRecord(data as ProjectRow);

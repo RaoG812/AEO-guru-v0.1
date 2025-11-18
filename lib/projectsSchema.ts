@@ -11,3 +11,11 @@ export const createProjectSchema = z.object({
 });
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
+
+export const updateProjectSchema = z.object({
+  name: z.string().min(1).optional(),
+  rootUrl: z.string().url(),
+  sitemapUrl: z.string().url().nullish()
+});
+
+export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
