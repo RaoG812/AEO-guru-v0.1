@@ -1536,6 +1536,35 @@ export default function HomePage() {
     return Math.max(...clusters.map((cluster) => cluster.opportunityScore ?? 0));
   }, [clusters]);
 
+  const overallOptimizationScore = useMemo(() => {
+    if (!clusters.length) return null;
+    const baseScore =
+      clusters.reduce((sum, cluster) => sum + (cluster.opportunityScore ?? 0), 0) /
+      clusters.length;
+    const geoClusters = clusters.filter((cluster) => cluster.metadata.intent === "local");
+    const geoCoverage = geoClusters.length ? geoClusters.length / clusters.length : 0;
+    const geoBonus = geoClusters.length ? Math.min(15, 6 + geoCoverage * 18) : 0;
+    const combinedScore = Math.min(100, Math.round(baseScore + geoBonus));
+    let summary: string;
+    if (combinedScore >= 85) {
+      summary = "Assistant-ready blend of answer depth and localized proof.";
+    } else if (combinedScore >= 70) {
+      summary = "Strong coverage—tighten supporting snippets to climb higher.";
+    } else {
+      summary = "Grow semantic clusters and cite local proof to lift authority.";
+    }
+    const geoNote = geoClusters.length
+      ? `Local intent coverage ${Math.round(geoCoverage * 100)}%`
+      : "Add localized proof to unlock GEO boost.";
+    return {
+      value: combinedScore,
+      base: Math.round(baseScore),
+      geoBonus: Math.round(geoBonus),
+      summary,
+      geoNote
+    };
+  }, [clusters]);
+
   const semanticCoreOverrides = useMemo(() => {
     const payload: Record<string, unknown> = {};
     const limit = parseNumberInRange(exportCockpit.semanticCore.limit, 1, 25);
@@ -1893,10 +1922,11 @@ export default function HomePage() {
               {selectedProject && <span className="pill">{selectedProject.id}</span>}
             </div>
             {selectedProject ? (
-              <form className="stacked-form" onSubmit={handleIngest}>
-                <label className="field-label">
-                  Root URL
-                  <input
+              <>
+                <form className="stacked-form" onSubmit={handleIngest}>
+                  <label className="field-label">
+                    Root URL
+                    <input
                     className="text-input"
                     value={ingestForm.rootUrl}
                     onChange={(e) => setIngestForm((prev) => ({ ...prev, rootUrl: e.target.value }))}
@@ -1941,8 +1971,60 @@ export default function HomePage() {
                     </button>
                   )}
                 </div>
-                {ingestMessage && <p className="muted">{ingestMessage}</p>}
-              </form>
+                  {ingestMessage && <p className="muted">{ingestMessage}</p>}
+                </form>
+                {hasExistingIngestion && vectorSummary && (
+                  <section className="telemetry-widget" aria-live="polite">
+                    <div className="telemetry-widget-head">
+                      <div>
+                        <p className="eyebrow">Vector telemetry console</p>
+                        <h3>Ingestion results</h3>
+                        <p className="muted small">Latest crawl coverage synced from Qdrant.</p>
+                      </div>
+                      <span className="pill">
+                        {vectorSummary.totalPoints.toLocaleString()} vectors
+                      </span>
+                    </div>
+                    <div className="telemetry-widget-grid">
+                      <div className="telemetry-metric">
+                        <p className="muted small">Languages detected</p>
+                        <strong>{vectorSummary.languages.length}</strong>
+                      </div>
+                      <div className="telemetry-metric">
+                        <p className="muted small">Intent families</p>
+                        <strong>{vectorSummary.intents.length}</strong>
+                      </div>
+                      <div className="telemetry-metric">
+                        <p className="muted small">Source inputs</p>
+                        <strong>{vectorSummary.sources.length}</strong>
+                      </div>
+                    </div>
+                    <div className="telemetry-score-card">
+                      <p className="eyebrow">AEO/GEO optimization score</p>
+                      {overallOptimizationScore ? (
+                        <>
+                          <div className="telemetry-score-value">
+                            <strong>{overallOptimizationScore.value}</strong>
+                            <span>/100</span>
+                          </div>
+                          <p className="muted">{overallOptimizationScore.summary}</p>
+                          <div className="telemetry-score-breakdown">
+                            <span>Semantic avg {overallOptimizationScore.base}</span>
+                            <span>
+                              {overallOptimizationScore.geoBonus > 0
+                                ? `GEO boost +${overallOptimizationScore.geoBonus}`
+                                : "GEO boost +0"}
+                            </span>
+                            <span>{overallOptimizationScore.geoNote}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="muted">Run clustering to unlock your combined score.</p>
+                      )}
+                    </div>
+                  </section>
+                )}
+              </>
             ) : (
               <p className="muted">Select a project to unlock ingestion.</p>
             )}
