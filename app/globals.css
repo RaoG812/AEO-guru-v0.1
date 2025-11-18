@@ -2185,8 +2185,10 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background-color: rgba(6, 8, 20, 0.95);
   background-image: url("/textures/export-cockpit-gradient.svg");
-  background-size: cover;
-  background-position: center;
+  background-size: 1400px auto;
+  background-position: top center;
+  background-repeat: repeat;
+  background-attachment: local;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -2237,9 +2239,10 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background-color: rgba(5, 7, 18, 0.9);
   background-image: url("/textures/export-cockpit-card.svg");
-  background-size: 180% auto;
-  background-position: center;
+  background-size: 900px auto;
+  background-position: top center;
   background-repeat: no-repeat;
+  background-attachment: local;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
