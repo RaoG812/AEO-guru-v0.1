@@ -681,43 +681,39 @@
             </div>
           </div>
           <p class="muted">
-            Every provider listed below is referenced in code you can inspect — we call out the exact files so judges
-            can follow the wiring from request to response.
+            Same crew as the live app — Gemini handles the thinking, Supabase keeps sessions safe, Qdrant stores every
+            chunk, and the Next.js repo in GitHub glues it all together so demos never feel hypothetical.
           </p>
           <div class="provider-logos">
             <div class="provider-logo">
               <img src="./google%20deep.png" alt="Google DeepMind logo" />
               <span>Google Gemini</span>
-              <p><code>lib/ai-gateway.ts</code> centralizes gemini-pro-latest + gemini-2.5-flash-lite, while
-                <code>lib/embeddings.ts</code> calls gemini-embedding-001 for every vector.</p>
+              <p>Gemini Pro Latest runs long-form reasoning, 2.5 Flash Lite covers fast status updates, and
+                gemini-embedding-001 powers every search vector through the <code>lib/ai-gateway.ts</code> helpers.</p>
             </div>
             <div class="provider-logo">
               <img src="./supabase.png" alt="Supabase logo" />
               <span>Supabase</span>
-              <p><code>lib/supabaseClient.ts</code> and <code>lib/supabaseServerClient.ts</code> enforce RLS, feeding the
-                <code>projects</code> + <code>project_cores</code> tables via the projects API.</p>
+              <p>The Supabase auth + Postgres combo backs every workspace, with RLS policies defined in
+                <code>data/supabase.sql</code> and browser/server clients in <code>lib/supabaseClient.ts</code>.</p>
             </div>
             <div class="provider-logo">
               <img src="./qdrant.png" alt="Qdrant logo" />
               <span>Qdrant</span>
-              <p><code>lib/qdrant.ts</code> provisions <code>aeo_guru_corpus</code> and is invoked by both
-                <code>app/api/ingest</code> and <code>app/api/clusters</code> to upsert vectors + metadata.</p>
+              <p><code>lib/qdrant.ts</code> provisions the <code>aeo_guru_corpus</code> collection so ingest + cluster
+                routes can push vectors, payload metadata, and opportunity scores without reconfiguring infra.</p>
             </div>
             <div class="provider-logo">
-              <svg viewBox="0 0 120 70" role="img" aria-label="Next.js wordmark">
-                <rect width="120" height="70" rx="18" fill="rgba(255,255,255,0.08)" />
-                <text x="60" y="42" text-anchor="middle" font-size="28" font-family="'Space Grotesk',sans-serif"
-                  fill="currentColor">Next.js</text>
-              </svg>
-              <span>Next.js 14</span>
-              <p><code>package.json</code> pins Next 14.2 + React 18, and <code>app/page.tsx</code> shows the App Router UI
-                running entirely in this repo.</p>
+              <img src="./vercel.png" alt="Vercel logo" />
+              <span>Next.js runtime</span>
+              <p><code>package.json</code> pins Next 14.2 + React 18, so the App Router UI and API routes run in one
+                deploy, ready for a Vercel-style workflow.</p>
             </div>
             <div class="provider-logo">
               <img src="./github.png" alt="GitHub logo" />
               <span>GitHub</span>
-              <p>Every commit, README, and presentation lives in this repository so reviewers can diff implementation,
-                infra, and narrative in one place.</p>
+              <p>The repo is the demo: README, API handlers, presentation, and Supabase SQL migrate together so judges can
+                diff implementation and story from a single source.</p>
             </div>
           </div>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
@@ -897,8 +893,8 @@
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Coverage instrumentation</p>
-              <h2>Every panel maps directly to code</h2>
+              <p class="eyebrow">Market Analysis</p>
+              <h2>Vertical-ready cues live in the repo</h2>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
@@ -908,26 +904,28 @@
           <div class="market-grid">
             <div class="market-card">
               <strong>15 hero prompts</strong>
-              <p class="muted"><code>vectorPhrases</code> seeds taxonomy, schema, FAQ, and entity cues for the hero ticker.</p>
+              <p class="muted">The <code>vectorPhrases</code> array in <code>app/page.tsx</code> spans taxonomy, schema,
+                FAQ, and entity hooks so different industries see themselves on slide one.</p>
             </div>
             <div class="market-card">
               <strong>8 crawler agents</strong>
-              <p class="muted">Robots exports expose Googlebot, Bingbot (desktop + mobile), DuckDuckBot, Baiduspider, YandexBot,
-                and Slurp toggles.</p>
+              <p class="muted">The robots export + cockpit ship with toggles for Googlebot, Bingbot, DuckDuckBot, Baiduspider,
+                YandexBot, and more via <code>POPULAR_USER_AGENTS</code> in <code>app/page.tsx</code>.</p>
             </div>
             <div class="market-card">
               <strong>Language detection</strong>
-              <p class="muted"><code>lib/language.ts</code> pipes <code>franc-min</code> into every chunk so vector
-                summaries can split by locale.</p>
+              <p class="muted"><code>lib/language.ts</code> wires <code>franc-min</code> into every chunk, making it easy
+                to show multilingual splits in the vector summaries.</p>
             </div>
             <div class="market-card">
               <strong>Answer graph nodes</strong>
-              <p class="muted"><code>lib/answer-graph.ts</code> generates canonical questions + embeddings for each cluster.</p>
+              <p class="muted"><code>lib/answer-graph.ts</code> spins up 3-8 canonical user questions per cluster, embeds
+                them, and stores the payloads alongside the project.</p>
             </div>
           </div>
           <p class="muted">
-            These constants surface in <code>app/page.tsx</code>: the hero scroller, vector lab, and robots form all read
-            directly from the same arrays our API routes consume.
+            These primitives surface in <code>app/page.tsx</code>: the hero ticker, robots form, and vector lab all pull
+            from the same data the API routes consume, so every vertical sees real levers during a live walkthrough.
           </p>
           <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
         </div>
@@ -937,8 +935,8 @@
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Export Surface</p>
-              <h2>Deliverables map one-to-one with API routes</h2>
+              <p class="eyebrow">Revenue Streams</p>
+              <h2>Each deliverable is a real plan-ready SKU</h2>
             </div>
             <div class="logo-chip">
               <img src="/aeo-guru.svg" alt="AEO Guru" />
@@ -947,30 +945,32 @@
           </div>
           <div class="pricing-grid">
             <div class="pricing-card">
-              <h3>Semantic core YAML</h3>
+              <h3>Starter run</h3>
               <strong>/api/exports/semantic-core</strong>
-              <p class="muted">Aggregates annotated clusters into a YAML handoff file.</p>
+              <p class="muted">Single-run buyers download YAML briefs that mirror the annotated clusters.</p>
               <ul>
-                <li>Consumes up to 25 clusters per request.</li>
-                <li>Merges manual notes + existing semantic_core_yaml fields.</li>
+                <li>Zod schema caps requests to 1-25 clusters, matching the guardrails in
+                  <code>app/api/exports/semantic-core/route.ts</code>.</li>
+                <li>Manual notes + existing <code>semantic_core_yaml</code> rows are merged before export.</li>
               </ul>
             </div>
             <div class="pricing-card" data-tier="highlight">
-              <h3>JSON-LD + FAQ</h3>
+              <h3>Growth workspace</h3>
               <strong>/api/exports/jsonld</strong>
-              <p class="muted">Generates structured data and FAQs straight from vectors.</p>
+              <p class="muted">Subscribers automate structured data for their top-performing pages.</p>
               <ul>
-                <li>Limits output to 10 top pages per run for clarity.</li>
-                <li>Calls <code>generateIntentDrivenJsonLd</code> + <code>generateFaqJsonLd</code>.</li>
+                <li>Route pulls contexts via <code>buildPageContexts</code> and keeps the limit at ten pages for fast QA.</li>
+                <li><code>generateIntentDrivenJsonLd</code> + <code>generateFaqJsonLd</code> craft schema + FAQ blocks per
+                  request.</li>
               </ul>
             </div>
             <div class="pricing-card">
-              <h3>Robots + geo packs</h3>
-              <strong>/robots · /geo-improvements</strong>
-              <p class="muted">Hardens crawl posture and localizes narratives.</p>
+              <h3>Enterprise hardening</h3>
+              <strong>/api/exports/robots · /geo-improvements</strong>
+              <p class="muted">Large accounts lean on the governance and localization exports.</p>
               <ul>
-                <li>Robots route supports up to 16 user agents + 25 manual paths.</li>
-                <li>Geo export highlights up to 12 clusters with detected locations.</li>
+                <li>Robots schema allows 16 agents, 25 forbidden paths, and ten sitemap URLs with crawl-delay controls.</li>
+                <li>Geo route supports up to 12 localized clusters plus fallback locations + intent focus toggles.</li>
               </ul>
             </div>
           </div>
