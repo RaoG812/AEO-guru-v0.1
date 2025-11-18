@@ -2081,6 +2081,27 @@ main {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.export-cockpit::before {
+  content: "";
+  position: absolute;
+  inset: -15% -25%;
+  background: radial-gradient(circle at 25% 0%, rgba(126, 161, 255, 0.3), transparent 55%),
+    linear-gradient(135deg, rgba(5, 9, 24, 0.95), rgba(3, 4, 12, 0.98));
+  opacity: 0.85;
+  filter: blur(25px);
+  pointer-events: none;
+  z-index: 0;
+  transform: translateZ(0);
+}
+
+.export-cockpit > * {
+  position: relative;
+  z-index: 1;
 }
 
 .cockpit-header {
@@ -2113,7 +2134,6 @@ main {
   gap: 0.35rem;
   position: relative;
   overflow: hidden;
-  isolation: isolate;
   transition: border-color 0.3s ease, background-color 0.35s ease, transform 0.4s ease, box-shadow 0.4s ease;
   --cockpit-body-max: 0px;
   --cockpit-body-opacity: 0;
@@ -2122,7 +2142,7 @@ main {
   --cockpit-body-visibility: hidden;
   --cockpit-body-padding: 0px;
   --cockpit-body-delay: 0.25s;
-  --cockpit-card-glow: 0.22;
+  contain: paint;
 }
 
 .export-cockpit-card[data-active="true"] {
@@ -2137,26 +2157,6 @@ main {
   --cockpit-body-visibility: visible;
   --cockpit-body-padding: 0.6rem;
   --cockpit-body-delay: 0s;
-  --cockpit-card-glow: 0.5;
-}
-
-.export-cockpit-card::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: radial-gradient(circle at 20% 0%, rgba(126, 161, 255, 0.25), transparent 55%),
-    linear-gradient(135deg, rgba(5, 9, 24, 0.9), rgba(3, 4, 12, 0.95));
-  opacity: var(--cockpit-card-glow);
-  transition: opacity 0.35s ease;
-  will-change: opacity;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.export-cockpit-card > * {
-  position: relative;
-  z-index: 1;
 }
 
 .export-cockpit-card h4 {
