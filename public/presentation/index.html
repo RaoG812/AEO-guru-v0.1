@@ -95,6 +95,52 @@
         opacity: 0.9;
       }
 
+      .logo-cluster {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .brand-mark {
+        height: clamp(44px, 5vw, 70px);
+        width: auto;
+        filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.45));
+      }
+
+      .logo-chip {
+        border-radius: 999px;
+        padding: 0.5rem 1.1rem;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.06);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .logo-chip img {
+        width: 28px;
+        height: 28px;
+      }
+
+      .logo-watermark {
+        position: absolute;
+        right: 2rem;
+        bottom: 1.5rem;
+        width: clamp(120px, 14vw, 220px);
+        opacity: 0.08;
+        transform: rotate(-8deg);
+        pointer-events: none;
+      }
+
+      .logo-watermark.is-left {
+        right: auto;
+        left: 2rem;
+        transform: rotate(9deg);
+      }
+
       .slide-content {
         position: relative;
         z-index: 2;
@@ -353,79 +399,89 @@
       <section class="slide hero-slide">
         <div class="slide-content">
           <div class="slide-header">
-            <div>
-              <p class="eyebrow">Answer Engine Optimization</p>
-              <h1>AEO Guru</h1>
-              <p class="muted">
-                A semantic operations cockpit that ingests crawls, maps clusters, and manufactures
-                structured assets for every AI overview and search result that matters.
-              </p>
+            <div class="logo-cluster">
+              <img src="/aeo-guru.svg" alt="AEO Guru logo" class="brand-mark" />
+              <div>
+                <p class="eyebrow">Answer Engine Optimization</p>
+                <h1>Meet AEO Guru</h1>
+              </div>
             </div>
-            <span class="pill">Gemini-native</span>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Always-on co-pilot</span>
+            </div>
           </div>
+          <p class="muted">
+            AEO Guru transforms raw crawls into story-ready playbooks so marketing, content, and leadership teams
+            can explain their answer engine opportunity in one confident voice.
+          </p>
           <div class="stat-grid">
             <div class="stat-card">
-              <strong>3-stage</strong>
-              <p class="muted">workflow & dock navigation keeps ingestion, clustering, and exports focused.</p>
+              <strong>3 clear moves</strong>
+              <p class="muted">Guided ingest → cluster → publish steps keep even non-technical teams on track.</p>
             </div>
             <div class="stat-card">
-              <strong>25+</strong>
-              <p class="muted">topic clusters annotated per project with canonical questions & schema hints.</p>
+              <strong>25+ clusters</strong>
+              <p class="muted">Each project surfaces people-first topics, brand POV, and talking points.</p>
             </div>
             <div class="stat-card">
-              <strong>4 artifacts</strong>
-              <p class="muted">Semantic core YAML, JSON-LD, geo-improvements, and robots.txt ready on tap.</p>
+              <strong>Instant exports</strong>
+              <p class="muted">Shareable YAML, JSON-LD, geo notes, and robots files arrive with one tap.</p>
             </div>
           </div>
           <div class="cta-row">
             <button class="primary-button">Launch demo</button>
-            <button class="ghost-button">View clusters</button>
+            <button class="ghost-button">Preview clusters</button>
           </div>
         </div>
+        <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
       </section>
 
       <section class="slide">
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Operational storyline</p>
-              <h2>Signal-driven workflow</h2>
+              <p class="eyebrow">Guided experience</p>
+              <h2>A simple 3-step win plan</h2>
             </div>
-            <span class="pill">Embeddings-first</span>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Brand-ready</span>
+            </div>
           </div>
           <div class="workflow-grid">
             <div class="workflow-steps">
               <div class="timeline-card" data-active="true">
-                <strong>1 · Ingest</strong>
+                <strong>1 · Gather</strong>
                 <p class="muted">
-                  Submit root domains, sitemaps, and curated URL lists. Every document is embedded, tagged with
-                  metadata, and assigned to a project so you can re-run crawls or append fresh data.
+                  Drop in a domain, sitemap, or curated list. Guru tidies every page, keeps versions organized, and
+                  lets you add new discoveries without restarting.
                 </p>
                 <ul class="bullet-list">
-                  <li><span></span><p class="muted">Form-driven intake with validation and status messaging.</p></li>
-                  <li><span></span><p class="muted">Project-aware so teams can maintain multiple sites in parallel.</p></li>
+                  <li><span></span><p class="muted">Friendly forms + status notes remove guesswork.</p></li>
+                  <li><span></span><p class="muted">Multiple brands can run in parallel with separate histories.</p></li>
                 </ul>
               </div>
               <div class="timeline-card" data-active="true">
-                <strong>2 · Cluster</strong>
+                <strong>2 · Shape</strong>
                 <p class="muted">
-                  Group embeddings into an intent-labelled semantic core, surface canonical questions, and list
-                  content gaps before they impact AI Overviews.
+                  Guru groups topics into intent-based clusters, highlights everyday questions, and shows where your
+                  story feels thin before AI answers surface someone else.
                 </p>
                 <ul class="bullet-list">
-                  <li><span></span><p class="muted">Opportunity scores, recommended schema blocks, and intent colors.</p></li>
-                  <li><span></span><p class="muted">Manual "Enlarge core" runs pull in fresh crawl intelligence.</p></li>
+                  <li><span></span><p class="muted">Opportunity scores and color cues keep priorities obvious.</p></li>
+                  <li><span></span><p class="muted">One-tap "Enlarge core" invites new crawl intelligence.</p></li>
                 </ul>
               </div>
               <div class="timeline-card">
-                <strong>3 · Outputs</strong>
+                <strong>3 · Share</strong>
                 <p class="muted">
-                  Preview the most relevant clusters, check attribute deltas, then trigger downloads when the
-                  cockpit's overrides look perfect.
+                  Preview the most persuasive clusters, add finishing touches, then share confident answers with
+                  anyone who needs them.
                 </p>
                 <ul class="bullet-list">
-                  <li><span></span><p class="muted">Status pills track ingestion, clustering, download, and projects.</p></li>
-                  <li><span></span><p class="muted">Ghost buttons expose Semantic core, JSON-LD, GEO, and robots exports.</p></li>
+                  <li><span></span><p class="muted">Status pills show exactly what is running at a glance.</p></li>
+                  <li><span></span><p class="muted">Downloads bundle semantic cores, JSON-LD, geo plays, and robots files.</p></li>
                 </ul>
               </div>
             </div>
@@ -433,66 +489,69 @@
               <h4>Dock timeline</h4>
               <div class="note-box">
                 <p class="muted">
-                  Workflow tiles glow as each stage completes, and an SVG vector pulse animates when a tile is
-                  active. Keyboard focus states and aria-live regions keep power users informed without leaving
-                  the hero surface.
+                  Friendly tiles glow when stages complete, while soft pulses and on-screen notes reassure the team
+                  that Guru is quietly doing the heavy lifting.
                 </p>
               </div>
               <h4>Cluster glances</h4>
               <div class="note-box">
                 <p class="muted">
-                  Each cluster card carries intents, schemas, canonical questions, and gap lists so strategists
-                  can storyboard briefs before exporting a single artifact.
+                  Each card mixes intent labels, audience questions, and quick wins so strategists can storyboard a
+                  brief before exporting anything.
                 </p>
               </div>
             </div>
           </div>
         </div>
+        <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
       </section>
 
       <section class="slide">
         <div class="slide-content">
           <div class="slide-header">
             <div>
-              <p class="eyebrow">Workspace intelligence</p>
-              <h2>Semantic core editing room</h2>
+              <p class="eyebrow">Collaboration hub</p>
+              <h2>Give every team the same playbook</h2>
             </div>
-            <span class="pill">Collaborative</span>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Team favorite</span>
+            </div>
           </div>
           <div class="feature-grid">
             <div class="feature-card">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-              <strong>Manual notes + YAML</strong>
+              <strong>Living narrative</strong>
               <p class="muted">
-                Editors tune the semantic-core YAML, drop strategic annotations, and preview how each change
-                impacts downstream exports before committing.
+                Editors can add plain-language notes, brand positioning, and approval nudges while watching how
+                those thoughts flow into every export.
               </p>
             </div>
             <div class="feature-card">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.2"/><path d="M12 8v8" stroke="currentColor" stroke-width="1.2"/></svg>
               <strong>Cluster annotations</strong>
               <p class="muted">
-                Per-cluster notes capture label overrides, positioning thoughts, and custom keyword drafts so
-                product & content squads can stay aligned.
+                Keep label tweaks, customer truths, and supporting keywords in one friendly card so product,
+                content, and SEO leads stay aligned.
               </p>
             </div>
             <div class="feature-card">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14v10H5z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M9 5v3m6-3v3" stroke="currentColor" stroke-width="1.3"/></svg>
-              <strong>Associated records</strong>
+              <strong>Receipts included</strong>
               <p class="muted">
-                Recent crawl evidence—URLs, schema hints, excerpts—sits beside the notes so strategists always
-                know why the model recommended an expansion.
+                Fresh crawl evidence, example snippets, and schema clues sit beside the notes so everyone knows
+                why a recommendation matters.
               </p>
             </div>
             <div class="feature-card">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18h12M9 21h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><rect x="6" y="3" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
               <strong>One-click saves</strong>
               <p class="muted">
-                The workspace batches manual updates, persists them via Supabase, and surfaces toast messaging to
-                confirm every save or enlargement run.
+                Save batches of edits with a gentle toast confirmation—no spreadsheets, no copy-paste marathons.
               </p>
             </div>
           </div>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
         </div>
       </section>
 
@@ -501,16 +560,19 @@
           <div class="slide-header">
             <div>
               <p class="eyebrow">Export cockpit</p>
-              <h2>Precision downloads</h2>
+              <h2>Ready-to-share packages</h2>
             </div>
-            <span class="pill">Four artifacts</span>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Done for you</span>
+            </div>
           </div>
           <div class="feature-grid">
             <div class="feature-card">
               <strong>Semantic core YAML</strong>
               <p class="muted">
-                Limit clusters (1–25), set language overrides, and lock only the narratives you need for the
-                sprint. Perfect for taxonomy handoffs.
+                Pick the number of clusters, keep only the moments you want to brief, and hand a beautifully
+                structured outline to writers or agencies.
               </p>
               <ul class="bullet-list">
                 <li><span></span><p class="muted">Cluster limit selector</p></li>
@@ -520,8 +582,8 @@
             <div class="feature-card">
               <strong>JSON-LD</strong>
               <p class="muted">
-                Choose schema flavors per intent bucket, then render entity-rich JSON-LD in seconds so dev teams
-                can paste it into templates without edits.
+                Guru picks the right schema flavor per intent so engineering can paste structured data into
+                templates without redlines.
               </p>
               <ul class="bullet-list">
                 <li><span></span><p class="muted">Intent-aware schema toggles</p></li>
@@ -531,8 +593,8 @@
             <div class="feature-card">
               <strong>robots.txt</strong>
               <p class="muted">
-                Configure crawl-delay windows, list sitemap URLs, and toggle every popular agent (Googlebot,
-                Bingbot, Yandex, more) without touching code.
+                Update crawl allowances, sitemap links, and bot access in plain English—Guru writes the syntax for
+                you.
               </p>
               <ul class="bullet-list">
                 <li><span></span><p class="muted">Agent checkbox grid</p></li>
@@ -542,8 +604,8 @@
             <div class="feature-card">
               <strong>Geo playbooks</strong>
               <p class="muted">
-                Ship localized question sets by choosing intent focus (local vs all), fallback locations, and
-                export limits for GEO improvements.
+                Blend national narratives with local questions, then hand the file to field teams who need talking
+                points fast.
               </p>
               <ul class="bullet-list">
                 <li><span></span><p class="muted">Geo intent toggle</p></li>
@@ -552,8 +614,8 @@
             </div>
           </div>
           <p class="muted">
-            Attribute preview drawers summarize overrides before download, and aria-expanded states make the
-            cockpit keyboard-native.
+            Preview drawers summarize every choice, so stakeholders know exactly what will be delivered before
+            they click download.
           </p>
         </div>
       </section>
@@ -563,40 +625,44 @@
           <div class="slide-header">
             <div>
               <p class="eyebrow">Live telemetry</p>
-              <h2>Status-aware storytelling</h2>
+              <h2>Confidence indicators for every move</h2>
             </div>
-            <span class="pill">Always-on</span>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Always-on</span>
+            </div>
           </div>
           <div class="callout-grid">
             <div class="callout-card">
               <strong>Hero lens</strong>
               <p class="muted">
-                The hero surface mimics the main app's animated lens, exposing the guru mark only when users move
-                the cursor—subtle delight that signals premium craft.
+                The hero surface mirrors the main app's animated lens, revealing the Guru mark with gentle motion
+                so every touchpoint feels intentional.
               </p>
             </div>
             <div class="callout-card">
               <strong>Real-time status pills</strong>
               <p class="muted">
-                Ingestion, clustering, downloads, and project fetches each pipe status into glowing pills so ops
-                teams instantly know what is running.
+                Glowing pills show when ingestion, clustering, or downloads are running, so ops teams can narrate
+                progress in meetings without tab-switching.
               </p>
             </div>
             <div class="callout-card">
               <strong>Associated records view</strong>
               <p class="muted">
-                Source URLs, excerpts, and schema recommendations appear as soon as core expansion completes to
-                make QA effortless.
+                Source URLs, excerpts, and schema hints appear the moment a core expands, making QA effortless for
+                reviewers.
               </p>
             </div>
             <div class="callout-card">
               <strong>Dock navigation</strong>
               <p class="muted">
-                Quick actions (ingest, cluster, exports, workspace, auth) sit in a radial dock so strategists can
-                jump between surfaces without scrolling.
+                Quick actions (ingest, cluster, exports, workspace, auth) sit in a sleek dock so teams can jump
+                between surfaces without hunting through menus.
               </p>
             </div>
           </div>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
         </div>
       </section>
 
@@ -605,9 +671,12 @@
           <div class="slide-header">
             <div>
               <p class="eyebrow">Technology stack</p>
-              <h2>Built for scale & experimentation</h2>
+              <h2>Built on trusted, scalable rails</h2>
             </div>
-            <span class="pill">Future-proof</span>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Future-proof</span>
+            </div>
           </div>
           <div class="tech-grid">
             <div class="tech-card">
@@ -640,9 +709,10 @@
             </div>
             <div class="tech-card">
               <strong>Node + APIs</strong>
-              <p class="muted">Next API routes orchestrate ingestion, clustering, and exports.</p>
+              <p class="muted">API routes orchestrate ingestion, clustering, and exports with guardrails.</p>
             </div>
           </div>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark is-left" />
         </div>
       </section>
 
@@ -653,37 +723,41 @@
               <p class="eyebrow">Adoption moments</p>
               <h2>Unlock revenue & trust</h2>
             </div>
-            <span class="pill">Next steps</span>
+            <div class="logo-chip">
+              <img src="/aeo-guru.svg" alt="AEO Guru" />
+              <span>Next steps</span>
+            </div>
           </div>
           <div class="callout-grid">
             <div class="callout-card">
               <strong>SEO & Content leads</strong>
-              <p class="muted">Use the semantic workspace to brief writers, ship FAQ blocks, and monitor AI
-              Overview coverage weekly.</p>
+              <p class="muted">Turn clusters into shareable briefs, ship FAQ blocks, and review AI Overview
+              coverage with zero spreadsheet work.</p>
             </div>
             <div class="callout-card">
               <strong>Product marketing</strong>
-              <p class="muted">Coordinate launches with geo playbooks that highlight local questions and
-              schema requirements.</p>
+              <p class="muted">Coordinate launches with geo playbooks that highlight local questions, proof
+              points, and structured data must-haves.</p>
             </div>
             <div class="callout-card">
               <strong>Engineering</strong>
-              <p class="muted">Consume JSON-LD + robots configs straight from the cockpit with zero manual
-              reformatting.</p>
+              <p class="muted">Paste JSON-LD and robots configs straight from Guru—no manual reformatting or
+              guesswork.</p>
             </div>
             <div class="callout-card">
               <strong>Exec dashboards</strong>
-              <p class="muted">Pipeline metrics from status pills and exports highlight how quickly AEO
-              responses can be shipped.</p>
+              <p class="muted">Status pills + export counts show how quickly your org can answer AI queries,
+              making it easy to celebrate momentum.</p>
             </div>
           </div>
           <div class="cta-row">
             <div>
-              <p class="muted">Ready to operationalize answer engine dominance?</p>
-              <h3>Spin up AEO Guru and connect your crawl today.</h3>
+              <p class="muted">Ready to tell a clearer answer engine story?</p>
+              <h3>Spin up AEO Guru, connect a crawl, and watch the opportunities appear.</h3>
             </div>
             <button class="primary-button">Schedule a run</button>
           </div>
+          <img src="/aeo-guru.svg" alt="AEO Guru watermark" class="logo-watermark" />
         </div>
       </section>
     </div>
