@@ -481,10 +481,13 @@
       }
 
       .provider-logo img {
-        height: 40px;
+        width: 100%;
+        max-width: 150px;
+        height: auto;
         object-fit: contain;
         filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.35));
-        margin-bottom: 0.6rem;
+        margin: 0 auto 0.6rem;
+        display: block;
       }
 
       .provider-logo span {
@@ -666,91 +669,32 @@
           </p>
           <div class="provider-logos">
             <div class="provider-logo">
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_DeepMind_logo.svg"
-                alt="Google DeepMind logo"
-              />
+              <img src="./google%20deep.png" alt="Google DeepMind logo" />
               <span>Google Gemini</span>
               <p>Gemini 1.5 Pro + Flash handle reasoning, summarization, and export copy.</p>
             </div>
             <div class="provider-logo">
-              <img src="https://lablab.ai/_nuxt/img/logo.82c407f.svg" alt="lablab.ai logo" />
+              <img src="./lablab.png" alt="lablab.ai logo" />
               <span>lablab.ai Arena</span>
               <p>AI Genesis infrastructure hosts the live demo track + judging arena.</p>
             </div>
             <div class="provider-logo">
-              <svg
-                width="109"
-                height="113"
-                viewBox="0 0 109 113"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                role="img"
-                aria-label="Supabase logo"
-              >
-                <path
-                  d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0627L99.1935 40.0627C107.384 40.0627 111.952 49.5228 106.859 55.9374L63.7076 110.284Z"
-                  fill="url(#supabase-gradient-a)"
-                />
-                <path
-                  d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0627L99.1935 40.0627C107.384 40.0627 111.952 49.5228 106.859 55.9374L63.7076 110.284Z"
-                  fill="url(#supabase-gradient-b)"
-                  fill-opacity="0.2"
-                />
-                <path
-                  d="M45.317 2.07103C48.1765 -1.53037 53.9745 0.442937 54.0434 5.041L54.4849 72.2922H9.83113C1.64038 72.2922 -2.92775 62.8321 2.1655 56.4175L45.317 2.07103Z"
-                  fill="#3ECF8E"
-                />
-                <defs>
-                  <linearGradient
-                    id="supabase-gradient-a"
-                    x1="53.9738"
-                    y1="54.974"
-                    x2="94.1635"
-                    y2="71.8295"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop stop-color="#249361" />
-                    <stop offset="1" stop-color="#3ECF8E" />
-                  </linearGradient>
-                  <linearGradient
-                    id="supabase-gradient-b"
-                    x1="36.1558"
-                    y1="30.578"
-                    x2="54.4844"
-                    y2="65.0806"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop />
-                    <stop offset="1" stop-opacity="0" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              <img src="./supabase.png" alt="Supabase logo" />
               <span>Supabase</span>
               <p>Auth + Postgres persistence secure users, workspaces, and audit trails.</p>
             </div>
             <div class="provider-logo">
-              <img src="https://assets.website-files.com/61f9e74b7672a614f55b1ec0/63ee5bc382eaa60ee0f86882_Qdrant.svg" alt="Qdrant logo" />
+              <img src="./qdrant.png" alt="Qdrant logo" />
               <span>Qdrant</span>
               <p>Holds semantic fingerprints + retrieval indexes for every artifact.</p>
             </div>
             <div class="provider-logo">
-              <svg
-                width="76"
-                height="65"
-                viewBox="0 0 76 65"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                role="img"
-                aria-label="Vercel logo"
-              >
-                <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" fill="#ffffff" />
-              </svg>
+              <img src="./vercel.png" alt="Vercel logo" />
               <span>Vercel</span>
               <p>Deploys the Next.js experience + background jobs on the edge.</p>
             </div>
             <div class="provider-logo">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub logo" />
+              <img src="./github.png" alt="GitHub logo" />
               <span>GitHub</span>
               <p>Source of truth for the repo, Actions CI, and community issue tracking.</p>
             </div>
