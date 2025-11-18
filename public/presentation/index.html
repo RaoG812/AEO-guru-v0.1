@@ -39,6 +39,66 @@
         padding: 0;
       }
 
+      .export-toolbar {
+        position: fixed;
+        top: 1.25rem;
+        right: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 0.75rem 1rem;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(8, 11, 24, 0.86);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
+        z-index: 99;
+        width: min(240px, 70vw);
+      }
+
+      .export-toolbar h2 {
+        margin: 0;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.28em;
+        color: var(--silver-400);
+      }
+
+      .export-button {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.8rem;
+        border: 1px solid rgba(139, 179, 255, 0.35);
+        border-radius: 999px;
+        padding: 0.65rem 1rem;
+        background: linear-gradient(120deg, rgba(139, 179, 255, 0.25), rgba(6, 8, 18, 0.9));
+        color: var(--silver-50);
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+      }
+
+      .export-button:hover,
+      .export-button:focus-visible {
+        transform: translateY(-1px);
+        border-color: rgba(139, 179, 255, 0.75);
+        outline: none;
+      }
+
+      .export-hotkey {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        color: var(--silver-200);
+      }
+
+      .export-hint {
+        margin: 0;
+        font-size: 0.78rem;
+        color: var(--silver-400);
+        line-height: 1.4;
+      }
+
       body::before {
         content: "";
         position: fixed;
@@ -139,6 +199,37 @@
         right: auto;
         left: 2rem;
         transform: rotate(9deg);
+      }
+
+      @media print {
+        body {
+          background: #fff;
+          color: #0b0d19;
+        }
+
+        .deck {
+          padding: 0;
+        }
+
+        .slide {
+          width: 100%;
+          aspect-ratio: auto;
+          min-height: auto;
+          background: #fff;
+          color: #0b0d19;
+          border: none;
+          box-shadow: none;
+          page-break-after: always;
+          break-inside: avoid;
+        }
+
+        .logo-watermark {
+          opacity: 0.08 !important;
+        }
+
+        .export-toolbar {
+          display: none;
+        }
       }
 
       .slide-content {
@@ -616,6 +707,16 @@
     </style>
   </head>
   <body>
+    <div class="export-toolbar" role="region" aria-label="Export options">
+      <h2>Export</h2>
+      <button type="button" class="export-button" data-export="print">
+        <span>Save deck as PDF</span>
+        <span class="export-hotkey">Ctrl / Cmd + P</span>
+      </button>
+      <p class="export-hint">
+        Click the button (or press the shortcut) to open your browser's print dialog and choose "Save as PDF".
+      </p>
+    </div>
     <div class="deck">
       <section class="slide hero-slide">
         <div class="slide-content">
@@ -1130,5 +1231,14 @@
         </div>
       </section>
     </div>
+    <script>
+      (function () {
+        const exportButton = document.querySelector('[data-export="print"]');
+        if (!exportButton) return;
+        exportButton.addEventListener("click", () => {
+          window.print();
+        });
+      })();
+    </script>
   </body>
 </html>
