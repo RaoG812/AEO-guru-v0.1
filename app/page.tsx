@@ -467,6 +467,7 @@ export default function HomePage() {
   const [vectorSummaryError, setVectorSummaryError] = useState<string | null>(null);
   const [activeClusterId, setActiveClusterId] = useState<string | null>(null);
   const [vectorSourcesOpen, setVectorSourcesOpen] = useState(false);
+  const [vectorSamplesExpanded, setVectorSamplesExpanded] = useState(false);
   const [status, setStatus] = useState<StatusState>(initialStatus);
   const [ingestMessage, setIngestMessage] = useState<string>("");
   const [clusterMessage, setClusterMessage] = useState<string>("");
@@ -867,6 +868,10 @@ export default function HomePage() {
   }, [vectorSummary]);
 
   useEffect(() => {
+    setVectorSamplesExpanded(false);
+  }, [vectorSummary?.totalPoints]);
+
+  useEffect(() => {
     const id = setInterval(() => {
       setVectorIndex((prev) => {
         const next = (prev + 1) % vectorPhrases.length;
@@ -884,6 +889,10 @@ export default function HomePage() {
   const activeVectorPhrase = vectorPhrases[vectorIndex];
   const vectorPhraseKey = `${vectorIndex}-${vectorDirection}`;
   const userEmail = session?.user?.email ?? (session?.user?.user_metadata as { email?: string })?.email;
+  const sourceVectorCount = useMemo(() => {
+    if (!vectorSummary?.sources?.length) return 0;
+    return vectorSummary.sources.reduce((sum, source) => sum + source.count, 0);
+  }, [vectorSummary]);
 
   function openLoginModal() {
     setLoginModalOpen(true);
@@ -2714,50 +2723,71 @@ export default function HomePage() {
                               </div>
                             </div>
                           </div>
-                          {vectorSummary.sources.length > 0 && (
+                          {vectorSummary.sources.length > 0 && sourceVectorCount > 0 && (
                             <div className="vector-sources">
                               <button
                                 type="button"
                                 className="link-button small"
                                 onClick={() => setVectorSourcesOpen(true)}
                               >
-                                View {vectorSummary.sources.length} sources
+                                View source breakdown ({sourceVectorCount.toLocaleString()} pages)
                               </button>
                             </div>
                           )}
                           {vectorSummary.samples.length > 0 ? (
-                            <ul className="vector-samples">
-                              {vectorSummary.samples.map((sample) => (
-                                <li key={sample.id} className="vector-sample">
-                                  <div className="vector-sample-head">
-                                    <div>
-                                      <strong>{sample.title ?? sample.url ?? sample.id}</strong>
-                                      {sample.url && <p className="muted vector-url">{sample.url}</p>}
-                                    </div>
-                                    <div className="vector-sample-meta">
-                                      {sample.intent && <span>{sample.intent}</span>}
-                                      {sample.lang && <span>{sample.lang}</span>}
-                                      {sample.primaryKeyword && <span>{sample.primaryKeyword}</span>}
-                                    </div>
-                                  </div>
-                                  <div className="vector-sample-meta">
-                                    <span>Magnitude: {formatMagnitude(sample.magnitude)}</span>
-                                    <span>Preview slice</span>
-                                  </div>
-                                  <div className="vector-preview" aria-label="Vector preview values">
-                                    {sample.preview.length > 0 ? (
-                                      sample.preview.map((value, index) => (
-                                        <span key={`${sample.id}-${index}`}>
-                                          {Number.isFinite(value) ? Number(value).toFixed(2) : "0.00"}
-                                        </span>
-                                      ))
-                                    ) : (
-                                      <span>No preview available</span>
-                                    )}
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
+                            <div className="vector-samples-shell">
+                              <div className="vector-samples-head">
+                                <p className="eyebrow">Sample vectors</p>
+                                <button
+                                  type="button"
+                                  className="ghost-button small"
+                                  onClick={() => setVectorSamplesExpanded((prev) => !prev)}
+                                  aria-expanded={vectorSamplesExpanded}
+                                >
+                                  {vectorSamplesExpanded
+                                    ? "Hide samples"
+                                    : `Preview ${vectorSummary.samples.length} samples`}
+                                </button>
+                              </div>
+                              {vectorSamplesExpanded ? (
+                                <ul className="vector-samples">
+                                  {vectorSummary.samples.map((sample) => (
+                                    <li key={sample.id} className="vector-sample">
+                                      <div className="vector-sample-head">
+                                        <div>
+                                          <strong>{sample.title ?? sample.url ?? sample.id}</strong>
+                                          {sample.url && <p className="muted vector-url">{sample.url}</p>}
+                                        </div>
+                                        <div className="vector-sample-meta">
+                                          {sample.intent && <span>{sample.intent}</span>}
+                                          {sample.lang && <span>{sample.lang}</span>}
+                                          {sample.primaryKeyword && <span>{sample.primaryKeyword}</span>}
+                                        </div>
+                                      </div>
+                                      <div className="vector-sample-meta">
+                                        <span>Magnitude: {formatMagnitude(sample.magnitude)}</span>
+                                        <span>Preview slice</span>
+                                      </div>
+                                      <div className="vector-preview" aria-label="Vector preview values">
+                                        {sample.preview.length > 0 ? (
+                                          sample.preview.map((value, index) => (
+                                            <span key={`${sample.id}-${index}`}>
+                                              {Number.isFinite(value) ? Number(value).toFixed(2) : "0.00"}
+                                            </span>
+                                          ))
+                                        ) : (
+                                          <span>No preview available</span>
+                                        )}
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="muted small">
+                                  Peek at enriched vectors without flooding the workspace layout.
+                                </p>
+                              )}
+                            </div>
                           ) : (
                             <p className="muted">No enriched vectors sampled yet.</p>
                           )}
