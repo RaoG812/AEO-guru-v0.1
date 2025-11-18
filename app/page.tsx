@@ -362,6 +362,7 @@ export default function HomePage() {
   >({});
   const [insightsModalOpen, setInsightsModalOpen] = useState(false);
   const [insightsUnlocked, setInsightsUnlocked] = useState(false);
+  const [insightsRequested, setInsightsRequested] = useState(false);
   const [insightsMessage, setInsightsMessage] = useState<string | null>(null);
 
   const supabase = useMemo<SupabaseClient | null>(() => {
@@ -785,15 +786,19 @@ export default function HomePage() {
 
   const openInsightsModal = useCallback(() => {
     if (!insightsUnlocked) return;
+    setInsightsRequested(false);
     setInsightsMessage(null);
     setInsightsModalOpen(true);
   }, [insightsUnlocked]);
 
   const closeInsightsModal = useCallback(() => {
+    setInsightsRequested(false);
+    setInsightsMessage(null);
     setInsightsModalOpen(false);
   }, []);
 
   const handleGenerateInsights = useCallback(() => {
+    setInsightsRequested(true);
     if (!clusters.length) {
       setInsightsMessage("Run ingestion and clustering to unlock fresh insights.");
       return;
@@ -1014,6 +1019,7 @@ export default function HomePage() {
         const clusterCount = json.clusters?.length ?? 0;
         const ready = clusterCount > 0;
         setInsightsUnlocked(ready);
+        setInsightsRequested(false);
         setInsightsMessage(null);
         if (ready) {
           setInsightsModalOpen(true);
@@ -2696,7 +2702,9 @@ export default function HomePage() {
               Get insights
             </button>
             <div className="insights-message" aria-live="polite">
-              {insightsMessage ?? "Waiting for your signal to brief the assistant."}
+              {insightsRequested
+                ? insightsMessage ?? "Interpreting the latest crawl insights…"
+                : "Tap the button above to generate a tailored summary from your clustered dataset."}
             </div>
           </div>
         </div>

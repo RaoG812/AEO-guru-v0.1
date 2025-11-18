@@ -1827,6 +1827,11 @@ main {
   font-size: 0.9rem;
   color: var(--silver-100);
   min-height: 78px;
+  max-height: 12rem;
+  overflow-y: auto;
+  line-height: 1.4;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .project-list-card {
