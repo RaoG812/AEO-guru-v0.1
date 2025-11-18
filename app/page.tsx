@@ -474,6 +474,7 @@ export default function HomePage() {
   const [vectorSummary, setVectorSummary] = useState<ProjectVectorSummary | null>(null);
   const [vectorSummaryLoading, setVectorSummaryLoading] = useState(false);
   const [vectorSummaryError, setVectorSummaryError] = useState<string | null>(null);
+  const [vectorSummaryRefreshKey, setVectorSummaryRefreshKey] = useState(0);
   const [activeClusterId, setActiveClusterId] = useState<string | null>(null);
   const [vectorSourcesOpen, setVectorSourcesOpen] = useState(false);
   const [vectorSamplesExpanded, setVectorSamplesExpanded] = useState(false);
@@ -539,6 +540,8 @@ export default function HomePage() {
   const [semanticYamlExpanded, setSemanticYamlExpanded] = useState(true);
   const manualNotesFieldId = useId();
   const semanticYamlFieldId = useId();
+  const projectPulseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [projectPulseId, setProjectPulseId] = useState<string | null>(null);
 
   const supabase = useMemo<SupabaseClient | null>(() => {
     try {
@@ -612,6 +615,13 @@ export default function HomePage() {
     });
   }, [clusters]);
 
+  useEffect(() => () => {
+    if (projectPulseTimeoutRef.current) {
+      clearTimeout(projectPulseTimeoutRef.current);
+      projectPulseTimeoutRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     if (!selectedProjectId) {
@@ -645,7 +655,7 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedProjectId]);
+  }, [selectedProjectId, vectorSummaryRefreshKey]);
 
   useEffect(() => {
     if (coreLoading || !workspaceScrollPendingRef.current) {
@@ -1112,6 +1122,14 @@ export default function HomePage() {
   }
 
   function handleSelectProject(id: string) {
+    if (projectPulseTimeoutRef.current) {
+      clearTimeout(projectPulseTimeoutRef.current);
+    }
+    setProjectPulseId(id);
+    projectPulseTimeoutRef.current = setTimeout(() => {
+      setProjectPulseId((current) => (current === id ? null : current));
+      projectPulseTimeoutRef.current = null;
+    }, 650);
     const project = projects.find((item) => item.id === id);
     if (project) {
       setIngestForm((prev) => ({
@@ -1170,6 +1188,7 @@ export default function HomePage() {
           `Embedded ${json.sectionsEmbedded} sections across ${json.pagesIngested} pages`
         );
         pushLog(`Ingested ${json.pagesIngested} pages for ${selectedProjectId}`);
+        setVectorSummaryRefreshKey((prev) => prev + 1);
       }
     } catch (error) {
       setIngestMessage((error as Error).message);
@@ -1365,6 +1384,7 @@ export default function HomePage() {
   }
 
   const clusterLang = clusters[0]?.lang;
+  const hasExistingIngestion = (vectorSummary?.totalPoints ?? 0) > 0;
   const hasExistingClusters = clusterInventory.count > 0 || clusters.length > 0;
 
   const lastSavedLabel = coreWorkspace.updatedAt
@@ -1782,9 +1802,27 @@ export default function HomePage() {
                     placeholder={"https://example.com/about\nhttps://example.com/blog/post"}
                   />
                 </label>
-                <button type="submit" className="primary-button" disabled={status.ingest}>
-                  {status.ingest ? "Embedding…" : "Start ingestion"}
-                </button>
+                <div className="ingest-actions">
+                  <button type="submit" className="primary-button" disabled={status.ingest}>
+                    {status.ingest
+                      ? "Embedding…"
+                      : hasExistingIngestion
+                      ? "Restart ingestion"
+                      : "Start ingestion"}
+                  </button>
+                  {hasExistingIngestion && (
+                    <button
+                      type="button"
+                      className="ghost-button compact"
+                      onClick={() => {
+                        setActiveWorkflow("cluster");
+                        scrollWorkspaceIntoView();
+                      }}
+                    >
+                      Proceed to clusters
+                    </button>
+                  )}
+                </div>
                 {ingestMessage && <p className="muted">{ingestMessage}</p>}
               </form>
             ) : (
@@ -2545,6 +2583,7 @@ export default function HomePage() {
                         role="button"
                         tabIndex={0}
                         aria-pressed={selectedProjectId === project.id}
+                        data-pulse={projectPulseId === project.id ? "true" : undefined}
                       >
                         <div>
                           <strong>{project.id}</strong>

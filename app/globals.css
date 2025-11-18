@@ -1633,6 +1633,11 @@ main {
   font-size: 0.85rem;
 }
 
+.ghost-button.compact {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+}
+
 .ghost-button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -1663,6 +1668,13 @@ main {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.ingest-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
 }
 
 .cluster-action-row {
@@ -1874,11 +1886,17 @@ main {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  isolation: isolate;
   transition:
     border-color 0.35s ease,
     background 0.35s ease,
     transform 0.35s ease,
     box-shadow 0.35s ease;
+}
+
+.project-item > * {
+  position: relative;
+  z-index: 2;
 }
 
 .project-item strong {
@@ -1899,21 +1917,52 @@ main {
   box-shadow: 0 12px 30px rgba(8, 14, 33, 0.45);
 }
 
+.project-item::before,
 .project-item::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 16px;
+  pointer-events: none;
+}
+
+.project-item::before {
+  inset: -40%;
+  background: radial-gradient(circle, rgba(139, 179, 255, 0.55), rgba(139, 179, 255, 0));
+  opacity: 0;
+  transform: scale(0.4);
+  z-index: 0;
+}
+
+.project-item::after {
   background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.25), transparent 55%);
   opacity: 0;
   transform: scale(0.85);
   transition: opacity 0.35s ease, transform 0.35s ease;
-  pointer-events: none;
+  z-index: 1;
 }
 
 .project-item.selected::after {
   opacity: 1;
   transform: scale(1);
+}
+
+.project-item[data-pulse="true"]::before {
+  animation: projectSelectPulse 0.7s ease-out forwards;
+}
+
+@keyframes projectSelectPulse {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.2);
+  }
+  70% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.25);
+  }
 }
 
 .project-item:focus-visible {
@@ -2058,13 +2107,14 @@ main {
   padding: 1rem;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.35);
+  background-color: rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   position: relative;
   overflow: hidden;
-  transition: border-color 0.3s ease, background 0.35s ease, transform 0.4s ease, box-shadow 0.4s ease;
+  isolation: isolate;
+  transition: border-color 0.3s ease, background-color 0.35s ease, transform 0.4s ease, box-shadow 0.4s ease;
   --cockpit-body-max: 0px;
   --cockpit-body-opacity: 0;
   --cockpit-body-translate: -6px;
@@ -2072,11 +2122,12 @@ main {
   --cockpit-body-visibility: hidden;
   --cockpit-body-padding: 0px;
   --cockpit-body-delay: 0.25s;
+  --cockpit-card-glow: 0.22;
 }
 
 .export-cockpit-card[data-active="true"] {
   border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.55);
+  background-color: rgba(0, 0, 0, 0.55);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   transform: translateY(-2px);
   --cockpit-body-max: 1000px;
@@ -2086,6 +2137,26 @@ main {
   --cockpit-body-visibility: visible;
   --cockpit-body-padding: 0.6rem;
   --cockpit-body-delay: 0s;
+  --cockpit-card-glow: 0.5;
+}
+
+.export-cockpit-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: radial-gradient(circle at 20% 0%, rgba(126, 161, 255, 0.25), transparent 55%),
+    linear-gradient(135deg, rgba(5, 9, 24, 0.9), rgba(3, 4, 12, 0.95));
+  opacity: var(--cockpit-card-glow);
+  transition: opacity 0.35s ease;
+  will-change: opacity;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.export-cockpit-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .export-cockpit-card h4 {
