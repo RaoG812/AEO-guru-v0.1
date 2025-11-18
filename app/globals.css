@@ -1451,7 +1451,7 @@ main {
   gap: 0.5rem;
 }
 
-.sleek-widget {
+.telemetry-widget {
   margin-top: 1.5rem;
   border-radius: 26px;
   padding: 1.5rem;
@@ -1463,24 +1463,24 @@ main {
   gap: 1.2rem;
 }
 
-.sleek-widget-head {
+.telemetry-widget-head {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   align-items: flex-start;
 }
 
-.sleek-widget-head h3 {
+.telemetry-widget-head h3 {
   margin: 0.2rem 0 0;
 }
 
-.sleek-widget-grid {
+.telemetry-widget-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 0.9rem;
 }
 
-.sleek-metric {
+.telemetry-metric {
   border-radius: 18px;
   padding: 0.95rem 1rem;
   background: rgba(0, 0, 0, 0.45);
@@ -1490,11 +1490,11 @@ main {
   gap: 0.3rem;
 }
 
-.sleek-metric strong {
+.telemetry-metric strong {
   font-size: 1.5rem;
 }
 
-.sleek-score-card {
+.telemetry-score-card {
   border-radius: 18px;
   padding: 1rem 1.2rem;
   background: rgba(0, 0, 0, 0.55);
@@ -1504,7 +1504,7 @@ main {
   gap: 0.5rem;
 }
 
-.sleek-score-value {
+.telemetry-score-value {
   display: flex;
   align-items: baseline;
   gap: 0.35rem;
@@ -1512,12 +1512,12 @@ main {
   font-weight: 600;
 }
 
-.sleek-score-value span {
+.telemetry-score-value span {
   font-size: 1rem;
   color: var(--silver-400);
 }
 
-.sleek-score-breakdown {
+.telemetry-score-breakdown {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;

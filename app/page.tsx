@@ -1974,10 +1974,10 @@ export default function HomePage() {
                   {ingestMessage && <p className="muted">{ingestMessage}</p>}
                 </form>
                 {hasExistingIngestion && vectorSummary && (
-                  <section className="sleek-widget" aria-live="polite">
-                    <div className="sleek-widget-head">
+                  <section className="telemetry-widget" aria-live="polite">
+                    <div className="telemetry-widget-head">
                       <div>
-                        <p className="eyebrow">Sleek widget</p>
+                        <p className="eyebrow">Vector telemetry console</p>
                         <h3>Ingestion results</h3>
                         <p className="muted small">Latest crawl coverage synced from Qdrant.</p>
                       </div>
@@ -1985,30 +1985,30 @@ export default function HomePage() {
                         {vectorSummary.totalPoints.toLocaleString()} vectors
                       </span>
                     </div>
-                    <div className="sleek-widget-grid">
-                      <div className="sleek-metric">
+                    <div className="telemetry-widget-grid">
+                      <div className="telemetry-metric">
                         <p className="muted small">Languages detected</p>
                         <strong>{vectorSummary.languages.length}</strong>
                       </div>
-                      <div className="sleek-metric">
+                      <div className="telemetry-metric">
                         <p className="muted small">Intent families</p>
                         <strong>{vectorSummary.intents.length}</strong>
                       </div>
-                      <div className="sleek-metric">
+                      <div className="telemetry-metric">
                         <p className="muted small">Source inputs</p>
                         <strong>{vectorSummary.sources.length}</strong>
                       </div>
                     </div>
-                    <div className="sleek-score-card">
+                    <div className="telemetry-score-card">
                       <p className="eyebrow">AEO/GEO optimization score</p>
                       {overallOptimizationScore ? (
                         <>
-                          <div className="sleek-score-value">
+                          <div className="telemetry-score-value">
                             <strong>{overallOptimizationScore.value}</strong>
                             <span>/100</span>
                           </div>
                           <p className="muted">{overallOptimizationScore.summary}</p>
-                          <div className="sleek-score-breakdown">
+                          <div className="telemetry-score-breakdown">
                             <span>Semantic avg {overallOptimizationScore.base}</span>
                             <span>
                               {overallOptimizationScore.geoBonus > 0
