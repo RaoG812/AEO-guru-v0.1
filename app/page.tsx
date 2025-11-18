@@ -484,6 +484,7 @@ function getFilenameFromDisposition(disposition: string | null) {
 export default function HomePage() {
   const dockNavRef = useRef<HTMLElement | null>(null);
   const heroRef = useRef<HTMLElement | null>(null);
+  const projectRegistryRef = useRef<HTMLElement | null>(null);
   const lensBlinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRobotsProjectRef = useRef<string | null>(null);
   const workspaceSectionRef = useRef<HTMLElement | null>(null);
@@ -590,8 +591,8 @@ export default function HomePage() {
   const guideBodyId = useId();
   const projectPulseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [projectPulseId, setProjectPulseId] = useState<string | null>(null);
-  const guidanceSteps = useMemo<GuidanceStep[]>(
-    () => [
+  const guidanceSteps = useMemo<GuidanceStep[]>(() => {
+    const steps: GuidanceStep[] = [
       {
         key: "overview",
         title: "Start from the dock",
@@ -603,27 +604,50 @@ export default function HomePage() {
       {
         key: "hero",
         title: "Get oriented",
-        body: "Sign in, review live stats, and understand which stack is powering your current workspace.",
+        body: session
+          ? "The hero shows your live stats and stack. Use the Sign out menu here whenever you swap accounts."
+          : "Sign in from the hero before continuing—your workspace controls stay locked until you authenticate.",
         placement: "right",
         targetRef: heroRef
       },
       {
-        key: "workflow",
-        title: "Work through each stage",
-        body: "Progress from ingesting URLs to clustering and finally exporting outputs. Selecting a tile reveals its tools.",
-        placement: "bottom",
-        targetRef: workspaceSectionRef
+        key: "projects",
+        title: "Unlock a workspace",
+        body: session
+          ? "Pick an existing project or create a new one to load crawls, clusters, and exports into the cockpit."
+          : "Once you sign in, this registry lists your crawls so you can choose where to work or spin up a project.",
+        placement: "top",
+        targetRef: projectRegistryRef
       },
       {
+        key: "workflow",
+        title: "Work through each stage",
+        body: "Follow the ingest → cluster → outputs flow. Selecting any tile reveals the tools housed in that workspace.",
+        placement: "bottom",
+        targetRef: workspaceSectionRef
+      }
+    ];
+
+    if (clusters.length > 0) {
+      steps.push({
         key: "vectors",
         title: "Explain your clusters",
         body: "Use the vector lab to inspect embeddings, magnitudes, and preview slices so insights stay grounded in data.",
         placement: "left",
         targetRef: vectorLabRef
-      }
-    ],
-    [dockNavRef, heroRef, workspaceSectionRef, vectorLabRef]
-  );
+      });
+    }
+
+    return steps;
+  }, [
+    clusters.length,
+    dockNavRef,
+    heroRef,
+    projectRegistryRef,
+    session,
+    vectorLabRef,
+    workspaceSectionRef
+  ]);
   const totalGuideSteps = guidanceSteps.length;
   const activeGuide = guideOpen ? guidanceSteps[guideStepIndex] : null;
   const activeGuideKey = activeGuide?.key ?? null;
@@ -2884,7 +2908,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="project-controls" aria-label="Project controls">
+        <section
+          className="project-controls"
+          aria-label="Project controls"
+          ref={projectRegistryRef}
+          data-guide-active={activeGuideKey === "projects" ? "true" : undefined}
+        >
           <article className="panel-card wide-panel">
             <div className="panel-header">
               <div>
