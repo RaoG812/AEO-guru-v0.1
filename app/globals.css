@@ -2233,7 +2233,7 @@ main {
   padding: 1rem;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background-color: rgba(0, 0, 0, 0.35);
+  background: #05060f;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -2252,7 +2252,7 @@ main {
 
 .export-cockpit-card[data-active="true"] {
   border-color: rgba(255, 255, 255, 0.18);
-  background-color: rgba(0, 0, 0, 0.55);
+  background: #090b18;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   transform: translateY(-2px);
   --cockpit-panel-rows: 1fr;
