@@ -576,12 +576,21 @@ export default function HomePage() {
       return;
     }
 
+    const runScroll = () => {
+      if (typeof window === "undefined") {
+        workspaceNode.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      const rect = workspaceNode.getBoundingClientRect();
+      const offset = Math.max(rect.top + window.scrollY - 48, 0);
+      window.scrollTo({ top: offset, behavior: "smooth" });
+    };
+
     if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
-      window.requestAnimationFrame(() => {
-        workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
-      });
+      window.requestAnimationFrame(runScroll);
     } else {
-      workspaceNode.scrollIntoView({ behavior: "smooth", block: "center" });
+      runScroll();
     }
   }, []);
   const scrollHeroIntoView = useCallback(() => {
