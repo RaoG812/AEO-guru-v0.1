@@ -8,6 +8,14 @@ const nextConfig = {
         pathname: "/s2/favicons*"
       }
     ]
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/presentation",
+        destination: "/presentation/index.html"
+      }
+    ];
   }
 };
 
