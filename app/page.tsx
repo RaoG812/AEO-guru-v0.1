@@ -2469,34 +2469,33 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        <section className="ops-metrics" aria-label="Operational dashboard">
-          <div className="hero-status-stack">
-            <div className="hero-status-card">
-              <p>Projects</p>
-              <strong>{projects.length}</strong>
+            <div className="hero-insights">
+              <div className="hero-status-stack">
+                <div className="hero-status-card">
+                  <p>Projects</p>
+                  <strong>{projects.length}</strong>
+                </div>
+                <div className="hero-status-card">
+                  <p>Clusters</p>
+                  <strong>{clusters.length}</strong>
+                </div>
+                <div className="hero-status-card">
+                  <p>Last activity</p>
+                  <strong>{logs[0] ?? "Awaiting activity"}</strong>
+                </div>
+              </div>
+              <div className="hero-status-pills">
+                <span className={`status-pill ${status.projects ? "active" : ""}`}>
+                  Projects {status.projects ? "refreshing" : "synced"}
+                </span>
+                <span className={`status-pill ${status.ingest ? "active" : ""}`}>
+                  Ingestion {status.ingest ? "running" : "idle"}
+                </span>
+                <span className={`status-pill ${status.clusters ? "active" : ""}`}>
+                  Clusters {status.clusters ? "building" : "ready"}
+                </span>
+              </div>
             </div>
-            <div className="hero-status-card">
-              <p>Clusters</p>
-              <strong>{clusters.length}</strong>
-            </div>
-            <div className="hero-status-card">
-              <p>Last activity</p>
-              <strong>{logs[0] ?? "Awaiting activity"}</strong>
-            </div>
-          </div>
-          <div className="hero-status-pills">
-            <span className={`status-pill ${status.projects ? "active" : ""}`}>
-              Projects {status.projects ? "refreshing" : "synced"}
-            </span>
-            <span className={`status-pill ${status.ingest ? "active" : ""}`}>
-              Ingestion {status.ingest ? "running" : "idle"}
-            </span>
-            <span className={`status-pill ${status.clusters ? "active" : ""}`}>
-              Clusters {status.clusters ? "building" : "ready"}
-            </span>
           </div>
         </section>
 
