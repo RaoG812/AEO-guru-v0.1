@@ -145,6 +145,7 @@ type GuidanceStep = {
   body: string;
   placement?: GuidancePlacement;
   targetRef?: MutableRefObject<HTMLElement | null> | null;
+  workflowTarget?: WorkflowKey;
 };
 
 type SpotlightRect = {
@@ -493,6 +494,9 @@ export default function HomePage() {
   const lastRobotsProjectRef = useRef<string | null>(null);
   const workspaceSectionRef = useRef<HTMLElement | null>(null);
   const vectorLabRef = useRef<HTMLElement | null>(null);
+  const ingestStageRef = useRef<HTMLDivElement | null>(null);
+  const clusterStageRef = useRef<HTMLDivElement | null>(null);
+  const outputsStageRef = useRef<HTMLDivElement | null>(null);
   const workspaceScrollPendingRef = useRef(false);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -565,6 +569,7 @@ export default function HomePage() {
   const [viewportSize, setViewportSize] = useState({ width: 1200, height: 900 });
   const guideTooltipRef = useRef<HTMLDivElement | null>(null);
   const [guideTooltipSize, setGuideTooltipSize] = useState({ width: 0, height: 0 });
+  const [dockAnchorTop, setDockAnchorTop] = useState<number | null>(null);
   const scrollWorkspaceIntoView = useCallback(() => {
     const workspaceNode = workspaceSectionRef.current;
     if (!workspaceNode) {
@@ -628,6 +633,33 @@ export default function HomePage() {
         body: "Follow the ingest → cluster → outputs flow. Selecting any tile reveals the tools housed in that workspace.",
         placement: "bottom",
         targetRef: workspaceSectionRef
+      },
+      {
+        key: "workflow-ingest",
+        title: "Kick off ingest",
+        body:
+          "Click Ingest to feed a crawl, embed its sections, and light up everything downstream. This tile keeps progress visible.",
+        placement: "bottom",
+        targetRef: ingestStageRef,
+        workflowTarget: "ingest"
+      },
+      {
+        key: "workflow-cluster",
+        title: "Shape semantic clusters",
+        body:
+          "Move into Cluster to inspect grouped intents, keyword overlaps, and the semantic-core form once embeddings finish.",
+        placement: "bottom",
+        targetRef: clusterStageRef,
+        workflowTarget: "cluster"
+      },
+      {
+        key: "workflow-outputs",
+        title: "Ship outputs",
+        body:
+          "End with Outputs to open the export cockpit, expand cards, and download schema, briefs, or robots guidance per project.",
+        placement: "bottom",
+        targetRef: outputsStageRef,
+        workflowTarget: "outputs"
       }
     ];
 
@@ -644,8 +676,11 @@ export default function HomePage() {
     return steps;
   }, [
     clusters.length,
+    clusterStageRef,
     dockNavRef,
     heroRef,
+    ingestStageRef,
+    outputsStageRef,
     projectRegistryRef,
     session,
     vectorLabRef,
@@ -841,6 +876,42 @@ export default function HomePage() {
       window.removeEventListener("scroll", handleRealign, true);
     };
   }, [guideOpen, guideStepIndex, updateGuideSpotlight]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const updateDockAnchor = () => {
+      if (window.innerWidth <= 900) {
+        setDockAnchorTop(null);
+        return;
+      }
+      const heroNode = heroRef.current;
+      if (!heroNode) return;
+      const rect = heroNode.getBoundingClientRect();
+      const heroAnchor = rect.top + rect.height * 0.65;
+      const viewportHeight = window.innerHeight;
+      const safeTop = Math.min(Math.max(heroAnchor, 120), viewportHeight - 120);
+      setDockAnchorTop(safeTop);
+    };
+    updateDockAnchor();
+    window.addEventListener("resize", updateDockAnchor);
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && heroRef.current) {
+      resizeObserver = new ResizeObserver(() => updateDockAnchor());
+      resizeObserver.observe(heroRef.current);
+    }
+    return () => {
+      window.removeEventListener("resize", updateDockAnchor);
+      resizeObserver?.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!guideOpen) return;
+    const step = guidanceSteps[guideStepIndex];
+    if (!step?.workflowTarget) return;
+    setActiveWorkflow(step.workflowTarget);
+    scrollWorkspaceIntoView();
+  }, [guideOpen, guidanceSteps, guideStepIndex, scrollWorkspaceIntoView]);
 
   useEffect(() => {
     if (!clusters.length) {
@@ -2836,6 +2907,7 @@ export default function HomePage() {
         className="dock-nav"
         aria-label="Primary"
         ref={dockNavRef}
+        style={dockAnchorTop !== null ? { top: `${dockAnchorTop}px` } : undefined}
         data-guide-active={activeGuideKey === "overview" ? "true" : undefined}
       >
         {dockButtons.map((button) => (
@@ -3077,22 +3149,31 @@ export default function HomePage() {
           ref={workspaceSectionRef}
           data-guide-active={activeGuideKey === "workflow" ? "true" : undefined}
         >
-          <div className="workflow-timeline">
-            <div className="workflow-timeline-flow">
-              {workflowTiles.map((tile, index) => {
-                const isActive = tile.key === activeWorkflow;
-                const showConnector = index < workflowTiles.length - 1;
-                return (
-                  <div
-                    key={tile.key}
-                    className={`workflow-stage ${tile.isComplete ? "is-complete" : ""} ${
-                      isActive ? "is-active" : ""
-                    } ${showConnector ? "has-connector" : "no-connector"}`}
-                  >
-                    <button
-                      type="button"
-                      className="workflow-stage-button"
-                      onClick={() => handleTileActivate(tile.key)}
+            <div className="workflow-timeline">
+              <div className="workflow-timeline-flow">
+                {workflowTiles.map((tile, index) => {
+                  const isActive = tile.key === activeWorkflow;
+                  const showConnector = index < workflowTiles.length - 1;
+                  const stageRef =
+                    tile.key === "ingest"
+                      ? ingestStageRef
+                      : tile.key === "cluster"
+                      ? clusterStageRef
+                      : tile.key === "outputs"
+                      ? outputsStageRef
+                      : null;
+                  return (
+                    <div
+                      key={tile.key}
+                      className={`workflow-stage ${tile.isComplete ? "is-complete" : ""} ${
+                        isActive ? "is-active" : ""
+                      } ${showConnector ? "has-connector" : "no-connector"}`}
+                      ref={stageRef ?? undefined}
+                    >
+                      <button
+                        type="button"
+                        className="workflow-stage-button"
+                        onClick={() => handleTileActivate(tile.key)}
                       aria-pressed={isActive}
                       aria-expanded={isActive}
                     >
