@@ -875,6 +875,11 @@ export default function HomePage() {
     const heroNode = heroRef.current;
     if (!heroNode || !heroInView) return;
 
+    const isCoarsePointer =
+      typeof window !== "undefined" && typeof window.matchMedia === "function"
+        ? window.matchMedia("(pointer: coarse)").matches
+        : false;
+
     const setDefaultPosition = () => {
       const rect = heroNode.getBoundingClientRect();
       heroNode.style.setProperty("--cursor-x", `${rect.width / 2}px`);
@@ -894,6 +899,13 @@ export default function HomePage() {
 
     setDefaultPosition();
     resetLensRadius();
+
+    if (isCoarsePointer) {
+      heroNode.style.setProperty("--lens-opacity", "0.2");
+      heroNode.style.setProperty("--reveal-opacity", "0");
+      return () => undefined;
+    }
+
     heroNode.style.setProperty("--lens-opacity", "0.3");
     heroNode.style.setProperty("--reveal-opacity", "0");
 
